@@ -65,7 +65,7 @@ class SignUpView extends GetView<SignUpViewController> {
                       // textString:
                       //     "Please enter your phone number to sign in. You will receive an OTP.",
                       textString:
-                          DynamicAppLocalizations.of(context).t("please_enter_phone_number_to_sign_in"),
+                          DynamicAppLocalizations.of(context).t("signup_title"),
                       textSize: FontSize().appBar,
                       numberOfLines: 5,
                       isFontBold: false,
@@ -98,7 +98,7 @@ class SignUpView extends GetView<SignUpViewController> {
                           child: CustomElevatedButtonWidget(
                             buttonKey: const Key('btn-login-button'),
                             isLoading: ctrl.isLoading.value,
-                            buttonText: 'Send OTP',
+                            buttonText: DynamicAppLocalizations.of(context).t("send_otp"),
                             onPressed: () {
                               if (!ctrl.isLoading.value &&
                                   ctrl.formKey.value.currentState!.validate()) {

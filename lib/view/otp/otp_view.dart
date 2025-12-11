@@ -77,7 +77,7 @@ class VerifyOtpView extends GetView<OtpViewController> {
                             const SizedBox(height: 16),
                             Center(
                               child: CustomTextWidget(
-                                textString: DynamicAppLocalizations.of(Get.context!).t("sent_otp_description"),
+                                textString: DynamicAppLocalizations.of(Get.context!).t("enter_otp"),
                                 textSize: FontSize().small,
                                 isFontBold: false,
                                 fontColor: AppColors.grey400,
