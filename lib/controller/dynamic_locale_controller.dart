@@ -6,17 +6,18 @@ import 'home_controller.dart';
 class DynamicLocaleController extends GetxController {
   HomeController homeController = Get.put(HomeController());
   final labels = <String, String>{}.obs;
-final RxString versionString = ''.obs;
-  void setLabels(List<DynamicLabel> list) async {
+  final RxString versionString = ''.obs;
+  void setLabels(List<DynamicLabel> list, {bool isFromCache = false}) async {
     labels.clear();
     for (var item in list) {
-       if (item.key == "@@labels_version@@") {
+      if (item.key == "@@labels_version@@") {
         versionString.value = item.value;
         homeController.labelLanguageVersion.value = item.value;
-        await LocalDB().setLabelLanguageVersion(item.value.toString());
-        await LocalDB().reloadSharedPref();
-        await homeController.reload();
-        continue;
+        if (!isFromCache) {
+          await LocalDB().setLabelLanguageVersion(item.value.toString());
+          await LocalDB().reloadSharedPref();
+          await homeController.reload();
+        }
       }
       labels[item.key] = item.value;
     }
@@ -25,7 +26,7 @@ final RxString versionString = ''.obs;
 
   String trApi(String key, {Map<String, dynamic>? params}) {
     if (!labels.containsKey(key)) return key; // fallback to key itself
-    
+
     String value = labels[key]!;
 
     if (params != null) {

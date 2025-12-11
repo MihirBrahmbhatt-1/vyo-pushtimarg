@@ -16,6 +16,7 @@ class SettingsViewController extends GetxController {
     await LocalDB().setDashboardHtmlCache('');
     await LocalDB().setDashboardImageSliderCache('');
     await LocalDB().setLabelLanguageVersion('');
+    await LocalDB().setLanguageLabelsCache('');
     await LocalDB().removeJwtToken();
     homeController.jwtToken.value = '';
     homeController.isLoggedIn.value = false;

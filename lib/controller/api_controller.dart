@@ -28,7 +28,6 @@ import '../utility/local_db.dart';
 import '../widget/common_widget.dart';
 import 'dynamic_locale_controller.dart';
 import 'home_controller.dart';
-import 'language_controller.dart';
 
 class ApiController extends GetxController {
   HomeController homeController = Get.put(HomeController());
@@ -200,6 +199,21 @@ class ApiController extends GetxController {
 
   getLanguageLabels(String languageId) async {
     try {
+      final cachedJson = await LocalDB().getLanguageLabelsCache();
+      if (cachedJson != null && cachedJson.isNotEmpty) {
+        final List<dynamic> cachedList = json.decode(cachedJson);
+        final List<DynamicLabel> cachedLabels = cachedList
+            .map<DynamicLabel>((e) => DynamicLabel.fromJson(e))
+            .toList();
+
+        final dynamicCtrl = Get.put(DynamicLocaleController());
+
+        dynamicCtrl.setLabels(cachedLabels, isFromCache: true);
+      }
+    } catch (e) {
+      talker.error('Exception loading language labels from cache: $e');
+    }
+    try {
       var request = <String, String>{};
       request["language_id"] = languageId;
 
@@ -230,8 +244,10 @@ class ApiController extends GetxController {
             }
           }
 
-          final dynamicCtrl = Get.put(DynamicLocaleController());
+          final labelsJsonToCache = json.encode(apiBaseResponse.data);
+          await LocalDB().setLanguageLabelsCache(labelsJsonToCache);
 
+          final dynamicCtrl = Get.put(DynamicLocaleController());
           dynamicCtrl.setLabels(list);
           talker.debug('----Label Language list updated------');
           await LocalDB().setLabelLanguageVersion(versionString.value);
@@ -1280,7 +1296,7 @@ class ApiController extends GetxController {
 
     String? storedVersion = await LocalDB().getLabelLanguageVersion() ?? '';
     bool shouldUpdate = false;
-
+    print('shouldUpdate: $shouldUpdate');
     if (storedVersion.isEmpty) {
       shouldUpdate = true;
     } else {
@@ -1298,15 +1314,28 @@ class ApiController extends GetxController {
 
     if (shouldUpdate) {
       talker.info('Label version mismatch/new. Updating labels.');
-      final langController = Get.find<LanguageController>();
-      await langController.loadLanguage();
 
       if (homeController.selectedLanguageId.value.isNotEmpty) {
         await getLanguageLabels(homeController.selectedLanguageId.value);
       }
 
-      // Note: You should save the new version here after successful download!
       await LocalDB().setLabelLanguageVersion(versionString);
+    } else {
+      try {
+        final cachedJson = await LocalDB().getLanguageLabelsCache();
+        if (cachedJson != null && cachedJson.isNotEmpty) {
+          final List<dynamic> cachedList = json.decode(cachedJson);
+          final List<DynamicLabel> cachedLabels = cachedList
+              .map<DynamicLabel>((e) => DynamicLabel.fromJson(e))
+              .toList();
+
+          final dynamicCtrl = Get.put(DynamicLocaleController());
+
+          dynamicCtrl.setLabels(cachedLabels, isFromCache: true);
+        }
+      } catch (e) {
+        talker.error('Exception loading language labels from cache: $e');
+      }
     }
   }
 
