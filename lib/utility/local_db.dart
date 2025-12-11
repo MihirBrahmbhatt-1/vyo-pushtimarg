@@ -23,6 +23,7 @@ class LocalDB {
   final selectedLanguageIdKey = "selectedLanguageIdKey";
   final isUserExistsKey = "isUserExistsKey";
   final labelLanguageVersionKey = "labelLanguageVersionKey";
+  final labelLanguageVersionCacheKey = "labelLanguageVersionCacheKey";
   final dashboardVersionKey = "dashboardVersionKey";
   final dashboardSliderVersionKey = "dashboardSliderVersionKey";
   final isUserProfileCompletedKey = "isUserProfileCompletedKey";
@@ -130,6 +131,15 @@ class LocalDB {
     return sharedPreferences.getString(labelLanguageVersionKey);
   }
 
+  Future<bool> setLanguageLabelsCache(String labelLanguageVersion) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return await sharedPreferences.setString(labelLanguageVersionCacheKey, labelLanguageVersion);
+  }
+
+  Future<String?> getLanguageLabelsCache() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return sharedPreferences.getString(labelLanguageVersionCacheKey);
+  }
 
 
   Future<bool> setDashboardVersion(String dashboardVersion) async {
