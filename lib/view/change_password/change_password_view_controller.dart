@@ -56,6 +56,7 @@ class ChangePasswordController extends GetxController {
       await LocalDB().setDashboardImageSliderCache('');
       await LocalDB().setLabelLanguageVersion('');
       await LocalDB().setLanguageLabelsCache('');
+      await LocalDB().setUserPassword('');
       await LocalDB().removeJwtToken();
       homeController.jwtToken.value = '';
       homeController.isLoggedIn.value = false;

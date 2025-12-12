@@ -38,7 +38,7 @@ class _CustomElevatedButtonState extends State<CustomElevatedButton> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: widget.width ?? double.infinity,
+      width: widget.width ?? 200,
       height: widget.height ?? 45,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(

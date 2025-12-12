@@ -44,7 +44,7 @@ class SignUpViewController extends GetxController {
         await LocalDB().setIsUserExists(apiController.sendOtpResponseModel.value!.isUserExist!);
         await LocalDB().reloadSharedPref();
         await homeController.reload();
-        Get.toNamed(Routes.verifyotp, arguments: {'otp': apiController.sendOtpResponseModel.value?.otpCode.toString()},);
+        Get.toNamed(Routes.verifyotp, arguments: {'verificationId': apiController.sendOtpResponseModel.value?.verificationId.toString(), 'phoneNumber': phoneNumberTextController.value.text.toString(), 'countryCode': selectedCountry.value.dialCode});
         phoneNumberTextController.text = '';
         isLoading.value = false;
       } else {

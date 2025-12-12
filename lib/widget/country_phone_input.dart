@@ -185,7 +185,7 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                 textString: widget.errorText.value,
                 textSize: FontSize().small,
                 fontColor: AppColors.red,
-                isFontUnderline: true,
+                isFontUnderline: false,
               ),
             ),
         ],

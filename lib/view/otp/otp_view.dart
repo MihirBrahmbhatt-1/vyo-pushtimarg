@@ -5,12 +5,9 @@ import '../../const/app_assets.dart';
 import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
-import '../../navigation/pages.dart';
-import '../../utility/local_db.dart';
 import '../../widget/custom_button_widget.dart';
 import '../../widget/custom_icon_widget.dart';
 import '../../widget/custom_text_widget.dart';
-import '../dashboard/dashboard_view_controller.dart';
 import 'otp_view_controller.dart';
 
 class VerifyOtpView extends GetView<OtpViewController> {
@@ -216,35 +213,7 @@ class VerifyOtpView extends GetView<OtpViewController> {
                                         if (controller.allFilled.value ==
                                             false) {
                                         } else {
-                                          if (controller.fetchOtpString.value
-                                                  .toString() !=
-                                              controller.userEnteredOtp.value) {
-                                          } else {
-                                            controller.isLoading.value = true;
-                                            Future.delayed(
-                                              Duration(seconds: 3),
-                                            ).then((value) async {
-                                              await LocalDB().setIsLoggedIn(
-                                                true,
-                                              );
-                                              await LocalDB()
-                                                  .reloadSharedPref();
-                                              controller
-                                                      .homeController
-                                                      .selectedIndex
-                                                      .value =
-                                                  0;
-                                              controller.homeController
-                                                  .update();
-                                              
-                                              Get.put(
-                                                DashboardViewController(),
-                                              );
-                                              Get.offAllNamed(Routes.home);
-                                              controller.isLoading.value =
-                                                  false;
-                                            });
-                                          }
+                                          controller.validateOtp();
                                         }
                                       },
                                     ),

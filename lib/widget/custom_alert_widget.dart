@@ -74,9 +74,11 @@ class CustomAlertWidget {
           ),
           const SizedBox(height: 5),
           CustomTextWidget(
-            textString: displayText.isNotEmpty ? DynamicAppLocalizations.of(
-              Get.context!,
-            ).t(displayText.toString()) : '',
+            textString: displayText.isNotEmpty
+                ? DynamicAppLocalizations.of(
+                    Get.context!,
+                  ).t(displayText.toString())
+                : '',
             textSize: FontSize().xmedium,
             isFontBold: false,
             fontColor: AppColors.black,
@@ -86,9 +88,11 @@ class CustomAlertWidget {
           ),
           SizedBox(height: displaySubText == null ? 0 : 6),
           CustomTextWidget(
-            textString: displaySubText != null ? DynamicAppLocalizations.of(
-              Get.context!,
-            ).t(displaySubText.toString()) : '',
+            textString: displaySubText != null
+                ? DynamicAppLocalizations.of(
+                    Get.context!,
+                  ).t(displaySubText.toString())
+                : '',
             textSize: FontSize().regular,
             isFontBold: false,
             fontColor: AppColors.black,
@@ -161,19 +165,24 @@ class CustomAlertWidget {
             backgroundColor: AppColors.white,
             radius: 50,
             child: Lottie.asset(
-              'assets/lottie/exclamation.json',
               delegates: LottieDelegates(
                 values: [
                   ValueDelegate.colorFilter(
                     // Target every shape fill
-                    const ['**'],
-                    value: ColorFilter.mode(AppColors.red, BlendMode.srcIn),
+                    const ['Dot', 'Line'],
+                    value: ColorFilter.mode(
+                      AppColors.primaryColor,
+                      BlendMode.srcOver,
+                    ),
                   ),
                 ],
               ),
-              width: 100,
-              height: 100,
+              'assets/lottie/exclamation.json',
+              width: 80,
+              height: 80,
               fit: BoxFit.contain,
+              repeat: false,
+              animate: true,
             ),
           ),
           const SizedBox(height: 6),

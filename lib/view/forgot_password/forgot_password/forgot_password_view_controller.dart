@@ -61,7 +61,7 @@ class ForgotPasswordViewController extends GetxController with WidgetsBindingObs
       isLoading.value = true;
       bool result = await apiController.sendForgotPasswordOtp(phoneNumberTextController.text, '+${selectedCountry.value.dialCode}');
       if (result) {
-        Get.toNamed(Routes.forgotpasswordverifyotp, arguments: {'otp': apiController.forgotPasswordsendOtpResponseModel.value?.otpCode.toString()},);
+        Get.toNamed(Routes.forgotpasswordverifyotp, arguments: {'verificationId': apiController.sendOtpResponseModel.value?.verificationId.toString(), 'phoneNumber': phoneNumberTextController.value.text.toString(), 'countryCode': selectedCountry.value.dialCode});
         isLoading.value = false;
       } else {
         isLoading.value = false;

@@ -7,6 +7,7 @@ class SendOtpResponseModel {
   String? createdAt;
   String? expiresAt;
   bool? isUserExist;
+  String? verificationId;
 
   SendOtpResponseModel({
     this.countryCode,
@@ -17,6 +18,7 @@ class SendOtpResponseModel {
     this.createdAt,
     this.expiresAt,
     this.isUserExist,
+    this.verificationId,
   });
 
   SendOtpResponseModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class SendOtpResponseModel {
     createdAt = json['created_at'];
     expiresAt = json['expires_at'];
     isUserExist = json['is_user_exist'] ?? false;
+    verificationId = json['verification_id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -40,6 +43,7 @@ class SendOtpResponseModel {
     data['created_at'] = createdAt;
     data['expires_at'] = expiresAt;
     data['is_user_exist'] = isUserExist;
+    data['verification_id'] = verificationId;
     return data;
   }
 }
