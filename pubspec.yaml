@@ -84,6 +84,7 @@ flutter:
     - assets/icons/otp-code.png
     - assets/images/app_logo.png
     - assets/images/toran.png
+    - assets/images/pray.png
     - assets/images/daily_pranali_header.png
     - assets/lottie/lock.json
     - assets/lottie/exception.json

@@ -37,6 +37,8 @@ class LocalDB {
   final userDOBKey = 'userDOBKey';
   final dashboardHtmlCacheKey = 'dashboardHtmlCacheKey';
   final dashboardimageSliderCacheKey = 'dashboardimageSliderCacheKey';
+  final forgotPasswordOtpResendAttemptsKey = 'forgotPasswordOtpResendAttemptsKey';
+  final forgotPasswordOtpNextResendTimeKey = 'forgotPasswordOtpNextResendTimeKey';
 
   Future<bool> setIsLanguageSelected(bool isLanguageSelected) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -139,6 +141,27 @@ class LocalDB {
   Future<String?> getLanguageLabelsCache() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     return sharedPreferences.getString(labelLanguageVersionCacheKey);
+  }
+
+
+  Future<bool> setForgotPasswordOtpAttempts(int forgotPasswordOtpAttempts) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return await sharedPreferences.setInt(forgotPasswordOtpResendAttemptsKey, forgotPasswordOtpAttempts);
+  }
+
+  Future<int?> getForgotPasswordOtpAttempts() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return sharedPreferences.getInt(forgotPasswordOtpResendAttemptsKey);
+  }
+
+  Future<bool> setForgotPasswordOtpNextResendTime(String forgotPasswordOtpAttempts) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return await sharedPreferences.setString(forgotPasswordOtpNextResendTimeKey, forgotPasswordOtpAttempts);
+  }
+
+  Future<String?> getForgotPasswordOtpNextResendTime() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return sharedPreferences.getString(forgotPasswordOtpNextResendTimeKey);
   }
 
 

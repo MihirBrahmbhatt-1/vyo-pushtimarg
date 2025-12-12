@@ -46,5 +46,6 @@ class AppApi {
       late String userSurveyCompleteApiUrl = '${baseUrl}survey/surveycomplete';
       late String dashboardHtmlSectionApiUrl = '${baseUrl}dashboard/sections';
       late String dashboardImageSlidersApiUrl = '${baseUrl}dashboard/sliders';
+      late String validateOtpApiUrl = '${baseUrl}common/validateotp';
 }
 

@@ -7,7 +7,9 @@ import '../const/app_constant.dart';
 import '../controller/api_controller.dart';
 import '../controller/home_controller.dart';
 import '../localization/dynamic_app_localizations.dart';
+import '../navigation/pages.dart';
 import '../utility/local_db.dart';
+import '../view/dashboard/dashboard_view_controller.dart';
 import 'custom_alert_widget.dart';
 
 class UserPopupController extends GetxController {
@@ -57,6 +59,9 @@ class UserPopupController extends GetxController {
   RxBool isLoading = false.obs;
   RxBool hasMinLength = false.obs;
   RxBool isConfirmPasswordValid = false.obs;
+
+  late BuildContext dialogContext;
+
 
   // UI list of string names
   RxList<String> countryNames = <String>[].obs;
@@ -226,18 +231,25 @@ class UserPopupController extends GetxController {
         await LocalDB().setIsUserExists(true);
         await LocalDB().reloadSharedPref();
         await homeController.reload();
-        isLoading.value = false;
+
         await apiController.fetchVersionsList(
           isUserLoggedIn: true,
           jwtToken: homeController.jwtToken.value,
         );
-        Get.back();
 
         CustomAlertWidget().infoAlertDialog(
           displayText: apiResponse['message'],
           buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
           statusType: true,
         );
+        
+        homeController.selectedIndex.value = 0;
+        homeController.update();
+
+        Get.put(DashboardViewController());
+        Get.offAllNamed(Routes.home);
+        isLoading.value = false;
+
       } else {
         isLoading.value = false;
       }

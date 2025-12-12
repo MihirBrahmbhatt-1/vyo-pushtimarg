@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../view/change_password/change_password_view.dart';
 import '../view/forgot_password/forgot_password/forgot_password_view.dart';
 import '../view/forgot_password/otp/otp_view.dart';
+import '../view/forgot_password/otp/otp_view_controller.dart';
 import '../view/forgot_password/reset_password/reset_password_view.dart';
 import '../view/home/home_view.dart';
 import '../view/language/language_selection_view.dart';
@@ -78,6 +79,9 @@ class Pages {
       page: () => OtpView(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 200),
+      binding: BindingsBuilder(() {
+        Get.put(OtpViewController());
+      }),
     ),
     GetPage(
       name: _Paths.resetpassword,

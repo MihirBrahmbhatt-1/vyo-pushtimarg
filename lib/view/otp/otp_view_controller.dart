@@ -8,6 +8,9 @@ import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
+import '../../navigation/pages.dart';
+import '../../utility/local_db.dart';
+import '../dashboard/dashboard_view_controller.dart';
 
 class OtpViewController extends GetxController with WidgetsBindingObserver {
   RxInt otpTextLength = 6.obs;
@@ -38,6 +41,9 @@ class OtpViewController extends GetxController with WidgetsBindingObserver {
   RxBool allFilled = false.obs;
 
   RxString fetchOtpString = ''.obs;
+  RxString fetchVerificationId = ''.obs;
+  RxString fetchUserPhoneNumber = ''.obs;
+  RxString fetchUserCountryCode = ''.obs;
 
   @override
   void onInit() async {
@@ -47,7 +53,9 @@ class OtpViewController extends GetxController with WidgetsBindingObserver {
       (_) => TextEditingController(),
     );
     focusNodes = List.generate(otpTextLength.value, (_) => FocusNode());
-    fetchOtpString.value = Get.arguments['otp'];
+    fetchVerificationId.value = Get.arguments['verificationId'];
+    fetchUserPhoneNumber.value = Get.arguments['phoneNumber'];
+    fetchUserCountryCode.value = Get.arguments['countryCode'];
     super.onInit();
   }
 
@@ -144,5 +152,27 @@ class OtpViewController extends GetxController with WidgetsBindingObserver {
         );
       },
     );
+  }
+
+  validateOtp() async {
+    isLoading.value = true;
+    bool isSuccess = await apiController.validateUserOtp(
+      phoneNumber: fetchUserPhoneNumber.toString(),
+      countryCode: fetchUserCountryCode.toString(),
+      userEnteredOtp: userEnteredOtp.toString(),
+      verificationId: fetchVerificationId.toString(),
+    );
+    if (isSuccess) {
+      await LocalDB().setIsLoggedIn(true);
+      await LocalDB().reloadSharedPref();
+
+      homeController.selectedIndex.value = 0;
+      homeController.update();
+
+      Get.put(DashboardViewController());
+      Get.offAllNamed(Routes.home);
+      isLoading.value = false;
+    }
+    isLoading.value = false;
   }
 }
