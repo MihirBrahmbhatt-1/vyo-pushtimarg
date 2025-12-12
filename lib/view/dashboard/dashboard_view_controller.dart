@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:m_vyo_demo/widget/custom_button_widget.dart';
 
 // import '../../const/logger.dart';
@@ -139,7 +140,9 @@ class DashboardViewController extends GetxController
 
   fetchSevaPranalikaDetails() async {
     if (homeController.jwtToken.value.isNotEmpty) {
+      String formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
       await apiController.fetchDashboardSevaPranalika(
+        date: formattedDate,
         jwtToken: homeController.jwtToken.value,
       );
       displaySevaPranalikaAlert();
