@@ -416,7 +416,9 @@ class ApiController extends GetxController {
 
             await getUserProfileByPhoneNumber(
               phoneNumber: phoneNumber,
-              jwtToken: homeController.jwtToken.value,
+              jwtToken: userDetailsResponseModel
+                  .value!
+                  .jwtToken.toString(),
             );
             return result;
           } else {
@@ -840,6 +842,9 @@ class ApiController extends GetxController {
               );
               await LocalDB().setUserPhoneNumber(
                 loginResponseModel.value!.mobileNo.toString(),
+              );
+              await LocalDB().setUserPassword(
+                password.toString(),
               );
               await LocalDB().setCountryCode(
                 loginResponseModel.value!.mobileCountryCode.toString(),
@@ -1273,6 +1278,48 @@ class ApiController extends GetxController {
     }
   }
 
+  Future<dynamic> validateUserOtp(
+  {required String phoneNumber,
+  required String countryCode,
+  required String verificationId,
+  required String userEnteredOtp}
+  ) async {
+    try {
+      if (await ApiServiceInterceptor.checkInternet()) {
+        Map<String, String> body = <String, String>{};
+        body['mobile_number'] = phoneNumber.toString();
+        body['country_code'] = countryCode.toString();
+        body['verification_id'] = verificationId.toString();
+        body['otp_code'] = userEnteredOtp.toString();
+
+        Map<String, String> header = {};
+        var response = await ApiServiceInterceptor.postDecryptLambdaCall(
+          url: AppApi().validateOtpApiUrl,
+          header: header,
+          body: json.encode(body),
+        );
+        if (homeController.statusCode.value == 200) {
+          var convertedResponse = json.decode(response);
+          ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+            convertedResponse,
+          );
+          if (apiBaseResponse.statusCode == 209) {
+            // sendOtpResponseModel.value = SendOtpResponseModel.fromJson(
+            //   apiBaseResponse.data,
+            // );
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+    } catch (e) {
+      talker.error('Exception in sendPhoneNumberOTP API: $e');
+    }
+  }
+
   // HELPERS
   // ... inside ApiController class ...
 
@@ -1296,7 +1343,6 @@ class ApiController extends GetxController {
 
     String? storedVersion = await LocalDB().getLabelLanguageVersion() ?? '';
     bool shouldUpdate = false;
-    print('shouldUpdate: $shouldUpdate');
     if (storedVersion.isEmpty) {
       shouldUpdate = true;
     } else {

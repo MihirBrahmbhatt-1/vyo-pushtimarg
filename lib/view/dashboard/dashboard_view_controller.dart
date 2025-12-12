@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:m_vyo_demo/widget/custom_button_widget.dart';
 
 // import '../../const/logger.dart';
 import '../../const/app_assets.dart';
@@ -141,11 +142,11 @@ class DashboardViewController extends GetxController
       await apiController.fetchDashboardSevaPranalika(
         jwtToken: homeController.jwtToken.value,
       );
-      displayCustomAlert();
+      displaySevaPranalikaAlert();
     }
   }
 
-  displayCustomAlert() {
+  displaySevaPranalikaAlert() {
     return Get.defaultDialog(
       title: "",
       titleStyle: TextStyle(fontSize: 0),
@@ -160,14 +161,13 @@ class DashboardViewController extends GetxController
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Image.asset(AppIcons.toran, fit: BoxFit.fitHeight),
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Container(
-                width: 100,
                 height: 50,
                 decoration: BoxDecoration(
                   color: AppColors.white,
@@ -248,7 +248,7 @@ class DashboardViewController extends GetxController
                           Container(
                             constraints: BoxConstraints(
                               minWidth: Get.width * 0.30,
-                              maxWidth: Get.width * 0.50,
+                              maxWidth: Get.width * 0.40,
                             ),
                             child: CustomTextWidget(
                               fontColor: AppColors.primaryColor,
@@ -258,8 +258,8 @@ class DashboardViewController extends GetxController
                                   .date
                                   .toString(),
 
-                              textSize: FontSize().medium,
-                              numberOfLines: 2,
+                              textSize: FontSize().xmedium,
+                              numberOfLines: 4,
                               isFontBold: false,
                               isFontUnderline: false,
                               fontStyle: FontStyle.normal,
@@ -297,7 +297,7 @@ class DashboardViewController extends GetxController
                           Container(
                             constraints: BoxConstraints(
                               minWidth: Get.width * 0.30,
-                              maxWidth: Get.width * 0.50,
+                              maxWidth: Get.width * 0.40,
                             ),
                             child: CustomTextWidget(
                               fontColor: AppColors.primaryColor,
@@ -307,8 +307,8 @@ class DashboardViewController extends GetxController
                                   .miti
                                   .toString(),
 
-                              textSize: FontSize().medium,
-                              numberOfLines: 2,
+                              textSize: FontSize().xmedium,
+                              numberOfLines: 4,
                               isFontBold: false,
                               isFontUnderline: false,
                               fontStyle: FontStyle.normal,
@@ -351,7 +351,7 @@ class DashboardViewController extends GetxController
                               Container(
                                 constraints: BoxConstraints(
                                   minWidth: Get.width * 0.30,
-                                  maxWidth: Get.width * 0.50,
+                                  maxWidth: Get.width * 0.40,
                                 ),
                                 child: CustomTextWidget(
                                   fontColor: AppColors.primaryColor,
@@ -392,7 +392,7 @@ class DashboardViewController extends GetxController
                               Container(
                                 constraints: BoxConstraints(
                                   minWidth: Get.width * 0.30,
-                                  maxWidth: Get.width * 0.50,
+                                  maxWidth: Get.width * 0.40,
                                 ),
                                 child: CustomTextWidget(
                                   fontColor: AppColors.primaryColor,
@@ -434,7 +434,7 @@ class DashboardViewController extends GetxController
                               Container(
                                 constraints: BoxConstraints(
                                   minWidth: Get.width * 0.30,
-                                  maxWidth: Get.width * 0.50,
+                                  maxWidth: Get.width * 0.40,
                                 ),
                                 child: CustomTextWidget(
                                   fontColor: AppColors.primaryColor,
@@ -482,7 +482,7 @@ class DashboardViewController extends GetxController
                               Container(
                                 constraints: BoxConstraints(
                                   minWidth: Get.width * 0.30,
-                                  maxWidth: Get.width * 0.50,
+                                  maxWidth: Get.width * 0.40,
                                 ),
                                 child: CustomTextWidget(
                                   fontColor: AppColors.primaryColor,
@@ -523,7 +523,7 @@ class DashboardViewController extends GetxController
                               Container(
                                 constraints: BoxConstraints(
                                   minWidth: Get.width * 0.30,
-                                  maxWidth: Get.width * 0.50,
+                                  maxWidth: Get.width * 0.40,
                                 ),
                                 child: CustomTextWidget(
                                   fontColor: AppColors.primaryColor,
@@ -544,6 +544,13 @@ class DashboardViewController extends GetxController
                   ],
                 ),
               ),
+            ),
+            CustomElevatedButton(
+              width: Get.width * 0.40,
+              title: DynamicAppLocalizations.of(Get.context!).t("ok"),
+              textColor: AppColors.white,
+              onPressed: () => Get.back(),
+              backgroundColor: AppColors.primaryColor,
             ),
           ],
         ),

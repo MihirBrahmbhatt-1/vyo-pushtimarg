@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../const/logger.dart';
 import '../controller/home_controller.dart';
 import '../l10n/app_localizations.dart';
+import '../localization/dynamic_app_localizations.dart';
 import '../utility/encrypt_decrypt.dart';
 import '../widget/common_widget.dart';
 import '../widget/custom_alert_widget.dart';
@@ -72,33 +73,35 @@ class ApiServiceInterceptor {
                 if (apiBaseResponse.message!.length > 27) {
                   CustomAlertWidget().infoAlertDialog(
                       displayText: apiBaseResponse.message.toString(),
-                      buttonText: AppLocalizations.of(Get.context!)!.ok,
+                      buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
                       statusType: false);
                 } else {
-                  showCustomSnackBar(AppLocalizations.of(Get.context!)!.info,
+                  showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("info"),
                       apiBaseResponse.message, false);
                 }
               } else if (apiBaseResponse.statusCode == 211 ||
                   apiBaseResponse.statusCode == 212) {
-                if (apiBaseResponse.message!.length > 27) {
-                  CustomAlertWidget().errorAlertDialog(
-                      displayText: "",
-                      displaySubText: apiBaseResponse.message.toString(),
-                      buttonText: AppLocalizations.of(Get.context!)!.ok,
-                      statusType: false);
-                } else {
-                  showCustomSnackBar(AppLocalizations.of(Get.context!)!.info,
+                // if (apiBaseResponse.message!.length > 27) {
+                //   CustomAlertWidget().errorAlertDialog(
+                //       displayText: "",
+                //       displaySubText: apiBaseResponse.message.toString(),
+                //       buttonText: AppLocalizations.of(Get.context!)!.ok,
+                //       statusType: false);
+                // } else {
+                //   showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("info"),
+                //       apiBaseResponse.message.toString(), false);
+                // }
+                  showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("info"),
                       apiBaseResponse.message.toString(), false);
-                }
               } else if (apiBaseResponse.statusCode == 213 ||
                   apiBaseResponse.statusCode == 214) {
                 if (apiBaseResponse.message!.length > 27) {
                   CustomAlertWidget().infoAlertDialog(
                       displayText: apiBaseResponse.message.toString(),
-                      buttonText: AppLocalizations.of(Get.context!)!.ok,
+                      buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
                       statusType: false);
                 } else {
-                  showCustomSnackBar(AppLocalizations.of(Get.context!)!.info,
+                  showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("info"),
                       apiBaseResponse.message, false);
                 }
               }
@@ -111,14 +114,13 @@ class ApiServiceInterceptor {
           } else if (response.statusCode == 401 || response.statusCode == 403) {
             response.data = jsonDecode(response.data);
           } else if (response.statusCode == 500) {
-            showCustomSnackBar(AppLocalizations.of(Get.context!)!.alert,
-                AppLocalizations.of(Get.context!)!.somethingWentWrong, false);
+            showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("alert"),
+                DynamicAppLocalizations.of(Get.context!).t("something_went_wrong"), false);
             response.data = response.data;
           } else if (response.statusCode == 504) {
             CustomAlertWidget().infoAlertDialog(
-                displayText: AppLocalizations.of(Get.context!)!
-                    .pleaseTryAgainAfterSometime,
-                buttonText: AppLocalizations.of(Get.context!)!.ok,
+                displayText: DynamicAppLocalizations.of(Get.context!).t("try_again_after_sometime"),
+                buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
                 statusType: false);
             response.data = response.data;
           }
@@ -133,8 +135,8 @@ class ApiServiceInterceptor {
               e.type == DioExceptionType.connectionTimeout) {
             homeController.statusCode.value = 504;
             homeController.update();
-            showCustomSnackBar(AppLocalizations.of(Get.context!)!.info,
-                AppLocalizations.of(Get.context!)!.timeout, false);
+            showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("info"),
+                DynamicAppLocalizations.of(Get.context!).t("timeout"), false);
             e.response?.data = null;
           } else if (e.type == DioExceptionType.badResponse) {
             if (e.message.toString().contains('403')) {
@@ -147,8 +149,8 @@ class ApiServiceInterceptor {
               talker.critical(
                   '${e.response?.realUri.toString()} || ${e.response?.statusCode} || ${e.response?.data}');
               homeController.statusCode.value = 500;
-              showCustomSnackBar(AppLocalizations.of(Get.context!)!.alert,
-                  AppLocalizations.of(Get.context!)!.somethingWentWrong, false);
+              showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("alert"),
+                  DynamicAppLocalizations.of(Get.context!).t("something_went_wrong"), false);
             } else if (e.message.toString().contains('400')) {
               homeController.statusCode.value = 400;
               talker.critical(
@@ -160,7 +162,7 @@ class ApiServiceInterceptor {
               } else {
                 getServiceErrorMessage = e.response?.data.toString();
               }
-              showCustomSnackBar(AppLocalizations.of(Get.context!)!.alert,
+              showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("alert"),
                   getServiceErrorMessage, false);
             }
           }

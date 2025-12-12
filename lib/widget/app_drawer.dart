@@ -25,7 +25,16 @@ class AppDrawer extends StatelessWidget {
         children: [
           // HEADER
           DrawerHeader(
-            decoration: const BoxDecoration(color: AppColors.primaryColor),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primaryColor,
+                  AppColors.primaryColor.withValues(alpha: 0.6),
+                ],
+              ),
+            ),
             margin: EdgeInsets.zero,
             padding: EdgeInsets.zero,
             child: Center(
@@ -118,6 +127,7 @@ class AppDrawer extends StatelessWidget {
                   await LocalDB().setDashboardImageSliderCache('');
                   await LocalDB().setLabelLanguageVersion('');
                   await LocalDB().setLanguageLabelsCache('');
+                  await LocalDB().setUserPassword('');
                   await LocalDB().removeJwtToken();
                   homeController.jwtToken.value = '';
                   homeController.isLoggedIn.value = false;

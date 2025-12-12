@@ -8,6 +8,7 @@ import '../../const/app_constant.dart';
 
 import '../../localization/dynamic_app_localizations.dart';
 import '../../widget/app_drawer.dart';
+import '../../widget/custom_icon_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import '../../widget/home_custom_scaffold_widget.dart';
 
@@ -110,22 +111,22 @@ class HomeView extends GetView<HomeViewController> {
       items: [
         _animatedItem(
           index: 0,
-          icon: AppIcons.homeIcon,
+          icon: Icon(AppIcons.homeIcon),
           label: DynamicAppLocalizations.of(Get.context!).t("home"),
         ),
         _animatedItem(
           index: 1,
-          icon: Icons.category,
+          icon: Icon(Icons.category),
           label: DynamicAppLocalizations.of(Get.context!).t("category"),
         ),
         _animatedItem(
           index: 2,
-          icon: AppIcons.habitIcon,
+          icon: CustomImageAssetWidget(imagePath: AppIcons.prayImg, height: 40, width: 30, imageColor: AppColors.white,),
           label: DynamicAppLocalizations.of(Get.context!).t("practice"),
         ),
         _animatedItem(
           index: 3,
-          icon: AppIcons.settingsOutlinedIcon,
+          icon: Icon(AppIcons.settingsOutlinedIcon),
           label: DynamicAppLocalizations.of(Get.context!).t("menu"),
         ),
       ],
@@ -134,7 +135,9 @@ class HomeView extends GetView<HomeViewController> {
 
   BottomNavigationBarItem _animatedItem({
     required int index,
-    required IconData icon,
+    // required IconData icon,
+      required Widget icon,
+
     required String label,
   }) {
     final selected = controller.homeController.selectedIndex.value == index;
@@ -145,7 +148,7 @@ class HomeView extends GetView<HomeViewController> {
         scale: selected ? 1.25 : 1.0, 
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOutBack,
-        child: Icon(icon),
+        child: icon,
       ),
     );
   }

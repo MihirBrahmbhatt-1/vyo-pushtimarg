@@ -330,7 +330,8 @@ void showUserDetailsDialog(BuildContext context) {
   showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (_) {
+    builder: (dialogContext) {
+       controller.dialogContext = dialogContext;
       return PopScope(
         canPop: false,
         child: AlertDialog(

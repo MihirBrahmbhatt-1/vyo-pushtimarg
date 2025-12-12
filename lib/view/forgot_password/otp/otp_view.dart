@@ -5,7 +5,6 @@ import '../../../const/app_assets.dart';
 import '../../../const/app_color.dart';
 import '../../../const/app_constant.dart';
 import '../../../localization/dynamic_app_localizations.dart';
-import '../../../navigation/pages.dart';
 import '../../../widget/custom_button_widget.dart';
 import '../../../widget/custom_icon_widget.dart';
 import '../../../widget/custom_text_widget.dart';
@@ -224,22 +223,7 @@ class OtpView extends GetView<OtpViewController> {
                                         if (controller.allFilled.value ==
                                             false) {
                                         } else {
-                                          if (controller.fetchOtpString.value
-                                                  .toString() !=
-                                              controller.userEnteredOtp.value) {
-                                                
-                                          } else {
-                                            controller.isLoading.value = true;
-                                            Future.delayed(
-                                              Duration(seconds: 3),
-                                            ).then((value) async {
-                                              
-                                              
-                                              Get.toNamed(Routes.resetpassword);
-                                              controller.isLoading.value =
-                                                  false;
-                                            });
-                                          }
+                                          controller.validateOtp();
                                         }
                                       },
                                     ),
