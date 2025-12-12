@@ -1247,10 +1247,11 @@ class ApiController extends GetxController {
     }
   }
 
-  fetchDashboardSevaPranalika({required String jwtToken}) async {
+  fetchDashboardSevaPranalika({required String date, required String jwtToken}) async {
     try {
       if (await ApiServiceInterceptor.checkInternet()) {
         var request = <String, String>{};
+        request["date"] = date;
         Map<String, String> header = {'authorization': jwtToken};
         var response = await ApiServiceInterceptor.getDecryptLambdaCall(
           url: AppApi().dailySevaPranalikaApiUrl,
