@@ -5,6 +5,7 @@ class AppIcons {
   static String toran = 'assets/images/toran.png';
   static String dailyPranaliHeaderImage = 'assets/images/daily_pranali_header.png';
   static String prayImg = 'assets/images/pray.png';
+  static String sevaPranalikaImg = 'assets/images/seva_pranalika.png';
 
   static IconData lockIcon = Icons.visibility_off;
   static IconData lockOpenIcon = Icons.visibility;

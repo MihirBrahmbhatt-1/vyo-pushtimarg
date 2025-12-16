@@ -600,10 +600,16 @@ class ApiController extends GetxController {
                 .value!
                 .cityName
                 .toString();
+            homeController.isUserSurveyCompleted.value = userDetailsResponseModel
+                .value!
+                .isSurveyCompleted!;
 
             await LocalDB().setCustomerId(userDetailsResponseModel.value!.id!);
             await LocalDB().setIsUserProfileCompleted(
               userDetailsResponseModel.value!.isProfileCompleted!,
+            );
+            await LocalDB().setIsUserSurveyCompleted(
+              userDetailsResponseModel.value!.isSurveyCompleted!,
             );
             await LocalDB().setUserFullName(
               userDetailsResponseModel.value!.name.toString(),
@@ -829,10 +835,14 @@ class ApiController extends GetxController {
                   loginResponseModel.value!.birthdate == null
                   ? ''
                   : loginResponseModel.value!.birthdate.toString();
+              homeController.isUserSurveyCompleted.value = loginResponseModel.value!.isSurveyCompleted!;
               homeController.isUserExists.value = true;
               homeController.passwordString.value = password;
               await LocalDB().setIsUserProfileCompleted(
                 loginResponseModel.value!.isProfileCompleted!,
+              );
+              await LocalDB().setIsUserSurveyCompleted(
+                loginResponseModel.value!.isSurveyCompleted!,
               );
               await LocalDB().setUserFullName(
                 loginResponseModel.value!.name.toString(),
@@ -1098,14 +1108,6 @@ class ApiController extends GetxController {
             convertedResponse,
           );
           if (apiBaseResponse.statusCode == 209) {
-            Get.back();
-            showCustomSnackBar(
-              DynamicAppLocalizations.of(Get.context!).t("info"),
-              DynamicAppLocalizations.of(
-                Get.context!,
-              ).t(apiBaseResponse.message.toString()),
-              true,
-            );
             return true;
           } else {
             return false;

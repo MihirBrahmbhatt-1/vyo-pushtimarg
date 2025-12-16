@@ -1,5 +1,9 @@
+
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
+
 import '../../const/app_color.dart';
 import '../../widget/custom_text_widget.dart';
 import '../const/app_assets.dart';
@@ -7,19 +11,42 @@ import '../const/app_constant.dart';
 import '../controller/home_controller.dart';
 import '../localization/dynamic_app_localizations.dart';
 import '../navigation/pages.dart';
-import '../utility/local_db.dart';
+import '../utility/common_functions.dart';
+import '../view/dashboard/dashboard_view_controller.dart';
 import 'custom_alert_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'custom_icon_widget.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
+  Widget _buildDrawerItem({
+    required Widget icon,
+    required String titleKey,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      // leading: Icon(icon, color: AppColors.primaryColor),
+      leading: icon,
+      title: CustomTextWidget(
+        textString: DynamicAppLocalizations.of(Get.context!).t(titleKey),
+        textSize: FontSize().medium,
+        fontColor: AppColors.primaryColor,
+        isFontBold: false,
+      ),
+      onTap: onTap,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     HomeController homeController = Get.put(HomeController());
+    final DashboardViewController dashboardViewController =
+    Get.find<DashboardViewController>();
     return Drawer(
       elevation: 0,
       backgroundColor: AppColors.white,
-
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -50,57 +77,128 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
 
-          // ITEMS
-          ListTile(
-            leading: Icon(Icons.home, color: AppColors.primaryColor,),
-            title: CustomTextWidget(
-              textString: DynamicAppLocalizations.of(Get.context!).t("home"),
-              textSize: FontSize().regular,
-              fontColor: AppColors.primaryColor,
-              isFontBold: false,
-            ),
+          // DRAWER ITEMS
+          _buildDrawerItem(
+            icon: Icon(Icons.home, color: AppColors.primaryColor,),
+            titleKey: "home",
             onTap: () {
               Get.back();
             },
           ),
 
-          ListTile(
-            leading: Icon(Icons.person, color: AppColors.primaryColor,),
-            title: CustomTextWidget(
-              textString: DynamicAppLocalizations.of(Get.context!).t("profile"),
-              textSize: FontSize().regular,
-              fontColor: AppColors.primaryColor,
-              isFontBold: false,
-            ),
+          _buildDrawerItem(
+            icon:  CustomImageAssetWidget(imagePath: AppIcons.sevaPranalikaImg, height: 40, width: 30,),
+            titleKey: "seva_pranalika_title",
+            onTap: () {
+              Get.back();
+              dashboardViewController.displaySevaPranalikaAlert();
+            },
+          ),
+
+          _buildDrawerItem(
+            icon: Icon(Icons.group,color: AppColors.primaryColor,),
+            titleKey: "about_vyo",
+            onTap: () {
+              Get.back();
+              _launchURL('https://vyoworld.org/about-us/');
+            },
+          ),
+
+          _buildDrawerItem(
+            icon: Icon(Icons.person,color: AppColors.primaryColor,),
+            titleKey: "about_founder",
+            onTap: () {
+              Get.back();
+              _launchURL('https://vyoworld.org/founder/');
+            },
+          ),
+
+          _buildDrawerItem(
+            icon: Icon(Icons.video_camera_back, color: AppColors.primaryColor,),
+            titleKey: "video_gallery",
+            onTap: () {
+              Get.back();
+              _launchURL('https://vyoworld.org/video-gallery/');
+            },
+          ),
+
+          _buildDrawerItem(
+            icon: FaIcon(FontAwesomeIcons.dollarSign, color: AppColors.primaryColor,),
+            titleKey: "donate",
+            onTap: () {
+              Get.back();
+              _launchURL('https://vyoworld.org/donations/');
+            },
+          ),
+
+          _buildDrawerItem(
+            icon: FaIcon(FontAwesomeIcons.bookOpen, color: AppColors.primaryColor,),
+            titleKey: "vyo_education",
+            onTap: () {
+              Get.back();
+              _launchURL('https://vyoworld.org/vyo-education/');
+            },
+          ),
+
+          _buildDrawerItem(
+            icon: Icon(Icons.work_outline_outlined, color: AppColors.primaryColor,),
+            titleKey: "projects",
+            onTap: () {
+              Get.back();
+              _launchURL('https://vyoworld.org/projects/');
+            },
+          ),
+
+          _buildDrawerItem(
+            icon: Icon(Icons.event, color: AppColors.primaryColor,),
+            titleKey: "upcoming_events",
+            onTap: () {
+              Get.back();
+              _launchURL('https://vyoworld.org/events/');
+            },
+          ),
+
+          // _buildDrawerItem(
+          //   icon: Icons.home,
+          //   titleKey: "past_events",
+          //   onTap: () {
+          //     Get.back();
+          //     _launchURL('https://vyoworld.org/events/');
+          //   },
+          // ),
+          _buildDrawerItem(
+            icon: Icon(Icons.person, color: AppColors.primaryColor,),
+            titleKey: "profile",
             onTap: () {
               Get.back();
               Get.toNamed(Routes.userprofile);
             },
           ),
 
-          ListTile(
-            leading: Icon(Icons.settings, color: AppColors.primaryColor,),
-            title: CustomTextWidget(
-              textString: DynamicAppLocalizations.of(Get.context!).t("menu"),
-              textSize: FontSize().regular,
-              fontColor: AppColors.primaryColor,
-              isFontBold: false,
-            ),
+          _buildDrawerItem(
+            icon: Icon(Icons.share, color: AppColors.primaryColor,),
+            titleKey:
+                "share_app",
             onTap: () {
               Get.back();
-              homeController.selectedIndex.value = 3;
+              _shareApp();
             },
           ),
 
-          ListTile(
-            leading: Icon(Icons.logout, color: AppColors.primaryColor,),
-            title: CustomTextWidget(
-              textString: DynamicAppLocalizations.of(Get.context!).t("logout"),
-              textSize: FontSize().regular,
-              fontColor: AppColors.primaryColor,
-              isFontBold: false,
-            ),
+          _buildDrawerItem(
+            icon: Icon(Icons.contact_page, color: AppColors.primaryColor,),
+            titleKey:
+                "contact_us",
             onTap: () {
+              Get.back();
+              _launchURL('https://vyoworld.org/contact-us/');
+            },
+          ),
+
+          _buildDrawerItem(
+            icon: Icon(Icons.logout, color: AppColors.primaryColor,),
+            titleKey: "logout",
+            onTap: () async {
               Get.back();
               CustomAlertWidget().infoAlertDialog(
                 displayText: DynamicAppLocalizations.of(
@@ -116,28 +214,40 @@ class AppDrawer extends StatelessWidget {
                 statusType: false,
                 showCancelButton: true,
                 onButtonTap: () async {
-                  Get.back();
-                  await LocalDB().setIsLoggedIn(false);
-                  await LocalDB().setIsUserExists(false);
-                  await LocalDB().setIsUserProfileCompleted(false);
-                  await LocalDB().setJwtToken('');
-                  await LocalDB().setDashboardVersion('');
-                  await LocalDB().setDashboardSliderVersion('');
-                  await LocalDB().setDashboardHtmlCache('');
-                  await LocalDB().setDashboardImageSliderCache('');
-                  await LocalDB().setLabelLanguageVersion('');
-                  await LocalDB().setLanguageLabelsCache('');
-                  await LocalDB().setUserPassword('');
-                  await LocalDB().removeJwtToken();
-                  homeController.jwtToken.value = '';
-                  homeController.isLoggedIn.value = false;
-                  homeController.selectedIndex.value = 0;
-                  Get.offAllNamed(Routes.signin);
+                  await _performLogout(homeController);
                 },
               );
             },
           ),
+          const SizedBox(height: 20,),
         ],
+      ),
+    );
+  }
+
+  Future<void> _performLogout(HomeController homeController) async {
+    clearAppDataAndLogout();
+  }
+
+  void _launchURL(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      debugPrint('Could not launch URL: $url');
+    }
+  }
+
+  _shareApp() async {
+    final String androidAppUrl =
+        "https://play.google.com/store/apps/details?id=com.app.vyo_world";
+    final String iOSAppUrl =
+        "https://apps.apple.com/us/app/vyo-world/id6473687179";
+    final String message = "Download VYO World App Now And Share with Your Family | Freinds.\n\nFor Android:\n$androidAppUrl\n\nForiOS:\n$iOSAppUrl";
+
+    await SharePlus.instance.share(
+      ShareParams(
+        text: message
       ),
     );
   }

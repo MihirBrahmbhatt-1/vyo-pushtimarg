@@ -6,7 +6,6 @@ import '../../localization/dynamic_app_localizations.dart';
 import '../../navigation/pages.dart';
 import '../../widget/custom_alert_widget.dart';
 import '../../widget/custom_text_widget.dart';
-import '../survey/questions_screen.dart';
 import 'settings_view_controller.dart';
 
 class SettingsView extends GetView<SettingsViewController> {
@@ -51,20 +50,6 @@ class SettingsView extends GetView<SettingsViewController> {
             },
           ),
 
-          const Divider(indent: 10.0, endIndent: 10.0,),
-
-          ListTile(
-            leading: const Icon(Icons.question_answer_outlined, color: AppColors.primaryColor),
-           title: CustomTextWidget(
-                textString: DynamicAppLocalizations.of(Get.context!).t("survey"),
-                textSize: FontSize().regular,
-                fontColor: AppColors.primaryColor,
-                isFontBold: false,
-              ),
-            onTap: () {
-              Get.to(() => QuestionsScreen());
-            },
-          ),
           const Divider(indent: 10.0, endIndent: 10.0,),
 
           ListTile(

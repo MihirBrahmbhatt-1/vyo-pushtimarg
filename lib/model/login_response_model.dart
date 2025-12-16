@@ -63,8 +63,8 @@ class LoginResponseModel {
     cityId = json['city_id'];
     cityName = json['city_name'];
     preferredLanguageId = json['preferred_language_id'];
-    isSurveyCompleted = json['is_survey_completed'];
-    isProfileCompleted = json['is_profile_completed'];
+    isSurveyCompleted = json['is_survey_completed'] ?? false;
+    isProfileCompleted = json['is_profile_completed'] ?? false;
     isActive = json['is_active'];
     isDeleted = json['is_deleted'];
     createdBy = json['created_by'];

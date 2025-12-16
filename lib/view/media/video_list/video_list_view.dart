@@ -6,8 +6,9 @@ import '../../../const/app_color.dart';
 import '../../../const/app_constant.dart';
 import '../../../localization/dynamic_app_localizations.dart';
 import '../../../widget/custom_text_widget.dart';
+import 'unified_video_player_view.dart';
 import 'video_list_view_controller.dart';
-import 'video_player_view.dart';
+// import 'video_player_view.dart';
 
 class VideoListView extends GetView<VideoListViewController> {
   const VideoListView({super.key});
@@ -51,7 +52,7 @@ class VideoListView extends GetView<VideoListViewController> {
                   final media = controller.mediaListData[index];
                   controller.loadThumbnailForIndex(index);
 
-                  final heroTag = 'video-hero-${media.mediaUrl}-$index';
+                  // final heroTag = 'video-hero-${media.mediaUrl}-$index';
 
                   return Card(
                     color: AppColors.white,
@@ -65,14 +66,23 @@ class VideoListView extends GetView<VideoListViewController> {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(borderRadius),
                       onTap: () {
+                        // Get.to(
+                        //   () => VideoPlayerView(
+                        //     title: media.name,
+                        //     url: media.mediaUrl,
+                        //     heroTag: heroTag,
+                        //   ),
+                        //   opaque: false,
+                        //   transition: Transition.fadeIn,
+                        // );
                         Get.to(
-                          () => VideoPlayerView(
+                          () => UnifiedVideoPlayer(
                             title: media.name,
                             url: media.mediaUrl,
-                            heroTag: heroTag,
+                            // heroTag: heroTag,
                           ),
                           opaque: false,
-                          transition: Transition.fadeIn,
+                          // transition: Transition.fadeIn,
                         );
                       },
                       child: Container(

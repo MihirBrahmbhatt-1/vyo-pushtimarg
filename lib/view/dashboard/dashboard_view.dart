@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,7 +18,7 @@ import '../../localization/dynamic_app_localizations.dart';
 import '../../model/dashboard_image_slider_response_model.dart';
 import '../../widget/custom_text_widget.dart';
 import '../media/image_list/image_preview_view.dart';
-import '../media/video_list/video_player_view.dart';
+import '../media/video_list/unified_video_player_view.dart';
 import 'dashboard_view_controller.dart';
 
 class DashboardView extends GetView<DashboardViewController> {
@@ -31,112 +32,117 @@ class DashboardView extends GetView<DashboardViewController> {
     return SafeArea(
       top: false,
       child: Scaffold(
-        body: Obx(() {
-          if (controller.isLoading.value) {
-            return Center(
-              child: CircularProgressIndicator(color: AppColors.primaryColor),
-            );
-          }
+          body: Obx(() {
+            if (controller.isLoading.value) {
+              return Center(
+                child: CircularProgressIndicator(color: AppColors.primaryColor),
+              );
+            }
 
-          // --- Main Content Display Logic ---
-          return RefreshIndicator(
-            color: AppColors.white,
-            onRefresh: controller.refreshDashboard,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                // Dynamically generate the list of widgets
-                children: [
-                  controller.isImageSliderLoading.value
-                      ? Center(
-                          child: SizedBox(
-                            width: Get.width,
-                            height: 300,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.primaryColor,
+            // --- Main Content Display Logic ---
+            return RefreshIndicator(
+              color: AppColors.white,
+              onRefresh: controller.refreshDashboard,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  // Dynamically generate the list of widgets
+                  children: [
+                    controller.isImageSliderLoading.value
+                        ? Center(
+                            child: SizedBox(
+                              width: Get.width,
+                              height: 300,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primaryColor,
+                                ),
                               ),
                             ),
+                          )
+                        : _buildImageSlider(
+                            context,
+                            controller.apiController
+                                .dashboardImageSliderResponseModel,
                           ),
-                        )
-                      : _buildImageSlider(
-                          context,
-                          controller
-                              .apiController
-                              .dashboardImageSliderResponseModel,
-                        ),
-
-                  controller.apiController.dashboardHtmlResponseModel.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: CustomTextWidget(
-                              textString: DynamicAppLocalizations.of(
-                                Get.context!,
-                              ).t("no_content_available"),
-                              textSize: FontSize().regular,
-                              fontColor: AppColors.grey,
-                              isFontBold: false,
+                    controller.apiController.dashboardHtmlResponseModel.isEmpty
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: CustomTextWidget(
+                                textString: DynamicAppLocalizations.of(
+                                  Get.context!,
+                                ).t("no_content_available"),
+                                textSize: FontSize().regular,
+                                fontColor: AppColors.grey,
+                                isFontBold: false,
+                              ),
                             ),
+                          )
+                        : Column(
+                            children: [
+                              ...controller
+                                  .apiController.dashboardHtmlResponseModel
+                                  .map((item) {
+                                // The item.content field is assumed to be the URL or a complex JSON string
+                                final content = item.content.toString();
+
+                                switch (item.sectionType) {
+                                  case 0:
+                                    return _buildHtmlContent(
+                                      content,
+                                      item.sequence.toString(),
+                                    );
+
+                                  case 1:
+                                    // Type 1: Single Image URL
+                                    return _buildSingleImage(
+                                      context,
+                                      content,
+                                    );
+
+                                  case 2:
+                                    // Type 2: Multiple Images Slider
+                                    return _buildMultipleImageSlider(
+                                      context,
+                                      content,
+                                    );
+                                  case 3:
+                                    // Type 3: Single YouTube Video URL
+                                    return _buildSingleVideo(
+                                      context,
+                                      content,
+                                    );
+
+                                  case 4:
+                                    // Type 4: Multiple YouTube Video URLs
+                                    return _buildMultipleVideos(
+                                      context,
+                                      content,
+                                    );
+
+                                  default:
+                                    // Fallback for unknown type
+                                    return const SizedBox.shrink();
+                                }
+                              }),
+                            ],
                           ),
-                        )
-                      : Column(
-                          children: [
-                            ...controller
-                                .apiController
-                                .dashboardHtmlResponseModel
-                                .map((item) {
-                                  // The item.content field is assumed to be the URL or a complex JSON string
-                                  final content = item.content.toString();
-
-                                  switch (item.sectionType) {
-                                    case 0:
-                                      return _buildHtmlContent(
-                                        content,
-                                        item.sequence.toString(),
-                                      );
-
-                                    case 1:
-                                      // Type 1: Single Image URL
-                                      return _buildSingleImage(
-                                        context,
-                                        content,
-                                      );
-
-                                    case 2:
-                                      // Type 2: Multiple Images Slider
-                                      return _buildMultipleImageSlider(
-                                        context,
-                                        content,
-                                      );
-                                    case 3:
-                                      // Type 3: Single YouTube Video URL
-                                      return _buildSingleVideo(
-                                        context,
-                                        content,
-                                      );
-
-                                    case 4:
-                                      // Type 4: Multiple YouTube Video URLs
-                                      return _buildMultipleVideos(
-                                        context,
-                                        content,
-                                      );
-
-                                    default:
-                                      // Fallback for unknown type
-                                      return const SizedBox.shrink();
-                                  }
-                                }),
-                          ],
-                        ),
-                ],
+                  ],
+                ),
               ),
+            );
+          }),
+          floatingActionButton: FloatingActionButton(
+            onPressed: controller.openWhatsApp,
+            backgroundColor: Colors.green,
+            child: FaIcon(
+              FontAwesomeIcons.whatsapp,
+              color: AppColors.white,
+              size: 30,
             ),
-          );
-        }),
-      ),
+          )),
     );
   }
 
@@ -227,21 +233,20 @@ class DashboardView extends GetView<DashboardViewController> {
           // final w = img.width.toDouble();
           final w = Get.width * 0.80;
           // final h = img.height.toDouble();
-          final h = 400.0;
+          final h = 500.0;
           final scale = h > screenMaxHeight ? (screenMaxHeight / h) : 1.0;
           return Size(w * scale, h * scale);
         }).toList();
 
-        final containerHeight = scaledSizes
-            .map((s) => s.height)
-            .reduce(math.max);
+        final containerHeight =
+            scaledSizes.map((s) => s.height).reduce(math.max);
 
         return SizedBox(
           height: containerHeight,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: urls.length,
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.only(left: 16.0),
             itemBuilder: (context, index) {
               final url = urls[index];
               final size = scaledSizes[index];
@@ -284,7 +289,9 @@ class DashboardView extends GetView<DashboardViewController> {
     List<DashboardImageSliderResponseModel> sliderData,
   ) {
     if (sliderData.isEmpty) {
-      return const SizedBox(height: 100,);
+      return const SizedBox(
+        height: 100,
+      );
     }
 
     // 🎯 We only need ONE CachedNetworkImage widget per slide now.
@@ -399,7 +406,7 @@ class DashboardView extends GetView<DashboardViewController> {
 
     // Use the thumbnail URL to display the video card preview
     final thumbnailUrl = getThumbnailUrl(youtubeId);
-    final heroTag = 'single-video-hero-$youtubeId';
+    // final heroTag = 'single-video-hero-$youtubeId';
 
     // We are recreating the structure of the video list item from your source code
     return Card(
@@ -413,14 +420,12 @@ class DashboardView extends GetView<DashboardViewController> {
         borderRadius: BorderRadius.circular(borderRadius),
         onTap: () async {
           Get.to(
-            () => VideoPlayerView(
-              // youtubeId: controller.extractYoutubeId(media.mediaUrl),
+            () => UnifiedVideoPlayer(
               title: '',
               url: url,
-              heroTag: heroTag,
+              // heroTag: heroTag,
             ),
             opaque: false,
-            transition: Transition.fadeIn,
           );
         },
         child: Column(
@@ -512,8 +517,7 @@ class DashboardView extends GetView<DashboardViewController> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
-        height:
-            Get.width *
+        height: Get.width *
             0.70, // Calculate height based on screen width for responsive video aspect ratio
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
@@ -552,13 +556,13 @@ class DashboardView extends GetView<DashboardViewController> {
     }
 
     final thumbnailUrl = getThumbnailUrl(youtubeId);
-    final heroTag = 'video-hero-$youtubeId-${isMulti ? 'multi' : 'single'}';
+    // final heroTag = 'video-hero-$youtubeId-${isMulti ? 'multi' : 'single'}';
 
     return Container(
       width: isMulti
           ? Get.width * 0.85
           : double
-                .infinity, // For horizontal scroll, make it narrower than full width
+              .infinity, // For horizontal scroll, make it narrower than full width
       margin: isMulti
           ? const EdgeInsets.symmetric(
               horizontal: 4,
@@ -573,13 +577,12 @@ class DashboardView extends GetView<DashboardViewController> {
         borderRadius: BorderRadius.circular(borderRadius),
         onTap: () async {
           Get.to(
-            () => VideoPlayerView(
-              title: 'YouTube Video', // You might fetch the real title later
+            () => UnifiedVideoPlayer(
+              title: '',
               url: url,
-              heroTag: heroTag,
+              // heroTag: heroTag,
             ),
             opaque: false,
-            transition: Transition.fadeIn,
           );
         },
         child: Column(
@@ -710,12 +713,12 @@ class DashboardView extends GetView<DashboardViewController> {
                     imgHtml,
                     onLoadingBuilder: (context, element, loadingProgress) =>
                         const SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
+                      width: 40,
+                      height: 40,
+                      child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 10.0),
                   Expanded(
@@ -730,7 +733,6 @@ class DashboardView extends GetView<DashboardViewController> {
           }
           return null;
         },
-
         onTapUrl: (url) async {
           final uri = Uri.tryParse(url);
           if (uri != null && await canLaunchUrl(uri)) {

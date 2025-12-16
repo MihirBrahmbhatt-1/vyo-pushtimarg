@@ -17,6 +17,7 @@ class ApiServiceInterceptor {
   static Dio dio = Dio();
   static CancelToken cancelToken = CancelToken();
   static HomeController homeController = Get.put(HomeController());
+  static bool isLoggingOut = false;
 
   static checkInternet() async {
     try {
@@ -44,6 +45,15 @@ class ApiServiceInterceptor {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          if (ApiServiceInterceptor.isLoggingOut) {
+            return handler.reject(
+              DioException(
+                requestOptions: options,
+                error: 'Request blocked during logout',
+                type: DioExceptionType.cancel,
+              ),
+            );
+          }
           talker.info("Options Data : ${options.uri} | ${options.data}");
           bool isConnected = await checkInternet();
           // bool isToken = homeController.jwtTokenString.value.isEmpty;
@@ -73,11 +83,14 @@ class ApiServiceInterceptor {
                 if (apiBaseResponse.message!.length > 27) {
                   CustomAlertWidget().infoAlertDialog(
                       displayText: apiBaseResponse.message.toString(),
-                      buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+                      buttonText:
+                          DynamicAppLocalizations.of(Get.context!).t("ok"),
                       statusType: false);
                 } else {
-                  showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("info"),
-                      apiBaseResponse.message, false);
+                  showCustomSnackBar(
+                      DynamicAppLocalizations.of(Get.context!).t("info"),
+                      apiBaseResponse.message,
+                      false);
                 }
               } else if (apiBaseResponse.statusCode == 211 ||
                   apiBaseResponse.statusCode == 212) {
@@ -91,18 +104,23 @@ class ApiServiceInterceptor {
                 //   showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("info"),
                 //       apiBaseResponse.message.toString(), false);
                 // }
-                  showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("info"),
-                      apiBaseResponse.message.toString(), false);
+                showCustomSnackBar(
+                    DynamicAppLocalizations.of(Get.context!).t("info"),
+                    apiBaseResponse.message.toString(),
+                    false);
               } else if (apiBaseResponse.statusCode == 213 ||
                   apiBaseResponse.statusCode == 214) {
                 if (apiBaseResponse.message!.length > 27) {
                   CustomAlertWidget().infoAlertDialog(
                       displayText: apiBaseResponse.message.toString(),
-                      buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+                      buttonText:
+                          DynamicAppLocalizations.of(Get.context!).t("ok"),
                       statusType: false);
                 } else {
-                  showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("info"),
-                      apiBaseResponse.message, false);
+                  showCustomSnackBar(
+                      DynamicAppLocalizations.of(Get.context!).t("info"),
+                      apiBaseResponse.message,
+                      false);
                 }
               }
             }
@@ -114,12 +132,16 @@ class ApiServiceInterceptor {
           } else if (response.statusCode == 401 || response.statusCode == 403) {
             response.data = jsonDecode(response.data);
           } else if (response.statusCode == 500) {
-            showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("alert"),
-                DynamicAppLocalizations.of(Get.context!).t("something_went_wrong"), false);
+            showCustomSnackBar(
+                DynamicAppLocalizations.of(Get.context!).t("alert"),
+                DynamicAppLocalizations.of(Get.context!)
+                    .t("something_went_wrong"),
+                false);
             response.data = response.data;
           } else if (response.statusCode == 504) {
             CustomAlertWidget().infoAlertDialog(
-                displayText: DynamicAppLocalizations.of(Get.context!).t("try_again_after_sometime"),
+                displayText: DynamicAppLocalizations.of(Get.context!)
+                    .t("try_again_after_sometime"),
                 buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
                 statusType: false);
             response.data = response.data;
@@ -127,30 +149,42 @@ class ApiServiceInterceptor {
           return handler.next(response);
         },
         onError: (e, handler) {
+          if (ApiServiceInterceptor.isLoggingOut) {
+            return handler.reject(e);
+          }
+
           talker.error(
               "onError response: ${e.response!.statusCode} : ${e.response!.realUri} : ${e.response!.data} }");
           if (CancelToken.isCancel(e)) {
             e.response?.data = -1;
+            return handler.reject(e);
           } else if (e.type == DioExceptionType.receiveTimeout ||
               e.type == DioExceptionType.connectionTimeout) {
             homeController.statusCode.value = 504;
             homeController.update();
-            showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("info"),
-                DynamicAppLocalizations.of(Get.context!).t("timeout"), false);
+            showCustomSnackBar(
+                DynamicAppLocalizations.of(Get.context!).t("info"),
+                DynamicAppLocalizations.of(Get.context!).t("timeout"),
+                false);
             e.response?.data = null;
           } else if (e.type == DioExceptionType.badResponse) {
             if (e.message.toString().contains('403')) {
               homeController.statusCode.value = 403;
+              return handler.reject(e);
             } else if (e.message.toString().contains('401')) {
               homeController.statusCode.value = 401;
               talker.error(
                   '${e.response?.realUri.toString()} || ${e.response?.statusCode} || ${e.response?.data}');
+              return handler.reject(e);
             } else if (e.message.toString().contains('500')) {
               talker.critical(
                   '${e.response?.realUri.toString()} || ${e.response?.statusCode} || ${e.response?.data}');
               homeController.statusCode.value = 500;
-              showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("alert"),
-                  DynamicAppLocalizations.of(Get.context!).t("something_went_wrong"), false);
+              showCustomSnackBar(
+                  DynamicAppLocalizations.of(Get.context!).t("alert"),
+                  DynamicAppLocalizations.of(Get.context!)
+                      .t("something_went_wrong"),
+                  false);
             } else if (e.message.toString().contains('400')) {
               homeController.statusCode.value = 400;
               talker.critical(
@@ -162,8 +196,10 @@ class ApiServiceInterceptor {
               } else {
                 getServiceErrorMessage = e.response?.data.toString();
               }
-              showCustomSnackBar(DynamicAppLocalizations.of(Get.context!).t("alert"),
-                  getServiceErrorMessage, false);
+              showCustomSnackBar(
+                  DynamicAppLocalizations.of(Get.context!).t("alert"),
+                  getServiceErrorMessage,
+                  false);
             }
           }
           return handler.next(e);

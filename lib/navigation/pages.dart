@@ -19,6 +19,7 @@ import '../view/sign_up/sign_up_view.dart';
 import '../view/splash/splash_view.dart';
 import '../view/sub_category/sub_category_view.dart';
 import '../view/sub_category/sub_category_view_controller.dart';
+import '../view/survey/survey_success/survey_success_view.dart';
 import '../view/user_details/user_details_view.dart';
 import '../view/user_details/user_details_view_controller.dart';
 
@@ -136,6 +137,12 @@ class Pages {
       binding: BindingsBuilder(() {
         Get.put(SubCategoryViewController());
       }),
+    ),
+    GetPage(
+      name: _Paths.surveycompleted,
+      page: () => SurveySuccessView(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 200),
     ),
   ];
 }
