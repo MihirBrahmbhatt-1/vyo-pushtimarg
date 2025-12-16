@@ -24,6 +24,7 @@ abstract class Routes {
   static const pdflist = _Paths.pdflist;
   static const audiolist = _Paths.audiolist;
   static const habits = _Paths.habits;
+  static const surveycompleted = _Paths.surveycompleted;
 }
 
 abstract class _Paths {
@@ -50,4 +51,5 @@ abstract class _Paths {
   static const  pdflist = "/pdf";
   static const  audiolist = "/audio";
   static const  habits = "/habits";
+  static const  surveycompleted = "/surveycompleted";
 }

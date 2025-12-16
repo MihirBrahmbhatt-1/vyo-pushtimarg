@@ -17,6 +17,7 @@ import '../category_list/category_list_view.dart';
 import '../habit/habit_view.dart';
 import '../settings/settings_view.dart';
 
+import '../survey/questions_screen.dart';
 import 'home_view_controller.dart';
 
 class HomeView extends GetView<HomeViewController> {
@@ -30,8 +31,16 @@ class HomeView extends GetView<HomeViewController> {
       () => HomeCustomScaffoldWidget(
         isBack: false,
         drawer: controller.homeController.selectedIndex.value == 0
-        ? AppDrawer()
-        : null,
+            ? AppDrawer()
+            : null,
+        actions: controller.homeController.selectedIndex.value == 0
+            ? [
+                IconButton(onPressed: () {
+                  controller.displayPhoneNumberInfo();
+                }, icon: Icon(Icons.phone)),
+                const SizedBox(width: 10),
+              ]
+            : [],
 
         floatingActionButton: null,
 
@@ -49,7 +58,7 @@ class HomeView extends GetView<HomeViewController> {
     switch (controller.homeController.selectedIndex.value) {
       case 0:
         return CustomTextWidget(
-          textString: DynamicAppLocalizations.of(Get.context!).t("home"),
+          textString: 'VYO World',
           textSize: FontSize().appBar,
           fontColor: AppColors.white,
         );
@@ -104,6 +113,12 @@ class HomeView extends GetView<HomeViewController> {
       unselectedLabelStyle: TextStyle(fontStyle: FontStyle.normal),
       onTap: (index) {
         HapticFeedback.mediumImpact();
+        if (index == 2) {
+          if (controller.homeController.isUserSurveyCompleted.value == false) {
+            Get.to(() => QuestionsScreen());
+            return;
+          }
+        }
         if (selectedIndex == index) return;
         controller.homeController.selectedIndex.value = index;
       },
@@ -121,7 +136,12 @@ class HomeView extends GetView<HomeViewController> {
         ),
         _animatedItem(
           index: 2,
-          icon: CustomImageAssetWidget(imagePath: AppIcons.prayImg, height: 40, width: 30, imageColor: AppColors.white,),
+          icon: CustomImageAssetWidget(
+            imagePath: AppIcons.prayImg,
+            height: 40,
+            width: 30,
+            imageColor: AppColors.white,
+          ),
           label: DynamicAppLocalizations.of(Get.context!).t("practice"),
         ),
         _animatedItem(
@@ -135,9 +155,7 @@ class HomeView extends GetView<HomeViewController> {
 
   BottomNavigationBarItem _animatedItem({
     required int index,
-    // required IconData icon,
-      required Widget icon,
-
+    required Widget icon,
     required String label,
   }) {
     final selected = controller.homeController.selectedIndex.value == index;
@@ -145,7 +163,7 @@ class HomeView extends GetView<HomeViewController> {
     return BottomNavigationBarItem(
       label: label,
       icon: AnimatedScale(
-        scale: selected ? 1.25 : 1.0, 
+        scale: selected ? 1.25 : 1.0,
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOutBack,
         child: icon,

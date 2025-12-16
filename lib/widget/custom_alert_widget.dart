@@ -273,4 +273,98 @@ class CustomAlertWidget {
       content: content,
     );
   }
+
+  simpleAlertDialog({
+    String? title,
+    String? description,
+    Widget? content,
+    double? height,
+    double radius = 10,
+    bool barrierDismissible = false,
+    bool showCancelButton = false,
+    String cancelButtonText = 'Cancel',
+    required String buttonText,
+    VoidCallback? onButtonTap,
+  }) {
+    return Get.defaultDialog(
+      title: "",
+      titleStyle: const TextStyle(fontSize: 0),
+      titlePadding: EdgeInsets.zero,
+      barrierDismissible: barrierDismissible,
+      radius: radius,
+      backgroundColor: AppColors.white,
+      contentPadding: const EdgeInsets.all(16),
+      content: SizedBox(
+        height: height,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Title
+            if (title != null && title.isNotEmpty)
+              CustomTextWidget(
+                textString: DynamicAppLocalizations.of(Get.context!).t(title),
+                textSize: FontSize().medium,
+                isFontBold: true,
+                fontColor: AppColors.black,
+                textCenter: true,
+                numberOfLines: 5,
+              ),
+
+            if (title != null) const SizedBox(height: 8),
+
+            // Description
+            if (description != null && description.isNotEmpty)
+              CustomTextWidget(
+                textString:
+                    DynamicAppLocalizations.of(Get.context!).t(description),
+                textSize: FontSize().regular,
+                isFontBold: false,
+                fontColor: AppColors.black,
+                numberOfLines: 20,
+                textCenter: true,
+              ),
+
+            if (content != null) ...[
+              const SizedBox(height: 12),
+              content,
+            ],
+
+            const SizedBox(height: 20),
+
+            // Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (showCancelButton)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: CustomTextButton(
+                      title: cancelButtonText,
+                      width: 110,
+                      textColor: AppColors.black,
+                      backgroundColor: AppColors.white,
+                      onPressed: () {
+                        Navigator.of(Get.context!).pop();
+                      },
+                    ),
+                  ),
+                CustomElevatedButton(
+                  title: buttonText,
+                  width: 120,
+                  textColor: AppColors.white,
+                  backgroundColor: AppColors.primaryColor,
+                  onPressed: () {
+                    Navigator.of(Get.context!).pop();
+                    if (onButtonTap != null) {
+                      onButtonTap();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

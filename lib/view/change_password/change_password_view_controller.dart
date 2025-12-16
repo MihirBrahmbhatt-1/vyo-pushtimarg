@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
-import '../../navigation/pages.dart';
-import '../../utility/local_db.dart';
+import '../../utility/common_functions.dart';
 
 class ChangePasswordController extends GetxController {
   ApiController apiController = Get.put(ApiController());
@@ -46,22 +45,7 @@ class ChangePasswordController extends GetxController {
     );
     isBtnLoading.value = false;
     if (isSuccess) {
-      await LocalDB().setIsLoggedIn(false);
-      await LocalDB().setIsUserExists(false);
-      await LocalDB().setIsUserProfileCompleted(false);
-      await LocalDB().setJwtToken('');
-      await LocalDB().setDashboardVersion('');
-      await LocalDB().setDashboardSliderVersion('');
-      await LocalDB().setDashboardHtmlCache('');
-      await LocalDB().setDashboardImageSliderCache('');
-      await LocalDB().setLabelLanguageVersion('');
-      await LocalDB().setLanguageLabelsCache('');
-      await LocalDB().setUserPassword('');
-      await LocalDB().removeJwtToken();
-      homeController.jwtToken.value = '';
-      homeController.isLoggedIn.value = false;
-      homeController.selectedIndex.value = 0;
-      Get.offAllNamed(Routes.signin);
+      clearAppDataAndLogout();
     }
   }
 }

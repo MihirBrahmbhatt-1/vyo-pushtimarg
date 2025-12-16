@@ -39,6 +39,8 @@ class LocalDB {
   final dashboardimageSliderCacheKey = 'dashboardimageSliderCacheKey';
   final forgotPasswordOtpResendAttemptsKey = 'forgotPasswordOtpResendAttemptsKey';
   final forgotPasswordOtpNextResendTimeKey = 'forgotPasswordOtpNextResendTimeKey';
+  final isUserSurveyCompletedKey = "isUserSurveyCompletedKey";
+
 
   Future<bool> setIsLanguageSelected(bool isLanguageSelected) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -58,6 +60,17 @@ class LocalDB {
   Future<bool?> getIsUserProfileCompleted() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     return sharedPreferences.getBool(isUserProfileCompletedKey);
+  }
+
+
+  Future<bool> setIsUserSurveyCompleted(bool isUserSurveyCompleted) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return await sharedPreferences.setBool(isUserSurveyCompletedKey, isUserSurveyCompleted);
+  }
+
+  Future<bool?> getIsUserSurveyCompleted() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return sharedPreferences.getBool(isUserSurveyCompletedKey);
   }
 
 

@@ -40,6 +40,7 @@ class HomeController extends GetxController {
   RxBool isAccountReview = false.obs;
   RxBool isUserExists= false.obs;
   RxBool isUserProfileCompleted= false.obs;
+  RxBool isUserSurveyCompleted= false.obs;
 
   // RxBool isNoInternetDialogOpen = false.obs;
   // RxBool isInternetOff = false.obs;
@@ -129,6 +130,10 @@ class HomeController extends GetxController {
 
     await LocalDB().getIsUserProfileCompleted().then((value) {
       isUserProfileCompleted.value = value ?? false;
+    });
+
+    await LocalDB().getIsUserSurveyCompleted().then((value) {
+      isUserSurveyCompleted.value = value ?? false;
     });
 
     await LocalDB().getJwtToken().then((value) {

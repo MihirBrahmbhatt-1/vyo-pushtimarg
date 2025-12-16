@@ -39,7 +39,7 @@ class HomeCustomScaffoldWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: drawer, // 👈 NEW
+      drawer: drawer,
       backgroundColor: AppColors.white,
       resizeToAvoidBottomInset: avoidResize,
 

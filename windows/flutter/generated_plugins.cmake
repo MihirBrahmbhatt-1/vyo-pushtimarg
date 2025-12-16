@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_windows
   connectivity_plus
+  flutter_inappwebview_windows
   flutter_localization
   permission_handler_windows
   share_plus

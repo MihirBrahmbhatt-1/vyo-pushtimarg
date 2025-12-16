@@ -10,13 +10,15 @@ import 'controller/language_controller.dart';
 import 'l10n/app_localizations.dart';
 import 'localization/dynamic_app_localizations.dart';
 import 'navigation/pages.dart';
+import 'utility/network_service.dart';
 
 void main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
     Get.put(HomeController());
-      Get.put(DynamicLocaleController(), permanent: true);
-  Get.put(LanguageController(), permanent: true);
+    Get.put(DynamicLocaleController(), permanent: true);
+    Get.put(LanguageController(), permanent: true);
+    Get.put(NetworkService(), permanent: true);
 
     runApp(MyApp());
   }, (exception, stackTrace) async {});
@@ -56,11 +58,11 @@ class _MyAppState extends State<MyApp> {
       theme: Themes.lightTheme,
       builder: (context, child) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(1.0)),
           child: child!,
         );
       },
-      
     );
   }
 }
