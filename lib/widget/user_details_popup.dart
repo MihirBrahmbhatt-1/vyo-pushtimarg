@@ -154,11 +154,6 @@ void showUserDetailsDialog(BuildContext context) {
           controller: controller.confirmPasswordTextController.value,
           isOutlineBorder: true,
           contentPadding: const EdgeInsets.all(10.0),
-          cursorColor: AppColors.primaryColor,
-          enabledColor: AppColors.primaryColor,
-          hintText: DynamicAppLocalizations.of(
-            Get.context!,
-          ).t("enter_confirm_password"),
           label: DynamicAppLocalizations.of(Get.context!).t("confirm_password"),
           autoValidateMode: AutovalidateMode.onUserInteraction,
           obscure: true,
@@ -228,7 +223,7 @@ void showUserDetailsDialog(BuildContext context) {
           hintText: DynamicAppLocalizations.of(Get.context!).t("select_state"),
           validatorMessage: DynamicAppLocalizations.of(
             Get.context!,
-          ).t("required"),
+          ).t("state"),
           onChanged: (value) {
             controller.selectedStateName.value = value;
             controller.selectedStateId.value =
@@ -245,7 +240,7 @@ void showUserDetailsDialog(BuildContext context) {
           hintText: DynamicAppLocalizations.of(Get.context!).t("select_city"),
           validatorMessage: DynamicAppLocalizations.of(
             Get.context!,
-          ).t("required"),
+          ).t("city"),
           onChanged: (value) {
             controller.selectedCityName.value = value;
             controller.selectedCityId.value =

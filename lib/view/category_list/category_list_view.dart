@@ -58,7 +58,7 @@ class CategoryListView extends GetView<CategoryListViewController> {
                       categoryNameKey,
                     );
                     final mediaDetails = controller.getMediaDetails(
-                      categoryName,
+                      categoryObj.categoryType.toString(),
                     );
                     return CategoryGridItem(
                       categoryObj: categoryObj,

@@ -73,7 +73,9 @@ class SurveySuccessView extends GetView<SurveySuccessViewController> {
                               textColor: AppColors.white,
                               onPressed: () {
                                 controller.homeController.selectedIndex.value = 2;
-                                Get.offAllNamed(Routes.home);
+                                // Get.offAllNamed(Routes.home);
+                                Get.offAllNamed(Routes.home, arguments: {"isInternalNavigation": true});
+
                               },
                               backgroundColor: AppColors.primaryColor,
                             ),

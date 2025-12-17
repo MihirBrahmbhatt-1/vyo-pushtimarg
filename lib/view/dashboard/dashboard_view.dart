@@ -462,7 +462,6 @@ class DashboardView extends GetView<DashboardViewController> {
       color: AppColors.white,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(
-        // Assuming 'borderRadius' is a constant available in your scope
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: InkWell(
@@ -566,8 +565,7 @@ class DashboardView extends GetView<DashboardViewController> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
-        height: Get.width *
-            0.70, // Calculate height based on screen width for responsive video aspect ratio
+        height: Get.width * 0.54,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: urls.length,
@@ -609,7 +607,7 @@ class DashboardView extends GetView<DashboardViewController> {
 
     return Container(
       width: isMulti
-          ? Get.width * 0.85
+          ? Get.width * 0.90
           : double
               .infinity, // For horizontal scroll, make it narrower than full width
       margin: isMulti
