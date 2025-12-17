@@ -18,6 +18,7 @@ class ForgotPasswordViewController extends GetxController with WidgetsBindingObs
 
   RxBool showPhoneError = false.obs;
   RxBool isLoading = false.obs;
+  RxBool isValidePhoneNumber = false.obs;
 
     final Rx<Country> selectedCountry = countries
       .firstWhere((c) => c.code == "IN")
@@ -52,6 +53,10 @@ class ForgotPasswordViewController extends GetxController with WidgetsBindingObs
       showPhoneError.value = true;
       return false;
     }
+    if (!isValidePhoneNumber.value) {
+      showPhoneError.value = true;
+      return false;
+    }
     showPhoneError.value = false;
     return true;
   }
@@ -61,7 +66,7 @@ class ForgotPasswordViewController extends GetxController with WidgetsBindingObs
       isLoading.value = true;
       bool result = await apiController.sendForgotPasswordOtp(phoneNumberTextController.text, '+${selectedCountry.value.dialCode}');
       if (result) {
-        Get.toNamed(Routes.forgotpasswordverifyotp, arguments: {'verificationId': apiController.sendOtpResponseModel.value?.verificationId.toString(), 'phoneNumber': phoneNumberTextController.value.text.toString(), 'countryCode': selectedCountry.value.dialCode});
+        Get.toNamed(Routes.forgotpasswordverifyotp, arguments: {'verificationId': apiController.forgotPasswordsendOtpResponseModel.value?.verificationId.toString(), 'phoneNumber': phoneNumberTextController.value.text.toString(), 'countryCode': selectedCountry.value.dialCode});
         isLoading.value = false;
       } else {
         isLoading.value = false;

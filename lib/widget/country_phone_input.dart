@@ -20,6 +20,7 @@ class PhoneNumberField extends StatefulWidget {
 
   final Function(Country)? onCountryChanged;
   final Function(String)? onPhoneChanged;
+  final Function(bool)? isValidPhoneNumber;
 
   const PhoneNumberField({
     super.key,
@@ -30,6 +31,7 @@ class PhoneNumberField extends StatefulWidget {
     this.label = "Phone number",
     this.onCountryChanged,
     this.onPhoneChanged,
+    this.isValidPhoneNumber,
   });
 
   @override
@@ -145,6 +147,7 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                               Get.context!,
                             ).t("enter_phone_number");
                             widget.showError.value = true;
+                            widget.isValidPhoneNumber?.call(false);
                           } else if (value.length <
                               widget.selectedCountry.value.minLength) {
                             final String localizedError =
@@ -157,7 +160,9 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
                                 );
                             widget.errorText.value = localizedError;
                             widget.showError.value = true;
+                            widget.isValidPhoneNumber?.call(false);
                           } else {
+                            widget.isValidPhoneNumber?.call(true);
                             widget.showError.value = false;
                           }
                         },

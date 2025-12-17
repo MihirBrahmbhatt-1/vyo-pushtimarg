@@ -78,17 +78,21 @@ class SignUpView extends GetView<SignUpViewController> {
                     Column(
                       children: [
                         PhoneNumberField(
-                          selectedCountry: controller.selectedCountry,
-                          phoneController: controller.phoneNumberTextController,
-                          showError: controller.showPhoneError,
-                          errorText: controller.phoneErrorMessage,
-                          onCountryChanged: (country) {
-                            talker.info("Changed to: ${country.name}");
-                          },
-                          onPhoneChanged: (phone) {
-                            talker.info("Updated phone: $phone");
-                          },
-                        ),
+                            selectedCountry: controller.selectedCountry,
+                            phoneController:
+                                controller.phoneNumberTextController,
+                            showError: controller.showPhoneError,
+                            errorText: controller.phoneErrorMessage,
+                            onCountryChanged: (country) {
+                              talker.info("Changed to: ${country.name}");
+                            },
+                            onPhoneChanged: (phone) {
+                              talker.info("Updated phone: $phone");
+                            },
+                            isValidPhoneNumber: (isValid) {
+                              talker.info("Valid phone: $isValid");
+                              controller.isValidePhoneNumber.value = isValid;
+                            }),
                         const SizedBox(height: 16),
 
                         /// ---------- SEND OTP BUTTON ----------
@@ -98,12 +102,20 @@ class SignUpView extends GetView<SignUpViewController> {
                           child: CustomElevatedButtonWidget(
                             buttonKey: const Key('btn-login-button'),
                             isLoading: ctrl.isLoading.value,
-                            buttonText: DynamicAppLocalizations.of(context).t("send_otp"),
+                            buttonText: DynamicAppLocalizations.of(context)
+                                .t("send_otp"),
                             onPressed: () {
-                              if (!ctrl.isLoading.value &&
-                                  ctrl.formKey.value.currentState!.validate()) {
-                                ctrl.homeController.reload();
-                                controller.sendOtp();
+                              bool isPhoneNumberValid =
+                                  controller.validatePhone();
+
+                              if (isPhoneNumberValid) {
+                                if (!controller.isLoading.value &&
+                                    controller.formKey.value.currentState!
+                                        .validate() &&
+                                    controller.isValidePhoneNumber.value) {
+                                  controller.homeController.reload();
+                                  controller.sendOtp();
+                                }
                               }
                             },
                           ),

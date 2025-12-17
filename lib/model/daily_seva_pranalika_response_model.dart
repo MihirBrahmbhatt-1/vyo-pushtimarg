@@ -1,5 +1,5 @@
 class DailySevaPranalikaResponseModel {
-  String? date;
+  String? sevaDate;
   String? tithiMatch;
   String? miti;
   String? vastra;
@@ -7,38 +7,47 @@ class DailySevaPranalikaResponseModel {
   String? aabharan;
   String? specialVastra;
   String? specialUtsav;
-  String? mitiEmoji;
-  String? dateEmoji;
+  SevaPranalika? sevaPranalika;
+  List<AppUpdates>? appUpdates;
+  String? notificationDetail;
 
-  DailySevaPranalikaResponseModel({
-    this.date,
-    this.tithiMatch,
-    this.miti,
-    this.vastra,
-    this.mastak,
-    this.aabharan,
-    this.specialVastra,
-    this.specialUtsav,
-    this.mitiEmoji,
-    this.dateEmoji,
-  });
+  DailySevaPranalikaResponseModel(
+      {this.sevaDate,
+      this.tithiMatch,
+      this.miti,
+      this.vastra,
+      this.mastak,
+      this.aabharan,
+      this.specialVastra,
+      this.specialUtsav,
+      this.sevaPranalika,
+      this.appUpdates,
+      this.notificationDetail,});
 
   DailySevaPranalikaResponseModel.fromJson(Map<String, dynamic> json) {
-    date = json['seva_date'];
+    sevaDate = json['seva_date'];
     tithiMatch = json['tithi_match'];
-    miti = json['miti'] ?? '';
-    vastra = json['vastra'] ?? '';
-    mastak = json['mastak'] ?? '';
+    miti = json['miti'];
+    vastra = json['vastra'];
+    mastak = json['mastak'];
     aabharan = json['aabharan'];
-    specialVastra = json['special_vastra'] ?? '';
-    specialUtsav = json['special_utsav'] ?? '';
-    mitiEmoji = json['miti_emoji'] ?? '';
-    dateEmoji = json['date_emoji'] ?? '';
+    specialVastra = json['special_vastra'];
+    specialUtsav = json['special_utsav'];
+    sevaPranalika = json['seva_pranalika'] != null
+        ? SevaPranalika.fromJson(json['seva_pranalika'])
+        : null;
+    if (json['app_updates'] != null) {
+      appUpdates = <AppUpdates>[];
+      json['app_updates'].forEach((v) {
+        appUpdates!.add(AppUpdates.fromJson(v));
+      });
+    }
+    notificationDetail = json['notification_detail'] ?? '';
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['seva_date'] = date;
+    data['seva_date'] = sevaDate;
     data['tithi_match'] = tithiMatch;
     data['miti'] = miti;
     data['vastra'] = vastra;
@@ -46,9 +55,83 @@ class DailySevaPranalikaResponseModel {
     data['aabharan'] = aabharan;
     data['special_vastra'] = specialVastra;
     data['special_utsav'] = specialUtsav;
-    data['miti_emoji'] = mitiEmoji;
-    data['miti_emoji'] = mitiEmoji;
-    data['date_emoji'] = dateEmoji;
+    if (sevaPranalika != null) {
+      data['seva_pranalika'] = sevaPranalika!.toJson();
+    }
+    if (appUpdates != null) {
+      data['app_updates'] = appUpdates!.map((v) => v.toJson()).toList();
+    }
+    data['notification_detail'] = notificationDetail;
+    return data;
+  }
+}
+
+class SevaPranalika {
+  String? sevaDate;
+  String? tithiMatch;
+  String? miti;
+  String? vastra;
+  String? mastak;
+  String? aabharan;
+  String? specialVastra;
+  String? specialUtsav;
+
+  SevaPranalika(
+      {this.sevaDate,
+      this.tithiMatch,
+      this.miti,
+      this.vastra,
+      this.mastak,
+      this.aabharan,
+      this.specialVastra,
+      this.specialUtsav});
+
+  SevaPranalika.fromJson(Map<String, dynamic> json) {
+    sevaDate = json['seva_date'];
+    tithiMatch = json['tithi_match'];
+    miti = json['miti'];
+    vastra = json['vastra'];
+    mastak = json['mastak'];
+    aabharan = json['aabharan'];
+    specialVastra = json['special_vastra'];
+    specialUtsav = json['special_utsav'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['seva_date'] = sevaDate;
+    data['tithi_match'] = tithiMatch;
+    data['miti'] = miti;
+    data['vastra'] = vastra;
+    data['mastak'] = mastak;
+    data['aabharan'] = aabharan;
+    data['special_vastra'] = specialVastra;
+    data['special_utsav'] = specialUtsav;
+    return data;
+  }
+}
+
+class AppUpdates {
+  String? appOsType;
+  String? url;
+  bool? isDisplay;
+  bool? forceUpdate;
+
+  AppUpdates({this.appOsType, this.url, this.isDisplay, this.forceUpdate});
+
+  AppUpdates.fromJson(Map<String, dynamic> json) {
+    appOsType = json['app_os_type'];
+    url = json['url'];
+    isDisplay = json['is_display'];
+    forceUpdate = json['force_update'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['app_os_type'] = appOsType;
+    data['url'] = url;
+    data['is_display'] = isDisplay;
+    data['force_update'] = forceUpdate;
     return data;
   }
 }

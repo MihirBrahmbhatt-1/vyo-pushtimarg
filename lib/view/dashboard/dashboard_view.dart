@@ -146,6 +146,55 @@ class DashboardView extends GetView<DashboardViewController> {
     );
   }
 
+  displayHtmlResponseContent(BuildContext context, dynamic htmlResponse) async {
+    // return controller
+    //                               .apiController.dashboardHtmlResponseModel
+    //                               .map((item) {
+    return htmlResponse.map((item) {
+                                // The item.content field is assumed to be the URL or a complex JSON string
+                                final content = item.content.toString();
+
+                                switch (item.sectionType) {
+                                  case 0:
+                                    return _buildHtmlContent(
+                                      content,
+                                      item.sequence.toString(),
+                                    );
+
+                                  case 1:
+                                    // Type 1: Single Image URL
+                                    return _buildSingleImage(
+                                      context,
+                                      content,
+                                    );
+
+                                  case 2:
+                                    // Type 2: Multiple Images Slider
+                                    return _buildMultipleImageSlider(
+                                      context,
+                                      content,
+                                    );
+                                  case 3:
+                                    // Type 3: Single YouTube Video URL
+                                    return _buildSingleVideo(
+                                      context,
+                                      content,
+                                    );
+
+                                  case 4:
+                                    // Type 4: Multiple YouTube Video URLs
+                                    return _buildMultipleVideos(
+                                      context,
+                                      content,
+                                    );
+
+                                  default:
+                                    // Fallback for unknown type
+                                    return const SizedBox.shrink();
+                                }
+                              });
+  }
+
   Color? _parseColor(String colorString) {
     if (colorString.startsWith('#') &&
         (colorString.length == 7 || colorString.length == 9)) {

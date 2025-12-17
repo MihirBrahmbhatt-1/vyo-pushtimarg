@@ -24,7 +24,7 @@ class HomeViewController extends GetxController
 
   displayPhoneNumberInfo() {
     return CustomAlertWidget().simpleAlertDialog(
-      title: DynamicAppLocalizations.of(Get.context!).t("info"),
+      // title: DynamicAppLocalizations.of(Get.context!).t("info"),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -41,7 +41,8 @@ class HomeViewController extends GetxController
           const SizedBox(
             height: 20,
           ),
-          InkWell(
+          ListTile(
+            title: InkWell(
             onTap: () {
               launchUrlFunction(
                 Get.context!,
@@ -51,15 +52,23 @@ class HomeViewController extends GetxController
             child: CustomTextWidget(
               fontColor: AppColors.primaryColor,
               textString: '+91 8141308401',
-              textSize: FontSize().regular,
+              textSize: FontSize().xmedium,
               numberOfLines: 2,
-              isFontBold: false,
+              isFontBold: true,
               isFontUnderline: false,
+              textCenter: true,
             ),
+          ),
           ),
         ],
       ),
-      buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+      buttonText: DynamicAppLocalizations.of(Get.context!).t("call"),
+      onButtonTap: () {
+         launchUrlFunction(
+                Get.context!,
+                '+918141308401',
+              );
+      }
     );
   }
 

@@ -75,6 +75,10 @@ class LoginView extends GetView<LoginViewController> {
                           onPhoneChanged: (phone) {
                             talker.info("Updated phone: $phone");
                           },
+                          isValidPhoneNumber: (isValid) {
+                            talker.info("Valid phone: $isValid");
+                            controller.isValidePhoneNumber.value = isValid;
+                          }
                         ),
                         const SizedBox(height: 16),
 
@@ -140,7 +144,7 @@ class LoginView extends GetView<LoginViewController> {
                               controller.validatePhone();
 
                               if (!ctrl.isLoading.value &&
-                                  ctrl.formKey.value.currentState!.validate()) {
+                                  ctrl.formKey.value.currentState!.validate() && ctrl.isValidePhoneNumber.value) {
                                 ctrl.homeController.reload();
                                 controller.userLogin();
                               }

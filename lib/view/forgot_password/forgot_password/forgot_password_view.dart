@@ -80,6 +80,10 @@ class ForgotPasswordView extends GetView<ForgotPasswordViewController> {
                       onPhoneChanged: (phone) {
                         talker.info("Updated phone: $phone");
                       },
+                      isValidPhoneNumber: (isValid) {
+                        talker.info("Valid phone: $isValid");
+                        controller.isValidePhoneNumber.value = isValid;
+                      }
                     ),
                     const SizedBox(height: 12),
 
@@ -96,7 +100,7 @@ class ForgotPasswordView extends GetView<ForgotPasswordViewController> {
                           if (isPhoneNumberValid) {
                             if (!controller.isLoading.value &&
                                 controller.formKey.value.currentState!
-                                    .validate()) {
+                                    .validate() && controller.isValidePhoneNumber.value) {
                               controller.homeController.reload();
                               controller.sendForgotPasswordOtp();
                             }

@@ -20,12 +20,28 @@ class SignUpViewController extends GetxController {
   RxBool isLoading = false.obs;
   RxBool isPasswordVisible = true.obs;
   RxBool showPhoneError = false.obs;
+  RxBool isValidePhoneNumber = false.obs;
+
 
   RxString phoneErrorMessage = "".obs;
 
   // Country selectedCountry = countries.firstWhere((c) => c.code == "IN");
   final Rx<Country> selectedCountry =
     countries.firstWhere((c) => c.code == "IN").obs;
+
+    bool validatePhone() {
+    if (phoneNumberTextController.text.isEmpty) {
+      phoneErrorMessage.value = "Enter phone number";
+      showPhoneError.value = true;
+      return false;
+    }
+    if (!isValidePhoneNumber.value) {
+      showPhoneError.value = true;
+      return false;
+    }
+    showPhoneError.value = false;
+    return true;
+  }
 
 
   sendOtp() async {

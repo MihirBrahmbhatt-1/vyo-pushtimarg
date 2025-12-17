@@ -122,26 +122,27 @@ void showUserDetailsDialog(BuildContext context) {
         ),
         SizedBox(height: 16),
 
-        CustomTextFormFieldWidget(
-          controller: controller.newPasswordTextController.value,
-          isOutlineBorder: true,
-          label: DynamicAppLocalizations.of(Get.context!).t("password"),
-          obscure: true,
-          inputFormatters: [FilteringTextInputFormatter.deny(' ')],
-
-          validator: (value) {
-            if (controller.newPasswordTextController.value.text.isEmpty) {
-              return Validators().validatePassword(
-                value,
-                DynamicAppLocalizations.of(Get.context!).t("password"),
-              );
-            }
-            return null;
-          },
-          onChanged: (value) async {
-            controller.validateNewPassword(value);
-            controller.checkForm();
-          },
+        Obx(() => CustomTextFormFieldWidget(
+            controller: controller.newPasswordTextController.value,
+            isOutlineBorder: true,
+            label: DynamicAppLocalizations.of(Get.context!).t("password"),
+            obscure: true,
+            inputFormatters: [FilteringTextInputFormatter.deny(' ')],
+          
+            validator: (value) {
+              if (controller.newPasswordTextController.value.text.isEmpty) {
+                return Validators().validatePassword(
+                  value,
+                  DynamicAppLocalizations.of(Get.context!).t("password"),
+                );
+              }
+              return null;
+            },
+            onChanged: (value) async {
+              controller.validateNewPassword(value);
+              controller.checkForm();
+            },
+          ),
         ),
         buildRule(
           DynamicAppLocalizations.of(context).t("minimum_eight_characters"),
@@ -208,7 +209,7 @@ void showUserDetailsDialog(BuildContext context) {
           ).t("select_country"),
           validatorMessage: DynamicAppLocalizations.of(
             Get.context!,
-          ).t("required"),
+          ).t("country"),
           onChanged: (value) {
             controller.selectedCountryName.value = value;
             controller.selectedCountryId.value =
@@ -406,7 +407,7 @@ void showUserDetailsDialog(BuildContext context) {
                               ).t("back"),
                               onPressed: () {
                                 if (controller.currentStep.value == 1) {
-                                  if (controller.isLoading.value) {
+                                  if (!controller.isLoading.value) {
                                     controller.goTopreviousStep();
                                   }
                                 }
@@ -430,7 +431,7 @@ void showUserDetailsDialog(BuildContext context) {
                               ).t("submit"),
                         onPressed: () {
                           if (controller.formKey.value.currentState!
-                              .validate()) {
+                              .validate() && controller.hasMinLength.value) {
                             if (controller.currentStep.value == 0) {
                               controller.goToNextStep();
                             } else {
