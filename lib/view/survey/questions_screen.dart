@@ -8,6 +8,7 @@ import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../model/survey_complete_answers_model.dart';
+import '../../navigation/pages.dart';
 import '../../widget/custom_text_widget.dart';
 import 'questions_model.dart';
 import 'questions_page.dart';
@@ -355,6 +356,7 @@ class _QuestionsScreenState extends State<QuestionsScreen>
       );
       if (isSuccess) {
         isLoading.value = false;
+        Get.offAllNamed(Routes.surveycompleted);
       }
       isLoading.value = false;
 

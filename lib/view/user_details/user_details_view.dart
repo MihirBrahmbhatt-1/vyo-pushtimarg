@@ -175,7 +175,7 @@ class UserDetailsView extends GetView<UserDetailsViewController> {
                                     label: CustomTextWidget(
                                       textString: DynamicAppLocalizations.of(
                                         Get.context!,
-                                      ).t("femalre"),
+                                      ).t("female"),
                                       textSize: FontSize().regular,
                                       fontColor: AppColors.white,
                                       isFontBold: false,
