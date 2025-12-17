@@ -151,48 +151,48 @@ class DashboardView extends GetView<DashboardViewController> {
     //                               .apiController.dashboardHtmlResponseModel
     //                               .map((item) {
     return htmlResponse.map((item) {
-                                // The item.content field is assumed to be the URL or a complex JSON string
-                                final content = item.content.toString();
+      // The item.content field is assumed to be the URL or a complex JSON string
+      final content = item.content.toString();
 
-                                switch (item.sectionType) {
-                                  case 0:
-                                    return _buildHtmlContent(
-                                      content,
-                                      item.sequence.toString(),
-                                    );
+      switch (item.sectionType) {
+        case 0:
+          return _buildHtmlContent(
+            content,
+            item.sequence.toString(),
+          );
 
-                                  case 1:
-                                    // Type 1: Single Image URL
-                                    return _buildSingleImage(
-                                      context,
-                                      content,
-                                    );
+        case 1:
+          // Type 1: Single Image URL
+          return _buildSingleImage(
+            context,
+            content,
+          );
 
-                                  case 2:
-                                    // Type 2: Multiple Images Slider
-                                    return _buildMultipleImageSlider(
-                                      context,
-                                      content,
-                                    );
-                                  case 3:
-                                    // Type 3: Single YouTube Video URL
-                                    return _buildSingleVideo(
-                                      context,
-                                      content,
-                                    );
+        case 2:
+          // Type 2: Multiple Images Slider
+          return _buildMultipleImageSlider(
+            context,
+            content,
+          );
+        case 3:
+          // Type 3: Single YouTube Video URL
+          return _buildSingleVideo(
+            context,
+            content,
+          );
 
-                                  case 4:
-                                    // Type 4: Multiple YouTube Video URLs
-                                    return _buildMultipleVideos(
-                                      context,
-                                      content,
-                                    );
+        case 4:
+          // Type 4: Multiple YouTube Video URLs
+          return _buildMultipleVideos(
+            context,
+            content,
+          );
 
-                                  default:
-                                    // Fallback for unknown type
-                                    return const SizedBox.shrink();
-                                }
-                              });
+        default:
+          // Fallback for unknown type
+          return const SizedBox.shrink();
+      }
+    });
   }
 
   Color? _parseColor(String colorString) {
@@ -462,7 +462,6 @@ class DashboardView extends GetView<DashboardViewController> {
       color: AppColors.white,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(
-        // Assuming 'borderRadius' is a constant available in your scope
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: InkWell(
@@ -566,8 +565,7 @@ class DashboardView extends GetView<DashboardViewController> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
-        height: Get.width *
-            0.70, // Calculate height based on screen width for responsive video aspect ratio
+        height: Get.width * 0.54,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: urls.length,
@@ -609,7 +607,7 @@ class DashboardView extends GetView<DashboardViewController> {
 
     return Container(
       width: isMulti
-          ? Get.width * 0.85
+          ? Get.width * 0.90
           : double
               .infinity, // For horizontal scroll, make it narrower than full width
       margin: isMulti

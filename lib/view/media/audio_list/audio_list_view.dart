@@ -126,21 +126,21 @@ class AudioListView extends GetView<AudioListViewController> {
                 ),
               ),
 
-              const Icon(Icons.volume_down, color: AppColors.white, size: 20),
-              SizedBox(
-                width: 80,
-                child: Obx(
-                  () => Slider(
-                    value: controller.volume.value,
-                    min: 0.0,
-                    max: 1.0,
-                    activeColor: AppColors.red,
-                    inactiveColor: AppColors.white.withValues(alpha: 0.3),
-                    onChanged: controller.setVolume,
-                  ),
-                ),
-              ),
-              const Icon(Icons.volume_up, color: AppColors.white, size: 20),
+              // const Icon(Icons.volume_down, color: AppColors.white, size: 20),
+              // SizedBox(
+              //   width: 80,
+              //   child: Obx(
+              //     () => Slider(
+              //       value: controller.volume.value,
+              //       min: 0.0,
+              //       max: 1.0,
+              //       activeColor: AppColors.red,
+              //       inactiveColor: AppColors.white.withValues(alpha: 0.3),
+              //       onChanged: controller.setVolume,
+              //     ),
+              //   ),
+              // ),
+              // const Icon(Icons.volume_up, color: AppColors.white, size: 20),
 
               // Stop/Close Button
               IconButton(

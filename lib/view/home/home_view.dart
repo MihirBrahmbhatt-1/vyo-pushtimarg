@@ -138,8 +138,8 @@ class HomeView extends GetView<HomeViewController> {
           index: 2,
           icon: CustomImageAssetWidget(
             imagePath: AppIcons.prayImg,
-            height: 26,
-            width: 26,
+            height: 24,
+            width: 24,
             imageColor: AppColors.white,
           ),
           label: DynamicAppLocalizations.of(Get.context!).t("practice"),

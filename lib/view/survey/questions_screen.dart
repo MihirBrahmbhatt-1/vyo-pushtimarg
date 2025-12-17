@@ -356,7 +356,7 @@ class _QuestionsScreenState extends State<QuestionsScreen>
       );
       if (isSuccess) {
         isLoading.value = false;
-        Get.offAllNamed(Routes.surveycompleted);
+        Get.toNamed(Routes.surveycompleted);
       }
       isLoading.value = false;
 

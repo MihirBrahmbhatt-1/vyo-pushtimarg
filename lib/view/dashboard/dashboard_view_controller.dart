@@ -36,6 +36,7 @@ class DashboardViewController extends GetxController
 
   RxBool isLoading = true.obs;
   RxBool isImageSliderLoading = true.obs;
+  RxBool isInternalNavigation = false.obs;
 
   Future<ui.Image>? imageDimensionsFuture;
 
@@ -47,14 +48,17 @@ class DashboardViewController extends GetxController
   void onInit() async {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
+    isInternalNavigation.value =
+        (Get.arguments?['isInternalNavigation'] as bool?) ?? false;
+
+    if (isInternalNavigation.value) {
+      return;
+    }
 
     fetchSevaPranalikaDetails();
 
     fetchDashboardDetails();
     fetchDashboardImageSlider();
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    //   checkUserRegistration();
-    // });
   }
 
   @override

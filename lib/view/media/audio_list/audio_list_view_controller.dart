@@ -121,8 +121,17 @@ class AudioListViewController extends GetxController
     if (url.isEmpty) return;
 
     if (currentlyPlayingUrl.value == url) {
-      await audioPlayer.pause();
-      currentlyPlayingUrl.value = "";
+      if (audioPlayer.state == PlayerState.paused) {
+        try {
+          final cachedFile = await DefaultCacheManager().getSingleFile(url);
+          await audioPlayer.play(DeviceFileSource(cachedFile.path));
+        } catch (e) {
+          stopPlayback();
+        }
+      } else {
+        await audioPlayer.pause();
+      }
+      // currentlyPlayingUrl.value = "";
       return;
     }
 

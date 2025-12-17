@@ -24,52 +24,51 @@ class HomeViewController extends GetxController
 
   displayPhoneNumberInfo() {
     return CustomAlertWidget().simpleAlertDialog(
-      // title: DynamicAppLocalizations.of(Get.context!).t("info"),
-      content: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          CustomTextWidget(
-            fontColor: AppColors.primaryColor,
-            textString: DynamicAppLocalizations.of(Get.context!)
-                .t("contact_support_description"),
-            textSize: FontSize().regular,
-            numberOfLines: 20,
-            isFontBold: false,
-            isFontUnderline: false,
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          ListTile(
-            title: InkWell(
-            onTap: () {
-              launchUrlFunction(
-                Get.context!,
-                '+918141308401',
-              );
-            },
-            child: CustomTextWidget(
+        // title: DynamicAppLocalizations.of(Get.context!).t("info"),
+        content: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CustomTextWidget(
               fontColor: AppColors.primaryColor,
-              textString: '+91 8141308401',
-              textSize: FontSize().xmedium,
-              numberOfLines: 2,
-              isFontBold: true,
+              textString: DynamicAppLocalizations.of(Get.context!)
+                  .t("contact_support_description"),
+              textSize: FontSize().regular,
+              numberOfLines: 20,
+              isFontBold: false,
               isFontUnderline: false,
-              textCenter: true,
             ),
-          ),
-          ),
-        ],
-      ),
-      buttonText: DynamicAppLocalizations.of(Get.context!).t("call"),
-      onButtonTap: () {
-         launchUrlFunction(
-                Get.context!,
-                '+918141308401',
-              );
-      }
-    );
+            const SizedBox(
+              height: 20,
+            ),
+            ListTile(
+              title: InkWell(
+                onTap: () {
+                  launchUrlFunction(
+                    Get.context!,
+                    '+919601353414',
+                  );
+                },
+                child: CustomTextWidget(
+                  fontColor: AppColors.primaryColor,
+                  textString: '+91 9601353414',
+                  textSize: FontSize().xmedium,
+                  numberOfLines: 2,
+                  isFontBold: true,
+                  isFontUnderline: false,
+                  textCenter: true,
+                ),
+              ),
+            ),
+          ],
+        ),
+        buttonText: DynamicAppLocalizations.of(Get.context!).t("call"),
+        onButtonTap: () {
+          launchUrlFunction(
+            Get.context!,
+            '+919601353414',
+          );
+        });
   }
 
   Future<void> launchUrlFunction(

@@ -33,18 +33,18 @@ class CategoryListViewController extends GetxController
     await fetchCategoryList();
   }
 
-  Map<String, dynamic> getMediaDetails(String categoryName) {
+  Map<String, dynamic> getMediaDetails(String categoryType) {
     const Map<String, Map<String, dynamic>> mediaTypeLookup = {
-      'audio': {'icon': Icons.audiotrack, 'color': AppColors.primaryColor},
-      'pdf': {'icon': Icons.picture_as_pdf, 'color': AppColors.red},
-      'video': {'icon': Icons.videocam, 'color': AppColors.blue},
-      'image': {'icon': Icons.image, 'color': AppColors.green},
+      '4': {'icon': Icons.audiotrack, 'color': AppColors.primaryColor},
+      '3': {'icon': Icons.picture_as_pdf, 'color': AppColors.red},
+      '2': {'icon': Icons.videocam, 'color': AppColors.blue},
+      '1': {'icon': Icons.image, 'color': AppColors.green},
     };
 
-    final name = categoryName.toLowerCase();
+    final categoryTypeString = categoryType.toLowerCase();
     for (final keyword in mediaTypeLookup.keys) {
-      if (name.contains(keyword) ||
-          (keyword == 'image' && name.contains('images'))) {
+      if (categoryTypeString.contains(keyword) ||
+          (keyword == '1')) {
         final details = mediaTypeLookup[keyword]!;
         return {
           'icon': details['icon'],
