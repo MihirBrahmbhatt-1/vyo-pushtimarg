@@ -8,7 +8,7 @@ import '../../../localization/dynamic_app_localizations.dart';
 import '../../../widget/custom_button_widget.dart';
 import '../../../widget/custom_icon_widget.dart';
 import '../../../widget/custom_text_widget.dart';
-import '../../otp/otp_view_controller.dart';
+import 'otp_view_controller.dart';
 
 class OtpView extends GetView<OtpViewController> {
   const OtpView({super.key});

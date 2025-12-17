@@ -260,7 +260,6 @@ class _QuestionsScreenState extends State<QuestionsScreen>
     final totalQuestions = controller.questions.length;
     final isLastQuestion = currentIndex >= totalQuestions - 1;
     if (isLastQuestion) {
-            isLoading.value = true;
       final currentQuestion = controller.questions[currentIndex];
       if (currentQuestion.isRequired &&
           !controller.isQuestionAnswered(
@@ -270,6 +269,7 @@ class _QuestionsScreenState extends State<QuestionsScreen>
         setState(() => _showValidationError = true);
         return;
       }
+      isLoading.value = true;
 
       final List<Map<String, dynamic>> textAnswers = [];
       final List<Map<String, dynamic>> optionAnswers = [];

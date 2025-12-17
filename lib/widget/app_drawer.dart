@@ -42,8 +42,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     HomeController homeController = Get.put(HomeController());
-    final DashboardViewController dashboardViewController =
-    Get.find<DashboardViewController>();
+    final DashboardViewController dashboardViewController = Get.find<DashboardViewController>();
     return Drawer(
       elevation: 0,
       backgroundColor: AppColors.white,
@@ -91,7 +90,7 @@ class AppDrawer extends StatelessWidget {
             titleKey: "seva_pranalika_title",
             onTap: () {
               Get.back();
-              dashboardViewController.displaySevaPranalikaAlert();
+              dashboardViewController.displaySevaPranalikaAlert(false, false);
             },
           ),
 

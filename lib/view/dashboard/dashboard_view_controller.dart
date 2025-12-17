@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:html/dom.dart' as dom;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:m_vyo_demo/widget/custom_button_widget.dart';
@@ -15,6 +19,7 @@ import '../../const/app_constant.dart';
 import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
+import '../../model/daily_seva_pranalika_response_model.dart';
 import '../../model/dashboard_html_content_response_model.dart';
 import '../../model/dashboard_image_slider_response_model.dart';
 import '../../utility/local_db.dart';
@@ -128,9 +133,7 @@ class DashboardViewController extends GetxController
     final Completer<ui.Image> completer = Completer();
     final Image image = Image.network(url);
 
-    image.image
-        .resolve(const ImageConfiguration())
-        .addListener(
+    image.image.resolve(const ImageConfiguration()).addListener(
           ImageStreamListener(
             (ImageInfo info, bool _) {
               completer.complete(info.image);
@@ -157,11 +160,14 @@ class DashboardViewController extends GetxController
         date: formattedDate,
         jwtToken: homeController.jwtToken.value,
       );
-      displaySevaPranalikaAlert();
+      if (apiController.dailySevaPranalikaResponseModel.value != null &&
+          homeController.isUserProfileCompleted.value) {
+        displaySevaPranalikaAlert(true, true);
+      }
     }
   }
 
-  displaySevaPranalikaAlert() {
+  displaySevaPranalikaAlert(bool checkAppUpdate, bool isDisplayHtmlContent) {
     return Get.defaultDialog(
       title: "",
       titleStyle: TextStyle(fontSize: 0),
@@ -170,49 +176,53 @@ class DashboardViewController extends GetxController
       radius: borderRadius,
       backgroundColor: AppColors.white,
       contentPadding: EdgeInsets.zero,
-      content: Builder(
-        builder: (context) {
-          double screenHeight = MediaQuery.of(context).size.height;
-          double maxHeight = screenHeight * 0.50;
-          double minHeight = screenHeight * 0.30;
+      content: PopScope(
+        canPop: false,
+        child: Builder(
+          builder: (context) {
+            double screenHeight = MediaQuery.of(context).size.height;
+            double maxHeight = screenHeight * 0.50;
+            double minHeight = screenHeight * 0.30;
 
-          return SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Image.asset(AppIcons.toran, fit: BoxFit.fitHeight),
-                const SizedBox(height: 20),
-                _buildSevaPranalikaTitle(),
-                SizedBox(height: 12),
-                Container(
-                  constraints: BoxConstraints(
-                    minHeight: minHeight,
-                    maxHeight: maxHeight,
-                  ),
-                  child: ScrollbarTheme(
-                    data: ScrollbarThemeData(
-                      thumbColor: WidgetStateProperty.all(
-                        AppColors.primaryColor,
-                      ),
+            return SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Image.asset(AppIcons.toran, fit: BoxFit.fitHeight),
+                  const SizedBox(height: 20),
+                  _buildSevaPranalikaTitle(),
+                  SizedBox(height: 12),
+                  Container(
+                    constraints: BoxConstraints(
+                      minHeight: minHeight,
+                      maxHeight: maxHeight,
                     ),
-                    child: Scrollbar(
-                      thumbVisibility: true,
-                      controller: sevaPranalikaScroll,
-                      child: SingleChildScrollView(
+                    child: ScrollbarTheme(
+                      data: ScrollbarThemeData(
+                        thumbColor: WidgetStateProperty.all(
+                          AppColors.primaryColor,
+                        ),
+                      ),
+                      child: Scrollbar(
+                        thumbVisibility: true,
                         controller: sevaPranalikaScroll,
-                        child: _buildDetailsCard(),
+                        child: SingleChildScrollView(
+                          controller: sevaPranalikaScroll,
+                          child: _buildDetailsCard(
+                              checkAppUpdate, isDisplayHtmlContent),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-              ],
-            ),
-          );
-        },
+                  const SizedBox(height: 10),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -245,7 +255,7 @@ class DashboardViewController extends GetxController
     );
   }
 
-  Widget _buildDetailsCard() {
+  Widget _buildDetailsCard(bool checkAppUpdate, bool isDisplayHtmlContent) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
@@ -268,7 +278,8 @@ class DashboardViewController extends GetxController
             const SizedBox(height: 16),
             _buildDetailRow(
               "🌹",
-              apiController.dailySevaPranalikaResponseModel.value?.date ?? "",
+              apiController.dailySevaPranalikaResponseModel.value?.sevaDate ??
+                  "",
             ),
             const SizedBox(height: 8),
             _buildDetailRow(
@@ -295,7 +306,273 @@ class DashboardViewController extends GetxController
                 width: MediaQuery.of(Get.context!).size.width * 0.40,
                 title: DynamicAppLocalizations.of(Get.context!).t("ok"),
                 textColor: AppColors.white,
-                onPressed: () => Get.back(),
+                onPressed: () async {
+                  if (!checkAppUpdate) {
+                    if (isDisplayHtmlContent) {
+                      Get.back();
+
+                      apiController.dailySevaPranalikaResponseModel.value!.notificationDetail!.isEmpty ? const SizedBox() : CustomAlertWidget().simpleAlertDialog(
+                        title: '',
+                        content: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: HtmlWidget(
+                            apiController.dailySevaPranalikaResponseModel.value!.notificationDetail
+                                .toString(),
+                            textStyle:
+                                const TextStyle(fontStyle: FontStyle.normal),
+                            customWidgetBuilder: (dom.Element element) {
+                              if (element.localName == 'div' &&
+                                  element.parent?.localName == 'a' &&
+                                  element.children.length == 2 &&
+                                  // element.children[0].localName == 'img' &&
+                                  element.children[1].localName == 'div') {
+                                final style = element.attributes['style'] ?? '';
+
+                                // Extract Background Color
+                                Color? bgColor;
+                                final bgColorMatch = RegExp(
+                                  r'background: *([^;]+)',
+                                ).firstMatch(style);
+                                if (bgColorMatch != null) {
+                                  bgColor = _parseColor(
+                                      bgColorMatch.group(1)!.trim());
+                                }
+
+                                // Extract Padding
+                                EdgeInsets padding = EdgeInsets.zero;
+                                final paddingMatch = RegExp(
+                                  r'padding: *(\d+)(px)?',
+                                ).firstMatch(style);
+                                if (paddingMatch != null) {
+                                  double paddingValue =
+                                      double.tryParse(paddingMatch.group(1)!) ??
+                                          0.0;
+                                  padding = EdgeInsets.all(paddingValue);
+                                }
+
+                                BoxDecoration decoration = BoxDecoration(
+                                  color: bgColor ?? AppColors.transparent,
+                                );
+                                if (style
+                                    .contains('border:2px solid #D24F16')) {
+                                  decoration = decoration.copyWith(
+                                    border: Border.all(
+                                        color: AppColors.primaryColor,
+                                        width: 2.0),
+                                  );
+                                }
+
+                                // --- 2. Build Children ---
+
+                                // Recursively render the two child elements (img and div) using the context
+                                // Note: HtmlWidget context provides a method to render children safely.
+                                // Since we are creating a custom widget, we need to manually create the children
+                                // to include them in our Row layout.
+
+                                // We'll use the package's internal rendering engine to convert the children DOM
+                                // nodes into Flutter widgets. We need a special builder context for this.
+                                // Since HtmlWidget is designed to handle all rendering internally,
+                                // the simplest way is to manually instantiate a sub-HtmlWidget for the children,
+                                // or manually locate the Image and Text widgets if they are rendered by the core.
+
+                                // The most reliable way with fwfh is to build the Row and use sub-widgets for the content:
+
+                                // Convert the inner content HTML to strings for recursive rendering
+                                final imgHtml = element.children[0].outerHtml;
+                                final textDivHtml =
+                                    element.children[1].outerHtml;
+
+                                return Container(
+                                  padding: padding,
+                                  decoration: decoration,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      // Icon (img)
+                                      HtmlWidget(
+                                        imgHtml,
+                                        onLoadingBuilder: (context, element,
+                                                loadingProgress) =>
+                                            const SizedBox(
+                                          width: 40,
+                                          height: 40,
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10.0),
+                                      Expanded(
+                                        child: HtmlWidget(
+                                          textDivHtml,
+                                          textStyle: const TextStyle(
+                                              fontStyle: FontStyle.normal),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return null;
+                            },
+                            onTapUrl: (url) async {
+                              final uri = Uri.tryParse(url);
+                              if (uri != null && await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                                return true;
+                              } else {
+                                debugPrint('Could not launch URL: $url');
+                                return false;
+                              }
+                            },
+                          ),
+                        ),
+                        canPop: false,
+                        buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+                      );
+                    } else {
+                      return Get.back();
+                    }
+                  } else {
+                    final update = getPlatformUpdate(apiController
+                        .dailySevaPranalikaResponseModel.value!.appUpdates!);
+                    if (update != null &&
+                        update.isDisplay == true &&
+                        update.forceUpdate == true) {
+                      return showForceUpdateDialog(update);
+                    } else {
+                       if (isDisplayHtmlContent) {
+                      Get.back();
+
+                      apiController.dailySevaPranalikaResponseModel.value!.notificationDetail!.isEmpty ? const SizedBox() : CustomAlertWidget().simpleAlertDialog(
+                        title: '',
+                        content: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: HtmlWidget(
+                            apiController.dailySevaPranalikaResponseModel.value!.notificationDetail
+                                .toString(),
+                            textStyle:
+                                const TextStyle(fontStyle: FontStyle.normal),
+                            customWidgetBuilder: (dom.Element element) {
+                              if (element.localName == 'div' &&
+                                  element.parent?.localName == 'a' &&
+                                  element.children.length == 2 &&
+                                  // element.children[0].localName == 'img' &&
+                                  element.children[1].localName == 'div') {
+                                final style = element.attributes['style'] ?? '';
+
+                                // Extract Background Color
+                                Color? bgColor;
+                                final bgColorMatch = RegExp(
+                                  r'background: *([^;]+)',
+                                ).firstMatch(style);
+                                if (bgColorMatch != null) {
+                                  bgColor = _parseColor(
+                                      bgColorMatch.group(1)!.trim());
+                                }
+
+                                // Extract Padding
+                                EdgeInsets padding = EdgeInsets.zero;
+                                final paddingMatch = RegExp(
+                                  r'padding: *(\d+)(px)?',
+                                ).firstMatch(style);
+                                if (paddingMatch != null) {
+                                  double paddingValue =
+                                      double.tryParse(paddingMatch.group(1)!) ??
+                                          0.0;
+                                  padding = EdgeInsets.all(paddingValue);
+                                }
+
+                                BoxDecoration decoration = BoxDecoration(
+                                  color: bgColor ?? AppColors.transparent,
+                                );
+                                if (style
+                                    .contains('border:2px solid #D24F16')) {
+                                  decoration = decoration.copyWith(
+                                    border: Border.all(
+                                        color: AppColors.primaryColor,
+                                        width: 2.0),
+                                  );
+                                }
+
+                                // --- 2. Build Children ---
+
+                                // Recursively render the two child elements (img and div) using the context
+                                // Note: HtmlWidget context provides a method to render children safely.
+                                // Since we are creating a custom widget, we need to manually create the children
+                                // to include them in our Row layout.
+
+                                // We'll use the package's internal rendering engine to convert the children DOM
+                                // nodes into Flutter widgets. We need a special builder context for this.
+                                // Since HtmlWidget is designed to handle all rendering internally,
+                                // the simplest way is to manually instantiate a sub-HtmlWidget for the children,
+                                // or manually locate the Image and Text widgets if they are rendered by the core.
+
+                                // The most reliable way with fwfh is to build the Row and use sub-widgets for the content:
+
+                                // Convert the inner content HTML to strings for recursive rendering
+                                final imgHtml = element.children[0].outerHtml;
+                                final textDivHtml =
+                                    element.children[1].outerHtml;
+
+                                return Container(
+                                  padding: padding,
+                                  decoration: decoration,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      // Icon (img)
+                                      HtmlWidget(
+                                        imgHtml,
+                                        onLoadingBuilder: (context, element,
+                                                loadingProgress) =>
+                                            const SizedBox(
+                                          width: 40,
+                                          height: 40,
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10.0),
+                                      Expanded(
+                                        child: HtmlWidget(
+                                          textDivHtml,
+                                          textStyle: const TextStyle(
+                                              fontStyle: FontStyle.normal),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return null;
+                            },
+                            onTapUrl: (url) async {
+                              final uri = Uri.tryParse(url);
+                              if (uri != null && await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                                return true;
+                              } else {
+                                debugPrint('Could not launch URL: $url');
+                                return false;
+                              }
+                            },
+                          ),
+                        ),
+                        canPop: false,
+                        buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+                      );
+                    }
+                    }
+                  }
+                },
                 backgroundColor: AppColors.primaryColor,
               ),
             ),
@@ -319,6 +596,31 @@ class DashboardViewController extends GetxController
     );
   }
 
+  Color? _parseColor(String colorString) {
+    if (colorString.startsWith('#') &&
+        (colorString.length == 7 || colorString.length == 9)) {
+      String hex = colorString.substring(1);
+      if (hex.length == 6) {
+        hex = 'FF$hex';
+      }
+      return Color(int.parse(hex, radix: 16));
+    }
+    switch (colorString.toLowerCase()) {
+      case 'red':
+        return AppColors.red;
+      case 'blue':
+        return AppColors.blue;
+      case 'white':
+        return AppColors.white;
+      case 'black':
+        return AppColors.black;
+      case 'grey':
+        return AppColors.grey;
+      default:
+        return null;
+    }
+  }
+
   Widget _buildDetailRow(String icon, String text) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -333,7 +635,9 @@ class DashboardViewController extends GetxController
           isFontUnderline: false,
           fontStyle: FontStyle.normal,
         ),
-        const SizedBox(width: 8,),
+        const SizedBox(
+          width: 8,
+        ),
         Container(
           constraints: BoxConstraints(
             minWidth: Get.width * 0.30,
@@ -350,7 +654,9 @@ class DashboardViewController extends GetxController
             textCenter: true,
           ),
         ),
-        const SizedBox(width: 8,),
+        const SizedBox(
+          width: 8,
+        ),
         CustomTextWidget(
           fontColor: AppColors.primaryColor,
           textString: icon,
@@ -444,6 +750,53 @@ class DashboardViewController extends GetxController
         ),
       ],
     );
+  }
+
+  getPlatformUpdate(List<AppUpdates> updates) {
+    if (Platform.isIOS) {
+      return updates.firstWhereOrNull((e) => e.appOsType == "1");
+    } else {
+      return updates.firstWhereOrNull((e) => e.appOsType == "0");
+    }
+  }
+
+  void showForceUpdateDialog(AppUpdates update) {
+    if (Platform.isIOS) {
+      Get.dialog(
+        PopScope(
+          canPop: false, // 🔒 block back & swipe
+          child: CupertinoAlertDialog(
+            title: const Text("Update Required"),
+            content: const Text(
+              "You must update the app to continue using it.",
+            ),
+            actions: [
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => launchUrl(
+                  Uri.parse(update.url.toString()),
+                  mode: LaunchMode.externalApplication,
+                ),
+                child: const Text("Update"),
+              ),
+            ],
+          ),
+        ),
+        barrierDismissible: false,
+      );
+    } else {
+      CustomAlertWidget().simpleAlertDialog(
+          title: 'Update Required',
+          description: 'You muse update the app to continue',
+          canPop: false,
+          buttonText: 'Update',
+          onButtonTap: () {
+            launchUrl(
+              Uri.parse(update.url.toString()),
+              mode: LaunchMode.externalApplication,
+            );
+          });
+    }
   }
 
   final String whatsappBaseUrl = 'https://wa.me/';

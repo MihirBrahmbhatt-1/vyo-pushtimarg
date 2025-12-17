@@ -8,8 +8,8 @@ import '../../../controller/home_controller.dart';
 class SurveySuccessViewController extends GetxController
     with WidgetsBindingObserver {
   late ConfettiController? confettiController;
-  HomeController homeController = Get.put(HomeController());
-  ApiController apiController = Get.put(ApiController());
+  final ApiController apiController = Get.find<ApiController>();
+  final HomeController homeController = Get.find<HomeController>();
 
   RxBool showButton = false.obs;
 

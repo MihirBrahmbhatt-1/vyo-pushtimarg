@@ -58,6 +58,7 @@ class ForgotPasswordSendOtpResponseModel {
   String? createdAt;
   String? expiresAt;
   bool? isUserExist;
+  String? verificationId;
 
   ForgotPasswordSendOtpResponseModel({
     this.countryCode,
@@ -68,6 +69,7 @@ class ForgotPasswordSendOtpResponseModel {
     this.createdAt,
     this.expiresAt,
     this.isUserExist,
+    this.verificationId,
   });
 
   ForgotPasswordSendOtpResponseModel.fromJson(Map<String, dynamic> json) {
@@ -79,6 +81,7 @@ class ForgotPasswordSendOtpResponseModel {
     createdAt = json['created_at'];
     expiresAt = json['expires_at'];
     isUserExist = json['is_user_exist'] ?? false;
+    verificationId = json['verification_id'] ?? false;
   }
 
   Map<String, dynamic> toJson() {
@@ -91,6 +94,7 @@ class ForgotPasswordSendOtpResponseModel {
     data['created_at'] = createdAt;
     data['expires_at'] = expiresAt;
     data['is_user_exist'] = isUserExist;
+    data['verification_id'] = verificationId;
     return data;
   }
 }

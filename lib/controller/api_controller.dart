@@ -1272,6 +1272,8 @@ class ApiController extends GetxController {
                   DailySevaPranalikaResponseModel.fromJson(
                     apiBaseResponse.data,
                   );
+            } else {
+              dailySevaPranalikaResponseModel.value = null;
             }
           }
         }

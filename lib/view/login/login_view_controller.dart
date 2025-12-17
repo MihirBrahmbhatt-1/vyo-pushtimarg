@@ -20,6 +20,7 @@ class LoginViewController extends GetxController {
   RxBool isLoading = false.obs;
   RxBool isPasswordVisible = true.obs;
   RxBool showPhoneError = false.obs;
+  RxBool isValidePhoneNumber = false.obs;
 
   RxString phoneErrorMessage = "".obs;
 
@@ -48,6 +49,10 @@ class LoginViewController extends GetxController {
   bool validatePhone() {
     if (phoneNumberTextController.text.isEmpty) {
       phoneErrorMessage.value = DynamicAppLocalizations.of(Get.context!).t("phone_number_is_required");
+      showPhoneError.value = true;
+      return false;
+    }
+    if (!isValidePhoneNumber.value) {
       showPhoneError.value = true;
       return false;
     }
