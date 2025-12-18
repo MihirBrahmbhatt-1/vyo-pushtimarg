@@ -689,108 +689,131 @@ class DashboardView extends GetView<DashboardViewController> {
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: HtmlWidget(
-        htmlData,
-        textStyle: const TextStyle(fontStyle: FontStyle.normal),
-        customWidgetBuilder: (dom.Element element) {
-          if (element.localName == 'div' &&
-              element.parent?.localName == 'a' &&
-              element.children.length == 2 &&
-              // element.children[0].localName == 'img' &&
-              element.children[1].localName == 'div') {
-            final style = element.attributes['style'] ?? '';
+      child: HtmlWidget(htmlData,
+          textStyle: const TextStyle(fontStyle: FontStyle.normal),
+          customWidgetBuilder: (dom.Element element) {
+        if (element.localName == 'div' &&
+            element.parent?.localName == 'a' &&
+            element.children.length == 2 &&
+            // element.children[0].localName == 'img' &&
+            element.children[1].localName == 'div') {
+          final style = element.attributes['style'] ?? '';
 
-            // Extract Background Color
-            Color? bgColor;
-            final bgColorMatch = RegExp(
-              r'background: *([^;]+)',
-            ).firstMatch(style);
-            if (bgColorMatch != null) {
-              bgColor = _parseColor(bgColorMatch.group(1)!.trim());
-            }
+          // Extract Background Color
+          Color? bgColor;
+          final bgColorMatch = RegExp(
+            r'background: *([^;]+)',
+          ).firstMatch(style);
+          if (bgColorMatch != null) {
+            bgColor = _parseColor(bgColorMatch.group(1)!.trim());
+          }
 
-            // Extract Padding
-            EdgeInsets padding = EdgeInsets.zero;
-            final paddingMatch = RegExp(
-              r'padding: *(\d+)(px)?',
-            ).firstMatch(style);
-            if (paddingMatch != null) {
-              double paddingValue =
-                  double.tryParse(paddingMatch.group(1)!) ?? 0.0;
-              padding = EdgeInsets.all(paddingValue);
-            }
+          // Extract Padding
+          EdgeInsets padding = EdgeInsets.zero;
+          final paddingMatch = RegExp(
+            r'padding: *(\d+)(px)?',
+          ).firstMatch(style);
+          if (paddingMatch != null) {
+            double paddingValue =
+                double.tryParse(paddingMatch.group(1)!) ?? 0.0;
+            padding = EdgeInsets.all(paddingValue);
+          }
 
-            BoxDecoration decoration = BoxDecoration(
-              color: bgColor ?? AppColors.transparent,
+          BoxDecoration decoration = BoxDecoration(
+            color: bgColor ?? AppColors.transparent,
+          );
+          if (style.contains('border:2px solid #D24F16')) {
+            decoration = decoration.copyWith(
+              border: Border.all(color: AppColors.primaryColor, width: 2.0),
             );
-            if (style.contains('border:2px solid #D24F16')) {
-              decoration = decoration.copyWith(
-                border: Border.all(color: AppColors.primaryColor, width: 2.0),
+          }
+
+          // --- 2. Build Children ---
+
+          // Recursively render the two child elements (img and div) using the context
+          // Note: HtmlWidget context provides a method to render children safely.
+          // Since we are creating a custom widget, we need to manually create the children
+          // to include them in our Row layout.
+
+          // We'll use the package's internal rendering engine to convert the children DOM
+          // nodes into Flutter widgets. We need a special builder context for this.
+          // Since HtmlWidget is designed to handle all rendering internally,
+          // the simplest way is to manually instantiate a sub-HtmlWidget for the children,
+          // or manually locate the Image and Text widgets if they are rendered by the core.
+
+          // The most reliable way with fwfh is to build the Row and use sub-widgets for the content:
+
+          // Convert the inner content HTML to strings for recursive rendering
+          final imgHtml = element.children[0].outerHtml;
+          final textDivHtml = element.children[1].outerHtml;
+
+          return Container(
+            padding: padding,
+            decoration: decoration,
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Icon (img)
+                HtmlWidget(
+                  imgHtml,
+                  onLoadingBuilder: (context, element, loadingProgress) =>
+                      const SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10.0),
+                Expanded(
+                  child: HtmlWidget(
+                    textDivHtml,
+                    textStyle: const TextStyle(fontStyle: FontStyle.normal),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return null;
+      }, onTapUrl: (url) async {
+        try {
+          if (url.startsWith('mailto:')) {
+            final email = url.replaceFirst('mailto:', '');
+
+            final uri = Uri(
+              scheme: 'mailto',
+              path: email,
+              // optional
+              queryParameters: {
+                // 'subject': 'Hello',
+                // 'body': 'Message here',
+              },
+            );
+
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(
+                uri,
+                mode: LaunchMode.externalApplication,
               );
+              return true;
             }
-
-            // --- 2. Build Children ---
-
-            // Recursively render the two child elements (img and div) using the context
-            // Note: HtmlWidget context provides a method to render children safely.
-            // Since we are creating a custom widget, we need to manually create the children
-            // to include them in our Row layout.
-
-            // We'll use the package's internal rendering engine to convert the children DOM
-            // nodes into Flutter widgets. We need a special builder context for this.
-            // Since HtmlWidget is designed to handle all rendering internally,
-            // the simplest way is to manually instantiate a sub-HtmlWidget for the children,
-            // or manually locate the Image and Text widgets if they are rendered by the core.
-
-            // The most reliable way with fwfh is to build the Row and use sub-widgets for the content:
-
-            // Convert the inner content HTML to strings for recursive rendering
-            final imgHtml = element.children[0].outerHtml;
-            final textDivHtml = element.children[1].outerHtml;
-
-            return Container(
-              padding: padding,
-              decoration: decoration,
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Icon (img)
-                  HtmlWidget(
-                    imgHtml,
-                    onLoadingBuilder: (context, element, loadingProgress) =>
-                        const SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10.0),
-                  Expanded(
-                    child: HtmlWidget(
-                      textDivHtml,
-                      textStyle: const TextStyle(fontStyle: FontStyle.normal),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-          return null;
-        },
-        onTapUrl: (url) async {
-          final uri = Uri.tryParse(url);
-          if (uri != null && await canLaunchUrl(uri)) {
-            await launchUrl(uri);
-            return true;
           } else {
-            debugPrint('Could not launch URL: $url');
-            return false;
+            final uri = Uri.parse(url);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri);
+              return true;
+            }
           }
-        },
-      ),
+        } catch (e) {
+          debugPrint('Launch error: $e');
+        }
+
+        debugPrint('Could not launch URL: $url');
+        return false;
+      }),
     );
   }
 }
