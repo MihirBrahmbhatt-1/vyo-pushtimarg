@@ -774,6 +774,7 @@ class ApiController extends GetxController {
         Map<String, String> body = <String, String>{};
         body['mobile_no'] = phoneNumber.toString();
         body['password'] = password.toString();
+        body['language_id'] = homeController.selectedLanguageId.value.toString();
 
         Map<String, String> header = {};
         var response = await ApiServiceInterceptor.postDecryptLambdaCall(
