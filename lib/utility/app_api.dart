@@ -16,7 +16,7 @@ class GetApiEnv {
       // } else {
       //   return 'Testing';
       // }
-      return 'Development';
+      return 'Production';
     }
   }
 }
