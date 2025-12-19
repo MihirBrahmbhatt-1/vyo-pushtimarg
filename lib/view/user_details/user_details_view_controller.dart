@@ -7,6 +7,7 @@ import '../../const/app_constant.dart';
 import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../widget/custom_alert_widget.dart';
 
 class UserDetailsViewController extends GetxController
@@ -162,32 +163,53 @@ class UserDetailsViewController extends GetxController
   }
 
   updateUserDetails() async {
-    isFetchingData.value = true;
-    dynamic apiResponse = await apiController.updateUserProfile(
-      userId: homeController.customerIdString.value,
-      name: nameController.value.text,
-      email: emailTextController.value.text,
-      phoneNumber: homeController.userPhoneNumber.value,
-      countryCode: homeController.countryCode.value,
-      countryId: int.parse(selectedCountryId.value),
-      stateId: int.parse(selectedStateId.value),
-      cityId: int.parse(selectedCityId.value),
-      gender: gender.value,
-      languageId: homeController.selectedLanguageId.value,
-      birthDate: homeController.userDOB.toString(),
-      jwtToken: homeController.jwtToken.value,
-    );
-    if (apiResponse != null) {
-      if (apiResponse['success'] == true) {
-        CustomAlertWidget().infoAlertDialog(
-          displayText: apiResponse['message'],
-          buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
-          statusType: true,
+    try {
+      if (await ApiServiceInterceptor.checkInternet()) {
+        isFetchingData.value = true;
+        dynamic apiResponse = await apiController.updateUserProfile(
+          userId: homeController.customerIdString.value,
+          name: nameController.value.text,
+          email: emailTextController.value.text,
+          phoneNumber: homeController.userPhoneNumber.value,
+          countryCode: homeController.countryCode.value,
+          countryId: int.parse(selectedCountryId.value),
+          stateId: int.parse(selectedStateId.value),
+          cityId: int.parse(selectedCityId.value),
+          gender: gender.value,
+          languageId: homeController.selectedLanguageId.value,
+          birthDate: homeController.userDOB.toString(),
+          jwtToken: homeController.jwtToken.value,
         );
-        isFetchingData.value = false;
+        if (apiResponse != null) {
+          if (apiResponse['success'] == true) {
+            CustomAlertWidget().infoAlertDialog(
+              displayText: apiResponse['message'],
+              buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+              statusType: true,
+            );
+            isFetchingData.value = false;
+          } else {
+            isFetchingData.value = false;
+          }
+        }
       } else {
-        isFetchingData.value = false;
+        CustomAlertWidget().simpleAlertDialog(
+            title: DynamicAppLocalizations.of(Get.context!)
+                .t("no_internet_connection"),
+            description: '',
+            canPop: false,
+            buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+            onButtonTap: () {
+              Get.back();
+            });
       }
+    } catch (e) {
+      // CustomAlertWidget().simpleAlertDialog(title: DynamicAppLocalizations.of(Get.context!).t("no_internet_connection"), description: '',
+      //     canPop: false,
+      //     buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+      //     onButtonTap: () {
+      //       Get.back();
+      //     });
     }
   }
 }

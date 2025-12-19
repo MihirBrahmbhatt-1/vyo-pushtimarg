@@ -237,7 +237,7 @@ class ChangePasswordView extends GetView<ChangePasswordController> {
       ).t("change_password_confirmation"),
       buttonText: DynamicAppLocalizations.of(Get.context!).t("yes"),
       cancelButtonText: DynamicAppLocalizations.of(Get.context!).t("cancel"),
-      statusType: true, // success Lottie color
+      statusType: false,
       showCancelButton: true,
       onButtonTap: () async {
         controller.submitChangePassword();

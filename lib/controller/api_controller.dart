@@ -96,59 +96,56 @@ class ApiController extends GetxController {
     }
   }
 
-  fetchVersionsList({
-    required bool isUserLoggedIn,
-    required String jwtToken,
-  }) async {
-    try {
-      if (await ApiServiceInterceptor.checkInternet()) {
-        var request = <String, String>{};
-        Map<String, String> header;
-        header = {'authorization': ""};
-        var response = await ApiServiceInterceptor.getDecryptLambdaCall(
-          url: AppApi().commonVersionsApiUrl,
-          request: request,
-          headers: header,
-        );
-        if (homeController.statusCode.value == 200) {
-          var convertedResponse = json.decode(response);
-          ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
-            convertedResponse,
-          );
-          if (apiBaseResponse.statusCode == 209 &&
-              apiBaseResponse.data != null) {
-            Map<String, dynamic> customObj = {"Data": apiBaseResponse.data};
-            var convertedObjString = jsonEncode(customObj);
-            versionListData.value =
-                (json.decode(convertedObjString)["Data"] as List)
-                    .map((data) => VersionListResponseModel.fromJson(data))
-                    .toList();
-            if (versionListData.isEmpty) return;
+fetchVersionsList({
+  required bool isUserLoggedIn,
+  required String jwtToken,
+}) async {
+  try {
+    bool isConnected = await ApiServiceInterceptor.checkInternet();
 
-            await _checkForLabelVersionUpdate();
+    if (isConnected) {
+      var request = <String, String>{};
+      Map<String, String> header = {'authorization': ""};
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().commonVersionsApiUrl,
+        request: request,
+        headers: header,
+      );
+      print('---------- Internet available, fetched version list');
 
-            if (isUserLoggedIn) {
-              talker.info(
-                'User is logged in. Checking dashboard and slider versions.',
-              );
-              await _checkForDashboardVersionUpdate();
-              await _checkForDashboardSliderVersionUpdate();
-            } else {
-              talker.info(
-                'User is NOT logged in. Skipping dashboard and slider version checks.',
-              );
-            }
-          } else {
-            versionListData.value = [];
-          }
+      if (homeController.statusCode.value == 200) {
+        var convertedResponse = json.decode(response);
+        ApiBaseResponse apiBaseResponse =
+            ApiBaseResponse.fromJson(convertedResponse);
+
+        if (apiBaseResponse.statusCode == 209 &&
+            apiBaseResponse.data != null) {
+          Map<String, dynamic> customObj = {"Data": apiBaseResponse.data};
+          var convertedObjString = jsonEncode(customObj);
+          versionListData.value = (json.decode(convertedObjString)["Data"] as List)
+              .map((data) => VersionListResponseModel.fromJson(data))
+              .toList();
         } else {
           versionListData.value = [];
         }
+      } else {
+        versionListData.value = [];
       }
-    } catch (e) {
-      talker.error('Exception in fetchVersionList API: $e');
+    } else {
+      print('---------- No internet, skipping API fetch');
     }
+
+    await _checkForLabelVersionUpdate();
+    if (isConnected && isUserLoggedIn) {
+      talker.info('User is logged in. Checking dashboard and slider versions.');
+      await _checkForDashboardVersionUpdate();
+      await _checkForDashboardSliderVersionUpdate();
+    }
+  } catch (e) {
+    talker.error('Exception in fetchVersionList API: $e');
   }
+}
+
 
   fetchLanguageList() async {
     try {
@@ -690,9 +687,12 @@ class ApiController extends GetxController {
         } else {
           return true;
         }
+      } else {
+        return false;
       }
     } catch (e) {
       talker.error('Exception in getUserProfileByPhoneNumber API: $e');
+      return false;
     }
   }
 
@@ -1342,36 +1342,84 @@ class ApiController extends GetxController {
   // -------------------------------------------------------------
   // 1. Labels Version Logic (Extracted)
   // -------------------------------------------------------------
-  Future<void> _checkForLabelVersionUpdate() async {
-    final versionString = _getVersionString("@@labels_version@@");
+  // Future<void> _checkForLabelVersionUpdate() async {
+  //   final versionString = _getVersionString("@@labels_version@@");
 
-    if (versionString.isEmpty) return;
+  //   if (versionString.isEmpty) return;
 
+  //   String? storedVersion = await LocalDB().getLabelLanguageVersion() ?? '';
+  //   bool shouldUpdate = false;
+  //   if (storedVersion.isEmpty) {
+  //     shouldUpdate = true;
+  //   } else {
+  //     try {
+  //       final apiDate = DateTime.parse(versionString);
+  //       final localDate = DateTime.parse(storedVersion);
+  //       if (apiDate.isAfter(localDate)) {
+  //         shouldUpdate = true;
+  //       }
+  //     } catch (e) {
+  //       // Handle parsing error (e.g., corrupted stored version)
+  //       shouldUpdate = true;
+  //     }
+  //   }
+
+  //   if (shouldUpdate) {
+  //     talker.info('Label version mismatch/new. Updating labels.');
+
+  //     if (homeController.selectedLanguageId.value.isNotEmpty) {
+  //       await getLanguageLabels(homeController.selectedLanguageId.value);
+  //     }
+
+  //     await LocalDB().setLabelLanguageVersion(versionString);
+  //   } else {
+  //     try {
+  //       final cachedJson = await LocalDB().getLanguageLabelsCache();
+  //       if (cachedJson != null && cachedJson.isNotEmpty) {
+  //         final List<dynamic> cachedList = json.decode(cachedJson);
+  //         final List<DynamicLabel> cachedLabels = cachedList
+  //             .map<DynamicLabel>((e) => DynamicLabel.fromJson(e))
+  //             .toList();
+
+  //         final dynamicCtrl = Get.put(DynamicLocaleController());
+
+  //         dynamicCtrl.setLabels(cachedLabels, isFromCache: true);
+  //       }
+  //     } catch (e) {
+  //       talker.error('Exception loading language labels from cache: $e');
+  //     }
+  //   }
+  // }
+
+  Future<void> _checkForLabelVersionUpdate({bool isConnected = true}) async {
+  try {
+    final apiVersionString = _getVersionString("@@labels_version@@");
     String? storedVersion = await LocalDB().getLabelLanguageVersion() ?? '';
     bool shouldUpdate = false;
-    if (storedVersion.isEmpty) {
-      shouldUpdate = true;
-    } else {
-      try {
-        final apiDate = DateTime.parse(versionString);
-        final localDate = DateTime.parse(storedVersion);
-        if (apiDate.isAfter(localDate)) {
+
+    if (isConnected && apiVersionString.isNotEmpty) {
+      if (storedVersion.isEmpty) {
+        shouldUpdate = true;
+      } else {
+        try {
+          final apiDate = DateTime.parse(apiVersionString);
+          final localDate = DateTime.parse(storedVersion);
+          if (apiDate.isAfter(localDate)) shouldUpdate = true;
+        } catch (e) {
           shouldUpdate = true;
         }
-      } catch (e) {
-        // Handle parsing error (e.g., corrupted stored version)
-        shouldUpdate = true;
       }
     }
 
-    if (shouldUpdate) {
-      talker.info('Label version mismatch/new. Updating labels.');
+    final dynamicCtrl = Get.put(DynamicLocaleController());
+
+    if (shouldUpdate && isConnected) {
+      talker.info('Label version mismatch or new. Updating labels from API.');
 
       if (homeController.selectedLanguageId.value.isNotEmpty) {
         await getLanguageLabels(homeController.selectedLanguageId.value);
       }
-
-      await LocalDB().setLabelLanguageVersion(versionString);
+      await LocalDB().setLabelLanguageVersion(apiVersionString);
     } else {
       try {
         final cachedJson = await LocalDB().getLanguageLabelsCache();
@@ -1381,15 +1429,18 @@ class ApiController extends GetxController {
               .map<DynamicLabel>((e) => DynamicLabel.fromJson(e))
               .toList();
 
-          final dynamicCtrl = Get.put(DynamicLocaleController());
-
           dynamicCtrl.setLabels(cachedLabels, isFromCache: true);
+          talker.info('Loaded labels from cache.');
         }
       } catch (e) {
         talker.error('Exception loading language labels from cache: $e');
       }
     }
+  } catch (e) {
+    talker.error('Exception in _checkForLabelVersionUpdate: $e');
   }
+}
+
 
   // -------------------------------------------------------------
   // 2. Dashboard HTML Version Logic (Extracted)

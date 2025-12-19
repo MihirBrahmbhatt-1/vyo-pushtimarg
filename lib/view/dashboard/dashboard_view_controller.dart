@@ -956,9 +956,9 @@ class DashboardViewController extends GetxController
         PopScope(
           canPop: false, // 🔒 block back & swipe
           child: CupertinoAlertDialog(
-            title: const Text("Update Required"),
-            content: const Text(
-              "You must update the app to continue using it.",
+            title: Text(DynamicAppLocalizations.of(Get.context!).t("update_required")),
+            content: Text(
+              DynamicAppLocalizations.of(Get.context!).t("update_required_description"),
             ),
             actions: [
               CupertinoDialogAction(
@@ -967,7 +967,7 @@ class DashboardViewController extends GetxController
                   Uri.parse(update.url.toString()),
                   mode: LaunchMode.externalApplication,
                 ),
-                child: const Text("Update"),
+                child: Text(DynamicAppLocalizations.of(Get.context!).t("app_update")),
               ),
             ],
           ),
@@ -976,10 +976,10 @@ class DashboardViewController extends GetxController
       );
     } else {
       CustomAlertWidget().simpleAlertDialog(
-          title: 'Update Required',
-          description: 'You muse update the app to continue',
+          title: DynamicAppLocalizations.of(Get.context!).t("update_required"),
+          description: DynamicAppLocalizations.of(Get.context!).t("update_required_description"),
           canPop: false,
-          buttonText: 'Update',
+          buttonText: DynamicAppLocalizations.of(Get.context!).t("app_update"),
           onButtonTap: () {
             launchUrl(
               Uri.parse(update.url.toString()),

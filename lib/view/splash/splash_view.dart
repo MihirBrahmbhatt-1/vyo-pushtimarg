@@ -75,14 +75,12 @@ class _SplashViewState extends State<SplashView>
         jwtToken: homeController.jwtToken.value,
       );
 
-      bool isSuccess = await apiController.getUserProfileByPhoneNumber(
+      await apiController.getUserProfileByPhoneNumber(
         phoneNumber: homeController.userPhoneNumber.value,
         jwtToken: homeController.jwtToken.value,
       );
-
-      if(isSuccess) {
         Get.offAll(() => const HomeView());
-      }
+      
     }
   }
 
