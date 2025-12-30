@@ -29,6 +29,12 @@ class HomeController extends GetxController {
   RxString userCityName = "".obs;
   RxString userGenderId = "".obs;
   RxString userDOB = "".obs;
+  RxString userDeviceIdString = "".obs;
+  RxString userDeviceNameString = "".obs;
+  RxString userDeviceOsTypeString = "".obs;
+  RxString userDeviceOsVersionString = "".obs;
+  RxString userDeviceModelNumberString = "".obs;
+  RxString userAppInstalledVersionName = "".obs;
 
   RxList<String> fcmNotificationUniqueIdString = <String>[].obs;
 
@@ -121,7 +127,7 @@ class HomeController extends GetxController {
     });
 
     await LocalDB().getTokenFirebase().then((value) {
-      fcmTokenString.value = (value.toString());
+      fcmTokenString.value = (value ?? '');
     });
 
     await LocalDB().getIsLoggedIn().then((value) {

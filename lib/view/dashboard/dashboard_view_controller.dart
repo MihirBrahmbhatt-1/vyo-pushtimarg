@@ -55,10 +55,12 @@ class DashboardViewController extends GetxController
       return;
     }
 
-    fetchSevaPranalikaDetails();
+    if(homeController.isUserProfileCompleted.value == true) {
+          fetchSevaPranalikaDetails();
 
     fetchDashboardDetails();
     fetchDashboardImageSlider();
+    }
   }
 
   @override

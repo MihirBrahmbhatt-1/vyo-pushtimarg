@@ -38,37 +38,40 @@ class HomeCustomScaffoldWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: drawer,
-      backgroundColor: AppColors.white,
-      resizeToAvoidBottomInset: avoidResize,
-
-      bottomNavigationBar: bottomNavigationBar,
-
-      appBar: AppBar(
-        centerTitle: centerTitle ?? false,
-        foregroundColor: AppColors.white,
-        backgroundColor: AppColors.primaryColor,
-
-        title: title ?? const SizedBox(),
-
-        bottom: bottom,
-
-        leading: isBack == true
-            ? IconButton(
-                onPressed: () => Get.back(),
-                icon: Icon(
-                  Platform.isIOS ? AppIcons.backArrowiOS : AppIcons.backArrow,
-                  color: AppColors.white,
-                ),
-              )
-            : null, // important change so drawer button can appear automatically
-
-        actions: actions,
+    return SafeArea(
+      top: false,
+      child: Scaffold(
+        drawer: drawer,
+        backgroundColor: AppColors.white,
+        resizeToAvoidBottomInset: avoidResize,
+      
+        bottomNavigationBar: bottomNavigationBar,
+      
+        appBar: AppBar(
+          centerTitle: centerTitle ?? false,
+          foregroundColor: AppColors.white,
+          backgroundColor: AppColors.primaryColor,
+      
+          title: title ?? const SizedBox(),
+      
+          bottom: bottom,
+      
+          leading: isBack == true
+              ? IconButton(
+                  onPressed: () => Get.back(),
+                  icon: Icon(
+                    Platform.isIOS ? AppIcons.backArrowiOS : AppIcons.backArrow,
+                    color: AppColors.white,
+                  ),
+                )
+              : null, // important change so drawer button can appear automatically
+      
+          actions: actions,
+        ),
+      
+        floatingActionButton: floatingActionButton,
+        body: body,
       ),
-
-      floatingActionButton: floatingActionButton,
-      body: body,
     );
   }
 }

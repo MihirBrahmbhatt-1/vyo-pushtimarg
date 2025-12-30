@@ -111,7 +111,7 @@ fetchVersionsList({
         request: request,
         headers: header,
       );
-      print('---------- Internet available, fetched version list');
+      talker.info('---------- Internet available, fetched version list');
 
       if (homeController.statusCode.value == 200) {
         var convertedResponse = json.decode(response);
@@ -132,7 +132,7 @@ fetchVersionsList({
         versionListData.value = [];
       }
     } else {
-      print('---------- No internet, skipping API fetch');
+      talker.info('---------- No internet, skipping API fetch');
     }
 
     await _checkForLabelVersionUpdate();
@@ -666,6 +666,7 @@ fetchVersionsList({
       } else if (homeController.statusCode.value == 401 ||
           homeController.statusCode.value == 403) {
         bool isSuccess = await userLoginApi(
+          countryCode: homeController.countryCode.value,
           phoneNumber: homeController.userPhoneNumber.value,
           password: homeController.passwordString.value,
         );
@@ -768,17 +769,24 @@ fetchVersionsList({
     }
   }
 
-  userLoginApi({required phoneNumber, required password}) async {
+  userLoginApi({required countryCode, required phoneNumber, required password}) async {
     try {
       if (await ApiServiceInterceptor.checkInternet()) {
         Map<String, String> body = <String, String>{};
         body['mobile_no'] = phoneNumber.toString();
         body['password'] = password.toString();
         body['language_id'] = homeController.selectedLanguageId.value.toString();
+        body['country_code'] = '+${countryCode.toString()}';
+        body['login_type'] = '1'; // 1 - User, 0 - admin 
+        body['device_os'] = homeController.userDeviceOsTypeString.value.toString();
+        body['device_id'] = homeController.userDeviceIdString.value.toString();
+        body['device_name'] = homeController.userDeviceNameString.value.toString();
+        body['device_notification_token'] = homeController.fcmTokenString.value.isEmpty ? '' : homeController.fcmTokenString.value.toString();
+        body['app_version'] = homeController.userAppInstalledVersionName.value.toString();
 
         Map<String, String> header = {};
         var response = await ApiServiceInterceptor.postDecryptLambdaCall(
-          url: AppApi().loginApiUrl,
+          url: AppApi().loginV2ApiUrl,
           header: header,
           body: json.encode(body),
         );
@@ -903,6 +911,7 @@ fetchVersionsList({
         } else {
           return false;
         }
+      
       }
     } catch (e) {
       talker.error('Exception in userLoginApi API: $e');
@@ -1294,7 +1303,7 @@ fetchVersionsList({
       if (await ApiServiceInterceptor.checkInternet()) {
         Map<String, String> body = <String, String>{};
         body['mobile_number'] = phoneNumber.toString();
-        body['country_code'] = countryCode.toString();
+        body['country_code'] = '+${countryCode.toString()}';
         body['verification_id'] = verificationId.toString();
         body['otp_code'] = userEnteredOtp.toString();
 

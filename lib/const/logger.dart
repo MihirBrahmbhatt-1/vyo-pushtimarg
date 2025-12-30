@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:logger/logger.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
+import 'app_constant.dart';
+
 final Logger logger = Logger(printer: PrettyPrinter());
 
 final talker = TalkerFlutter.init(
@@ -25,5 +27,7 @@ final talker = TalkerFlutter.init(
 );
 
 void printTalker(String text) async {
-  log(text);
+  if(isDisplayLogs) {
+      log(text);
+  }
 }

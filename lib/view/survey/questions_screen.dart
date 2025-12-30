@@ -430,108 +430,111 @@ class _QuestionsScreenState extends State<QuestionsScreen>
       );
       final bool isLastQuestion = currentIndex == totalQuestions - 1;
 
-      return Scaffold(
-        body: SafeArea(
-          child: Column(
-            children: [
-              _SurveyProgressHeader(controller: controller),
-
-              Expanded(
-                child: PageView.builder(
-                  controller: controller.pageController,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: totalQuestions,
-                  itemBuilder: (context, index) {
-                    final question = controller.questions[index];
-                    final answerValue = controller.answers[question.id];
-
-                    return QuestionsPage(
-                      key: ValueKey(question.id),
-                      question: question,
-                      value: answerValue,
-                      showError: _showValidationError && index == currentIndex,
-                      onYesNo: controller.setYesNo,
-                      onToggleMulti: controller.toggleMulti,
-                      onSingleSelect: controller.setSingleSelect,
-                      onText: controller.setText,
-                      onNumber: controller.setNumber,
-                      onSingleImage: controller.setSingleImage,
-                      onToggleMultiImage: controller.toggleMultiImage,
-                      onPickDateTime: _pickDateTime,
-                      onPickDate: _pickDate,
-                      onPickTime: _pickTime,
-                    );
-                  },
-                ),
-              ),
-
-              Container(
-                padding: const EdgeInsets.only(top: 10, bottom: 24),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  boxShadow: [
-                    BoxShadow(color: AppColors.grey200, blurRadius: 4),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 22.0),
-                  child: Row(
-                    children: [
-                      // Back Button
-                      if (currentIndex > 0)
-                        TextButton(
-                          onPressed: _previousQuestion,
-                          child: CustomTextWidget(
-                            textString: DynamicAppLocalizations.of(
-                              Get.context!,
-                            ).t("back"),
-                            textSize: FontSize().regular,
-                            fontColor: AppColors.grey,
-                            isFontBold: false,
-                          ),
-                        ),
-                      const Spacer(),
-                      if (canSkip && !isAnswered && !isLastQuestion)
-                        TextButton(
-                          onPressed: () => _nextQuestion(forceSkip: true),
-                          child: CustomTextWidget(
-                            textString: DynamicAppLocalizations.of(
-                              Get.context!,
-                            ).t("skip"),
-                            textSize: FontSize().regular,
-                            fontColor: AppColors.primaryColor,
-                            isFontBold: false,
-                          ),
-                        ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => _nextQuestion(),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: const StadiumBorder(),
-                            elevation: 6,
-                            backgroundColor: AppColors.primaryColor,
-                          ),
-                          child: isLoading.value ?SizedBox(height: 14, width: 14, child: CircularProgressIndicator(color: AppColors.white,)) : CustomTextWidget(
-                            textString: isLastQuestion
-                                ? DynamicAppLocalizations.of(
-                                    Get.context!,
-                                  ).t("finish")
-                                : DynamicAppLocalizations.of(
-                                    Get.context!,
-                                  ).t('next'),
-                            textSize: FontSize().regular,
-                            fontColor: AppColors.white,
-                            isFontBold: true,
-                          ),
-                        ),
-                      ),
-                    ],
+      return SafeArea(
+        top: false,
+        child: Scaffold(
+          body: SafeArea(
+            child: Column(
+              children: [
+                _SurveyProgressHeader(controller: controller),
+        
+                Expanded(
+                  child: PageView.builder(
+                    controller: controller.pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: totalQuestions,
+                    itemBuilder: (context, index) {
+                      final question = controller.questions[index];
+                      final answerValue = controller.answers[question.id];
+        
+                      return QuestionsPage(
+                        key: ValueKey(question.id),
+                        question: question,
+                        value: answerValue,
+                        showError: _showValidationError && index == currentIndex,
+                        onYesNo: controller.setYesNo,
+                        onToggleMulti: controller.toggleMulti,
+                        onSingleSelect: controller.setSingleSelect,
+                        onText: controller.setText,
+                        onNumber: controller.setNumber,
+                        onSingleImage: controller.setSingleImage,
+                        onToggleMultiImage: controller.toggleMultiImage,
+                        onPickDateTime: _pickDateTime,
+                        onPickDate: _pickDate,
+                        onPickTime: _pickTime,
+                      );
+                    },
                   ),
                 ),
-              ),
-            ],
+        
+                Container(
+                  padding: const EdgeInsets.only(top: 10, bottom: 24),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    boxShadow: [
+                      BoxShadow(color: AppColors.grey200, blurRadius: 4),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 22.0),
+                    child: Row(
+                      children: [
+                        // Back Button
+                        if (currentIndex > 0)
+                          TextButton(
+                            onPressed: _previousQuestion,
+                            child: CustomTextWidget(
+                              textString: DynamicAppLocalizations.of(
+                                Get.context!,
+                              ).t("back"),
+                              textSize: FontSize().regular,
+                              fontColor: AppColors.grey,
+                              isFontBold: false,
+                            ),
+                          ),
+                        const Spacer(),
+                        if (canSkip && !isAnswered && !isLastQuestion)
+                          TextButton(
+                            onPressed: () => _nextQuestion(forceSkip: true),
+                            child: CustomTextWidget(
+                              textString: DynamicAppLocalizations.of(
+                                Get.context!,
+                              ).t("skip"),
+                              textSize: FontSize().regular,
+                              fontColor: AppColors.primaryColor,
+                              isFontBold: false,
+                            ),
+                          ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _nextQuestion(),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: const StadiumBorder(),
+                              elevation: 6,
+                              backgroundColor: AppColors.primaryColor,
+                            ),
+                            child: isLoading.value ?SizedBox(height: 14, width: 14, child: CircularProgressIndicator(color: AppColors.white,)) : CustomTextWidget(
+                              textString: isLastQuestion
+                                  ? DynamicAppLocalizations.of(
+                                      Get.context!,
+                                    ).t("finish")
+                                  : DynamicAppLocalizations.of(
+                                      Get.context!,
+                                    ).t('next'),
+                              textSize: FontSize().regular,
+                              fontColor: AppColors.white,
+                              isFontBold: true,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );

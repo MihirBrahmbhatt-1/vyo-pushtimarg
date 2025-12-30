@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:omni_video_player/omni_video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -100,6 +101,11 @@ class _UnifiedVideoPlayerState extends State<UnifiedVideoPlayer> {
     _watchdog?.cancel();
     _ytController?.dispose();
     _omniController?.dispose();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      // DeviceOrientation.portraitDown,
+      // DeviceOrientation.landscapeLeft,
+    ]);
     super.dispose();
   }
 
@@ -217,6 +223,9 @@ class _UnifiedVideoPlayerState extends State<UnifiedVideoPlayer> {
           onTap: () {
             _ytController?.pause();
             _omniController?.pause();
+            SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
             Get.back();
           },
           child: Container(

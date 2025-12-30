@@ -17,158 +17,161 @@ class VideoListView extends GetView<VideoListViewController> {
   Widget build(BuildContext context) {
     Get.put(VideoListViewController());
 
-    return Scaffold(
-      appBar: AppBar(
-        foregroundColor: AppColors.white,
-        backgroundColor: AppColors.primaryColor,
-        centerTitle: true,
-        title: CustomTextWidget(
-          uiKey: const Key('lbl-nav-title'),
-          textString: controller.appBarTitle.value,
-          textSize: FontSize().appBar,
-          isFontBold: false,
-          fontColor: AppColors.white,
-          isFontUnderline: false,
-          fontStyle: FontStyle.normal,
+    return SafeArea(
+      top: false,
+      child: Scaffold(
+        appBar: AppBar(
+          foregroundColor: AppColors.white,
+          backgroundColor: AppColors.primaryColor,
+          centerTitle: true,
+          title: CustomTextWidget(
+            uiKey: const Key('lbl-nav-title'),
+            textString: controller.appBarTitle.value,
+            textSize: FontSize().appBar,
+            isFontBold: false,
+            fontColor: AppColors.white,
+            isFontUnderline: false,
+            fontStyle: FontStyle.normal,
+          ),
         ),
-      ),
-      body: RefreshIndicator(
-        color: AppColors.white,
-        backgroundColor: AppColors.primaryColor,
-        onRefresh: controller.refreshMediaList,
-        child: Obx(() {
-          if (controller.isShimmerLoading.value) {
-            return _buildShimmerGrid();
-          } else if (controller.mediaListData.isEmpty) {
-            return _buildEmptyState(context);
-          } else {
-            return NotificationListener<ScrollNotification>(
-              onNotification: controller.handleScrollNotification,
-              child: ListView.builder(
-                controller: controller.scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: controller.mediaListData.length,
-                itemBuilder: (_, index) {
-                  final media = controller.mediaListData[index];
-                  controller.loadThumbnailForIndex(index);
-
-                  // final heroTag = 'video-hero-${media.mediaUrl}-$index';
-
-                  return Card(
-                    color: AppColors.white,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(borderRadius),
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(borderRadius),
-                      onTap: () {
-                        // Get.to(
-                        //   () => VideoPlayerView(
-                        //     title: media.name,
-                        //     url: media.mediaUrl,
-                        //     heroTag: heroTag,
-                        //   ),
-                        //   opaque: false,
-                        //   transition: Transition.fadeIn,
-                        // );
-                        Get.to(
-                          () => UnifiedVideoPlayer(
-                            title: media.name,
-                            url: media.mediaUrl,
-                            // heroTag: heroTag,
-                          ),
-                          opaque: false,
-                          // transition: Transition.fadeIn,
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.only(bottom: 10.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(borderRadius),
-                              ),
-                              child: AspectRatio(
-                                aspectRatio: 16 / 9,
-                                child: media.thumbnail == null
-                                    ? const Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 1.5,
-                                          color: AppColors.primaryColor,
+        body: RefreshIndicator(
+          color: AppColors.white,
+          backgroundColor: AppColors.primaryColor,
+          onRefresh: controller.refreshMediaList,
+          child: Obx(() {
+            if (controller.isShimmerLoading.value) {
+              return _buildShimmerGrid();
+            } else if (controller.mediaListData.isEmpty) {
+              return _buildEmptyState(context);
+            } else {
+              return NotificationListener<ScrollNotification>(
+                onNotification: controller.handleScrollNotification,
+                child: ListView.builder(
+                  controller: controller.scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: controller.mediaListData.length,
+                  itemBuilder: (_, index) {
+                    final media = controller.mediaListData[index];
+                    controller.loadThumbnailForIndex(index);
+      
+                    // final heroTag = 'video-hero-${media.mediaUrl}-$index';
+      
+                    return Card(
+                      color: AppColors.white,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(borderRadius),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(borderRadius),
+                        onTap: () {
+                          // Get.to(
+                          //   () => VideoPlayerView(
+                          //     title: media.name,
+                          //     url: media.mediaUrl,
+                          //     heroTag: heroTag,
+                          //   ),
+                          //   opaque: false,
+                          //   transition: Transition.fadeIn,
+                          // );
+                          Get.to(
+                            () => UnifiedVideoPlayer(
+                              title: media.name,
+                              url: media.mediaUrl,
+                              // heroTag: heroTag,
+                            ),
+                            opaque: false,
+                            // transition: Transition.fadeIn,
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(borderRadius),
+                                ),
+                                child: AspectRatio(
+                                  aspectRatio: 16 / 9,
+                                  child: media.thumbnail == null
+                                      ? const Center(
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 1.5,
+                                            color: AppColors.primaryColor,
+                                          ),
+                                        )
+                                      : Image.network(
+                                          media.thumbnail!,
+                                          fit: BoxFit.cover,
                                         ),
-                                      )
-                                    : Image.network(
-                                        media.thumbnail!,
-                                        fit: BoxFit.cover,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          CustomTextWidget(
+                                            textString:
+                                                DynamicAppLocalizations.of(
+                                                  context,
+                                                ).t(media.name.toString()),
+                                            textSize: FontSize().medium,
+                                            isFontBold: true,
+                                            fontColor: AppColors.black,
+                                            numberOfLines: 10,
+                                          ),
+      
+                                          SizedBox(
+                                            height: media.description.isEmpty
+                                                ? 0
+                                                : 4,
+                                          ),
+      
+                                          media.description.isEmpty
+                                              ? const SizedBox()
+                                              : CustomTextWidget(
+                                                  textString:
+                                                      DynamicAppLocalizations.of(
+                                                        context,
+                                                      ).t(
+                                                        media.description
+                                                            .toString(),
+                                                      ),
+                                                  textSize: FontSize().regular,
+                                                  isFontBold: false,
+                                                  fontColor: AppColors.grey800,
+                                                  numberOfLines: 20,
+                                                ),
+                                        ],
                                       ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        CustomTextWidget(
-                                          textString:
-                                              DynamicAppLocalizations.of(
-                                                context,
-                                              ).t(media.name.toString()),
-                                          textSize: FontSize().medium,
-                                          isFontBold: true,
-                                          fontColor: AppColors.black,
-                                          numberOfLines: 10,
-                                        ),
-
-                                        SizedBox(
-                                          height: media.description.isEmpty
-                                              ? 0
-                                              : 4,
-                                        ),
-
-                                        media.description.isEmpty
-                                            ? const SizedBox()
-                                            : CustomTextWidget(
-                                                textString:
-                                                    DynamicAppLocalizations.of(
-                                                      context,
-                                                    ).t(
-                                                      media.description
-                                                          .toString(),
-                                                    ),
-                                                textSize: FontSize().regular,
-                                                isFontBold: false,
-                                                fontColor: AppColors.grey800,
-                                                numberOfLines: 20,
-                                              ),
-                                      ],
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            );
-          }
-        }),
+                    );
+                  },
+                ),
+              );
+            }
+          }),
+        ),
       ),
     );
   }

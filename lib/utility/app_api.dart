@@ -16,7 +16,7 @@ class GetApiEnv {
       // } else {
       //   return 'Testing';
       // }
-      return 'Production';
+      return 'Development';
     }
   }
 }
@@ -34,6 +34,7 @@ class AppApi {
       late String cityListApiUrl = '${baseUrl}common/citybystate';
       late String commonVersionsApiUrl = '${baseUrl}common/versions';
       late String loginApiUrl = '${baseUrl}common/login';
+      late String loginV2ApiUrl = '${baseUrl}auth/login';
       late String changePasswordApiUrl = '${baseUrl}common/changepassword';
       late String forgotPasswordApiUrl = '${baseUrl}common/forgotpassword';
       late String resetPasswordApiUrl = '${baseUrl}common/resetpassword';

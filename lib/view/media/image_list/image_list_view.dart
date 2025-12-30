@@ -26,59 +26,62 @@ class ImageListView extends GetView<ImageListViewController> {
   Widget build(BuildContext context) {
     final dynamicAppLocalizations = DynamicAppLocalizations.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        foregroundColor: AppColors.white,
-        backgroundColor: AppColors.primaryColor,
-        centerTitle: true,
-        title: Obx(
-          () => CustomTextWidget(
-            uiKey: const Key('lbl-nav-title'),
-            textString: controller.appBarTitle.value,
-            textSize: FontSize().appBar,
-            isFontBold: false,
-            fontColor: AppColors.white,
-            isFontUnderline: false,
-            fontStyle: FontStyle.normal,
+    return SafeArea(
+      top: false,
+      child: Scaffold(
+        appBar: AppBar(
+          foregroundColor: AppColors.white,
+          backgroundColor: AppColors.primaryColor,
+          centerTitle: true,
+          title: Obx(
+            () => CustomTextWidget(
+              uiKey: const Key('lbl-nav-title'),
+              textString: controller.appBarTitle.value,
+              textSize: FontSize().appBar,
+              isFontBold: false,
+              fontColor: AppColors.white,
+              isFontUnderline: false,
+              fontStyle: FontStyle.normal,
+            ),
           ),
         ),
-      ),
-      body: RefreshIndicator(
-        color: AppColors.white,
-        backgroundColor: AppColors.primaryColor,
-        onRefresh: controller.refreshMediaList,
-        child: Obx(() {
-          if (controller.isShimmerLoading.value) {
-            return const ShimmerGrid();
-          } else if (controller.mediaListData.isEmpty) {
-            return EmptyDataWithRetry(
-              messageLabel: dynamicAppLocalizations.t('no_image_found'),
-              buttonText: dynamicAppLocalizations.t('retry'),
-              onRetry: controller.refreshMediaList,
-              icon: Icons.collections_bookmark_outlined,
-            );
-          } else {
-            return NotificationListener<ScrollNotification>(
-              onNotification: controller.handleScrollNotification,
-              child: GridView.builder(
-                controller: controller.scrollController,
-                itemCount: controller.mediaListData.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: 1.0,
+        body: RefreshIndicator(
+          color: AppColors.white,
+          backgroundColor: AppColors.primaryColor,
+          onRefresh: controller.refreshMediaList,
+          child: Obx(() {
+            if (controller.isShimmerLoading.value) {
+              return const ShimmerGrid();
+            } else if (controller.mediaListData.isEmpty) {
+              return EmptyDataWithRetry(
+                messageLabel: dynamicAppLocalizations.t('no_image_found'),
+                buttonText: dynamicAppLocalizations.t('retry'),
+                onRetry: controller.refreshMediaList,
+                icon: Icons.collections_bookmark_outlined,
+              );
+            } else {
+              return NotificationListener<ScrollNotification>(
+                onNotification: controller.handleScrollNotification,
+                child: GridView.builder(
+                  controller: controller.scrollController,
+                  itemCount: controller.mediaListData.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 1.0,
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  itemBuilder: (context, index) {
+                    final media = controller.mediaListData[index];
+                    controller.loadThumbnailForIndex(index);
+                    return _buildGridTile(context, media.mediaUrl, index);
+                  },
                 ),
-                padding: const EdgeInsets.all(8),
-                itemBuilder: (context, index) {
-                  final media = controller.mediaListData[index];
-                  controller.loadThumbnailForIndex(index);
-                  return _buildGridTile(context, media.mediaUrl, index);
-                },
-              ),
-            );
-          }
-        }),
+              );
+            }
+          }),
+        ),
       ),
     );
   }

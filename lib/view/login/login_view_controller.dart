@@ -6,6 +6,7 @@ import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../navigation/pages.dart';
+import '../../utility/common_functions.dart';
 import '../../widget/countries.dart';
 
 class LoginViewController extends GetxController {
@@ -31,6 +32,7 @@ class LoginViewController extends GetxController {
 
   @override
   void onInit() {
+    checkDeviceConfig();
     super.onInit();
 
     /// Listen to country change
@@ -69,6 +71,7 @@ class LoginViewController extends GetxController {
     try {
       isLoading.value = true;
       bool result = await apiController.userLoginApi(
+        countryCode: selectedCountry.value.dialCode.toString(),
         phoneNumber: phoneNumberTextController.value.text,
         password: passwordController.value.text,
       );

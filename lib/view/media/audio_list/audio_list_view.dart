@@ -21,58 +21,61 @@ class AudioListView extends GetView<AudioListViewController> {
     final dynamicAppLocalizations = DynamicAppLocalizations.of(context);
 
     return Obx(
-      () => Scaffold(
-        appBar: AppBar(
-          foregroundColor: AppColors.white,
-          backgroundColor: AppColors.primaryColor,
-          centerTitle: true,
-          title: CustomTextWidget(
-            textString: controller.appBarTitle.value,
-            textSize: FontSize().appBar,
-            fontColor: AppColors.white,
+      () => SafeArea(
+        top: false,
+        child: Scaffold(
+          appBar: AppBar(
+            foregroundColor: AppColors.white,
+            backgroundColor: AppColors.primaryColor,
+            centerTitle: true,
+            title: CustomTextWidget(
+              textString: controller.appBarTitle.value,
+              textSize: FontSize().appBar,
+              fontColor: AppColors.white,
+            ),
           ),
-        ),
-        body: RefreshIndicator(
-          color: AppColors.white,
-          backgroundColor: AppColors.primaryColor,
-          onRefresh: controller.refreshMediaList,
-          child: Obx(() {
-            if (controller.isShimmerLoading.value) {
-              return const ShimmerList();
-            }
-
-            if (controller.mediaListData.isEmpty) {
-              return EmptyDataWithRetry(
-                messageLabel: dynamicAppLocalizations.t('no_audio_found'),
-                buttonText: dynamicAppLocalizations.t('retry'),
-                onRetry: controller.refreshMediaList,
-                icon: Icons.music_off,
+          body: RefreshIndicator(
+            color: AppColors.white,
+            backgroundColor: AppColors.primaryColor,
+            onRefresh: controller.refreshMediaList,
+            child: Obx(() {
+              if (controller.isShimmerLoading.value) {
+                return const ShimmerList();
+              }
+        
+              if (controller.mediaListData.isEmpty) {
+                return EmptyDataWithRetry(
+                  messageLabel: dynamicAppLocalizations.t('no_audio_found'),
+                  buttonText: dynamicAppLocalizations.t('retry'),
+                  onRetry: controller.refreshMediaList,
+                  icon: Icons.music_off,
+                );
+              }
+        
+              return NotificationListener<ScrollNotification>(
+                onNotification: (notification) =>
+                    controller.handleScrollNotification(context, notification),
+                child: ListView.builder(
+                  controller: controller.scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: controller.mediaListData.length,
+                  itemBuilder: (_, index) {
+                    final media = controller.mediaListData[index];
+        
+                    return AudioListItem(
+                      media: media,
+                      controller: controller,
+                      dynamicAppLocalizations: dynamicAppLocalizations,
+                    );
+                  },
+                ),
               );
-            }
-
-            return NotificationListener<ScrollNotification>(
-              onNotification: (notification) =>
-                  controller.handleScrollNotification(context, notification),
-              child: ListView.builder(
-                controller: controller.scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: controller.mediaListData.length,
-                itemBuilder: (_, index) {
-                  final media = controller.mediaListData[index];
-
-                  return AudioListItem(
-                    media: media,
-                    controller: controller,
-                    dynamicAppLocalizations: dynamicAppLocalizations,
-                  );
-                },
-              ),
-            );
-          }),
+            }),
+          ),
+          bottomNavigationBar: controller.currentlyPlayingUrl.value.isNotEmpty
+              ? _buildMiniPlayer()
+              : null,
         ),
-        bottomNavigationBar: controller.currentlyPlayingUrl.value.isNotEmpty
-            ? _buildMiniPlayer()
-            : null,
       ),
     );
   }
