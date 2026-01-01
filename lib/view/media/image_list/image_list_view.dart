@@ -133,7 +133,13 @@ class ImageListView extends GetView<ImageListViewController> {
       child: InkWell(
         borderRadius: BorderRadius.circular(borderRadius),
         onTap: () {
-          Get.to(() => ImageViewerPage(imageUrl: media.mediaUrl));
+          Get.to(
+            () => ImageViewerPage(
+              images: controller.mediaListData.map((e) => e.mediaUrl).toList(),
+              initialIndex: index,
+              redirectUrl: '',
+            ),
+          );
         },
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
@@ -166,7 +172,6 @@ class ImageListView extends GetView<ImageListViewController> {
       imageUrl: imageUrl,
       fit: BoxFit.cover,
       memCacheWidth: 400,
-
       progressIndicatorBuilder: (context, url, downloadProgress) => Center(
         child: SizedBox(
           width: 30,

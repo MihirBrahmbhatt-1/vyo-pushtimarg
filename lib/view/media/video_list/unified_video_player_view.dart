@@ -9,6 +9,9 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../../../const/app_color.dart';
+import '../../../const/app_constant.dart';
+import '../../../localization/dynamic_app_localizations.dart';
+import '../../../widget/custom_text_widget.dart';
 import 'video_platform.dart';
 
 class UnifiedVideoPlayer extends StatefulWidget {
@@ -124,6 +127,35 @@ class _UnifiedVideoPlayerState extends State<UnifiedVideoPlayer> {
         children: [
           _buildPlayer(),
           _closeButton(),
+          Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 40.0),
+                    child: ElevatedButton.icon(
+                      onPressed: () => {},
+                      icon: const Icon(Icons.arrow_forward),
+                      label: CustomTextWidget(
+                        textString: DynamicAppLocalizations.of(
+                          Get.context!,
+                        ).t("open_in_youtube"),
+                        textSize: FontSize().regular,
+                        fontColor: AppColors.primaryColor,
+                        isFontBold: false,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: AppColors.primaryColor,
+                        backgroundColor: AppColors.white.withValues(alpha: 0.9),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
           // if (_bufferedPercentage < 100)
           //   _loadingIndicator(),
         ],

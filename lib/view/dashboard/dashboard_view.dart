@@ -5,7 +5,7 @@ import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Element;
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:html/dom.dart' as dom;
@@ -16,6 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../const/constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../model/dashboard_image_slider_response_model.dart';
+import '../../navigation/pages.dart';
 import '../../widget/custom_text_widget.dart';
 import '../media/image_list/image_preview_view.dart';
 import '../media/video_list/unified_video_player_view.dart';
@@ -87,7 +88,8 @@ class DashboardView extends GetView<DashboardViewController> {
                                   .map((item) {
                                 // The item.content field is assumed to be the URL or a complex JSON string
                                 final content = item.content.toString();
-
+                                print(
+                                    '--------- item.contentType: ${item.sectionType.toString()} ${item.content.toString()}');
                                 switch (item.sectionType) {
                                   case 0:
                                     return _buildHtmlContent(
@@ -121,6 +123,11 @@ class DashboardView extends GetView<DashboardViewController> {
                                       context,
                                       content,
                                     );
+                                  case 5:
+                                    return scrollImagesCustom(context, content);
+
+                                  case 6:
+                                    return _buildTypeSixItem(context, content);
 
                                   default:
                                     // Fallback for unknown type
@@ -338,98 +345,88 @@ class DashboardView extends GetView<DashboardViewController> {
     List<DashboardImageSliderResponseModel> sliderData,
   ) {
     if (sliderData.isEmpty) {
-      return const SizedBox(
-        height: 100,
-      );
+      return const SizedBox(height: 100);
     }
 
-    // 🎯 We only need ONE CachedNetworkImage widget per slide now.
+    final double sliderHeight = 200.0;
+
     List<Widget> imageWidgets = sliderData.map((obj) {
-      String imageUrl = obj.imageUrl ?? '';
-      String redirectUrl = obj.redirectUrl?.toString() ?? '';
+      final String imageUrl = obj.imageUrl ?? '';
+      final String redirectUrl = obj.redirectUrl?.toString() ?? '';
 
-      return Builder(
-        builder: (BuildContext context) {
-          // --- 1. The Single Cached Network Image (Foreground) ---
-          final mainCachedImage = CachedNetworkImage(
-            imageUrl: imageUrl,
-            fit: BoxFit
-                .contain, // Fits the image nicely in the center of the slide
-            // Show loading progress
-            progressIndicatorBuilder: (context, url, downloadProgress) {
-              return Center(
-                child: CircularProgressIndicator(
-                  value: downloadProgress.progress,
-                  color: AppColors.red,
-                  strokeWidth: 2,
-                ),
-              );
-            },
-            errorWidget: (context, url, error) =>
-                const Center(child: Icon(Icons.error)),
-          );
-
-          return Stack(
-            children: [
-              // 2. Background Image (Uses the Image Provider for Caching)
-              // We use a Container with a DecorationImage to apply the image as a background
-              Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    // 🎯 OPTIMIZATION: Use CachedNetworkImageProvider to load the image once.
-                    // The image is cached on the first successful fetch and reused.
-                    image: CachedNetworkImageProvider(imageUrl),
-                    fit: BoxFit.cover, // Ensure it covers the background area
-                  ),
-                ),
-                // --- 3. Backdrop Blur and Overlay ---
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 7.0, sigmaY: 7.0),
-                  child: Container(
-                    // 🎯 FIX: Corrected from withValues to withOpacity
-                    color: AppColors.black.withValues(alpha: 0.4),
-                  ),
+      return SizedBox(
+        height: sliderHeight,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 🔹 Background Image
+            Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: CachedNetworkImageProvider(imageUrl),
+                  fit: BoxFit.cover,
                 ),
               ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 7.0, sigmaY: 7.0),
+                child: Container(
+                  color: AppColors.black.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
 
-              // 4. Foreground Content with InkWell
-              Container(
-                width: MediaQuery.of(context).size.width,
-                margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: InkWell(
-                    onTap: () async {
-                      // Navigate to ImageViewerPage
-                      Get.to(
-                        () => ImageViewerPage(
-                          imageUrl: imageUrl,
-                          redirectUrl: redirectUrl,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: InkWell(
+                  onTap: () {
+                    // Get.to(
+                    //   () => ImageViewerPage(
+                    //     imageUrl: imageUrl,
+                    //     redirectUrl: redirectUrl,
+                    //   ),
+                    // );
+                    Get.to(
+                      () => ImageViewerPage(
+                        images: [imageUrl],
+                        initialIndex: 0,
+                        redirectUrl: redirectUrl,
+                      ),
+                    );
+                  },
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.contain,
+                    progressIndicatorBuilder: (context, url, downloadProgress) {
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: downloadProgress.progress,
+                          color: AppColors.red,
+                          strokeWidth: 2,
                         ),
                       );
                     },
-                    // 🎯 Use the single CachedNetworkImage widget here
-                    child: mainCachedImage,
+                    errorWidget: (context, url, error) =>
+                        const Center(child: Icon(Icons.error)),
                   ),
                 ),
               ),
-            ],
-          );
-        },
+            ),
+          ],
+        ),
       );
     }).toList();
 
     return CarouselSlider(
       items: imageWidgets,
       options: CarouselOptions(
-        height: 200.0,
+        height: sliderHeight,
         viewportFraction: 1,
         autoPlay: true,
         autoPlayInterval: const Duration(seconds: 4),
-        enlargeCenterPage: true,
-        enlargeStrategy: CenterPageEnlargeStrategy.scale,
+        enlargeCenterPage: false,
       ),
     );
   }
@@ -538,6 +535,123 @@ class DashboardView extends GetView<DashboardViewController> {
   String getThumbnailUrl(String youtubeId) {
     // Use the standard YouTube high-quality thumbnail format
     return 'https://img.youtube.com/vi/$youtubeId/hqdefault.jpg';
+  }
+
+  Widget _buildTypeSixItem(BuildContext context, String content) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          controller.displaySevaPranalikaAlert(false, false);
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          child: HtmlWidget(
+            content,
+            textStyle: const TextStyle(
+              fontStyle: FontStyle.normal,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget scrollImagesCustom(BuildContext context, String jsonString) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: constraints.maxWidth,
+              ),
+              child: HtmlWidget(
+                jsonString,
+                renderMode: RenderMode.column,
+                textStyle: const TextStyle(
+                  fontStyle: FontStyle.normal,
+                  color: AppColors.black,
+                ),
+                customWidgetBuilder: (dom.Element element) {
+                  if (element.localName == 'img') {
+                    final parent = element.parent;
+                    final dataInfo = parent?.attributes['data-info'];
+                    final imgUrl = element.attributes['src'];
+
+                    if (imgUrl == null) return null;
+
+                    Map<String, dynamic>? parsedData;
+                    if (dataInfo != null) {
+                      try {
+                        parsedData = jsonDecode(dataInfo);
+                      } catch (e) {
+                        debugPrint('Invalid data-info JSON');
+                      }
+                    }
+
+                    return GestureDetector(
+                      onTap: () {
+                        debugPrint('IMAGE TAPPED');
+                        debugPrint('Image URL: $imgUrl');
+                        debugPrint('Data Info: $parsedData');
+
+                        if (parsedData != null) {
+                          final categoryType =
+                              parsedData['category_type'].toString();
+                          final subCategoryId = parsedData['subcategory_id'];
+                          final subCategoryName =
+                              parsedData['subcategory_name'];
+
+                          debugPrint('Category: $categoryType');
+                          debugPrint('Subcategory: $subCategoryId');
+                          debugPrint('subCategoryName: $subCategoryName');
+                          String? routeName;
+                          if (categoryType.toString() == '2') {
+                            routeName = Routes.videolist;
+                          } else if (categoryType.toString() == '1') {
+                            routeName = Routes.imagelist;
+                          } else if (categoryType.toString() == '3') {
+                            routeName = Routes.pdflist;
+                          } else if (categoryType.toString() == '4') {
+                            routeName = Routes.audiolist;
+                          }
+
+                          if (routeName != null) {
+                            Get.toNamed(
+                              routeName,
+                              arguments: {
+                                'subCategoryId': subCategoryId,
+                                'title': subCategoryName.toString(),
+                              },
+                            );
+                          }
+                        }
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: CachedNetworkImage(
+                          imageUrl: imgUrl,
+                          width: 150,
+                          height: 120,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return null;
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildMultipleVideos(BuildContext context, String jsonUrls) {

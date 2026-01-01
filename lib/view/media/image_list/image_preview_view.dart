@@ -10,12 +10,14 @@ import '../../../localization/dynamic_app_localizations.dart';
 import '../../../widget/custom_text_widget.dart';
 
 class ImageViewerPage extends StatefulWidget {
-  final String imageUrl;
+  final List<String> images;
+  final int initialIndex;
   final String redirectUrl;
 
   const ImageViewerPage({
     super.key,
-    required this.imageUrl,
+    required this.images,
+    required this.initialIndex,
     this.redirectUrl = '',
   });
 
@@ -24,121 +26,186 @@ class ImageViewerPage extends StatefulWidget {
 }
 
 class _ImageViewerPageState extends State<ImageViewerPage>
-    with SingleTickerProviderStateMixin {
-  late final TransformationController _transformationController;
-  late AnimationController _animationController;
-  Animation<Matrix4>? _animation;
+    with TickerProviderStateMixin {
+  late final PageController _pageController;
+  late int _currentIndex;
+
+  final Map<int, TransformationController> _transformControllers = {};
+  final Map<int, AnimationController> _animationControllers = {};
 
   @override
   void initState() {
     super.initState();
-    _transformationController = TransformationController();
-
-    _animationController =
-        AnimationController(
-          vsync: this,
-          duration: const Duration(milliseconds: 300),
-        )..addListener(() {
-          if (_animation != null) {
-            _transformationController.value = _animation!.value;
-          }
-        });
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: _currentIndex);
   }
 
-  @override
-  void dispose() {
-    _transformationController.dispose();
-    _animationController.dispose();
-    super.dispose();
+  TransformationController _getTransformController(int index) {
+    return _transformControllers.putIfAbsent(
+      index,
+      () => TransformationController(),
+    );
   }
 
-  void _handleDoubleTap(TapDownDetails details) {
-    _animationController.stop();
-    final currentScale = _transformationController.value.storage[0];
-    final double targetScale = currentScale.abs() < 1.01 ? 2.0 : 1.0;
-    final Matrix4 beginValue = _transformationController.value;
-    final Matrix4 endValue;
+  AnimationController _getAnimationController(int index) {
+    return _animationControllers.putIfAbsent(
+      index,
+      () => AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 300),
+      ),
+    );
+  }
+
+  void _handleDoubleTap(int index, TapDownDetails details) {
+    final controller = _getTransformController(index);
+    final animationController = _getAnimationController(index);
+
+    animationController.stop();
+
+    final currentScale = controller.value.storage[0];
+    final double targetScale = currentScale < 1.5 ? 2.5 : 1.0;
+
+    final Matrix4 begin = controller.value;
+    final Matrix4 end;
 
     if (targetScale == 1.0) {
-      endValue = Matrix4.identity();
+      end = Matrix4.identity();
     } else {
       final position = details.localPosition;
-      final double translateX = -position.dx * (targetScale - 1);
-      final double translateY = -position.dy * (targetScale - 1);
-      final Matrix4 scaleMatrix = Matrix4.diagonal3Values(
-        targetScale,
-        targetScale,
-        1.0,
-      );
-      final Matrix4 translateMatrix = Matrix4.translationValues(
-        translateX,
-        translateY,
-        0.0,
-      );
-      endValue = translateMatrix.clone()..multiply(scaleMatrix);
+      end = Matrix4.identity()
+        ..translate(
+          -position.dx * (targetScale - 1),
+          -position.dy * (targetScale - 1),
+        )
+        ..scale(targetScale);
     }
-    _animation = Matrix4Tween(begin: beginValue, end: endValue).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+
+    final animation = Matrix4Tween(begin: begin, end: end).animate(
+      CurvedAnimation(parent: animationController, curve: Curves.easeOut),
     );
-    _animationController.forward(from: 0.0);
+
+    animationController.addListener(() {
+      controller.value = animation.value;
+    });
+
+    animationController.forward(from: 0);
   }
 
   Future<void> _launchUrl(BuildContext context, String url) async {
     final uri = Uri.tryParse(url);
     if (uri != null && await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {}
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    for (final c in _transformControllers.values) {
+      c.dispose();
+    }
+    for (final a in _animationControllers.values) {
+      a.dispose();
+    }
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final bool showRedirectButton = widget.redirectUrl.isNotEmpty;
+
     return Scaffold(
       backgroundColor: AppColors.transparent,
-
       body: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Container(
-          color: AppColors.black.withValues(alpha: 0.5),
-
+          color: AppColors.black.withValues(alpha: 0.6),
           child: Stack(
             children: [
-              GestureDetector(
-                onTap: () {
-                  final currentScale =
-                      _transformationController.value.storage[0];
-                  if (currentScale.abs() < 1.01) {
-                    Navigator.pop(context);
-                  }
+              PageView.builder(
+                controller: _pageController,
+                itemCount: widget.images.length,
+                onPageChanged: (index) {
+                  setState(() => _currentIndex = index);
                 },
-                onDoubleTapDown: _handleDoubleTap,
-                child: Center(
-                  child: Hero(
-                    tag: widget.imageUrl,
-                    child: Material(
-                      color: AppColors.transparent,
-                      child: InteractiveViewer(
-                        transformationController: _transformationController,
-                        panEnabled: true,
-                        minScale: 1.0,
-                        maxScale: 4.0,
-                        child: CachedNetworkImage(
-                          imageUrl: widget.imageUrl,
-                          placeholder: (context, url) => const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.white,
+                itemBuilder: (context, index) {
+                  final imageUrl = widget.images[index];
+
+                  return GestureDetector(
+                    onTap: () {
+                      final scale =
+                          _getTransformController(index).value.storage[0];
+                      if (scale < 1.01) Navigator.pop(context);
+                    },
+                    onDoubleTapDown: (details) =>
+                        _handleDoubleTap(index, details),
+                    child: Center(
+                      child: Hero(
+                        tag: imageUrl,
+                        child: InteractiveViewer(
+                          transformationController:
+                              _getTransformController(index),
+                          panEnabled: true,
+                          minScale: 1.0,
+                          maxScale: 4.0,
+                          child: CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.contain,
+                            width: double.infinity,
+                            height: double.infinity,
+                            placeholder: (_, __) => const Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.white,
+                              ),
                             ),
-                          ),
-                          fit: BoxFit.contain,
-                          height: double.infinity,
-                          width: double.infinity,
-                          errorWidget: (context, url, error) => const Icon(
-                            Icons.error,
-                            color: AppColors.red,
-                            size: 40,
+                            errorWidget: (_, __, ___) => const Icon(
+                              Icons.error,
+                              color: AppColors.red,
+                              size: 40,
+                            ),
                           ),
                         ),
                       ),
+                    ),
+                  );
+                },
+              ),
+
+              Positioned(
+                top: 50,
+                right: 20,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: CustomTextWidget(
+                              textString: '${_currentIndex + 1} / ${widget.images.length}',
+                              textSize: FontSize().regular,
+                              fontColor: AppColors.white,
+                              isFontUnderline: false,
+                            ),
+                ),
+              ),
+
+              Positioned(
+                top: 40,
+                left: 15,
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.black.withValues(alpha: 0.6),
+                      shape: BoxShape.circle,
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(
+                      Icons.close,
+                      color: AppColors.white,
+                      size: 24,
                     ),
                   ),
                 ),
@@ -148,9 +215,10 @@ class _ImageViewerPageState extends State<ImageViewerPage>
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 40.0),
+                    padding: const EdgeInsets.only(bottom: 40),
                     child: ElevatedButton.icon(
-                      onPressed: () => _launchUrl(context, widget.redirectUrl),
+                      onPressed: () =>
+                          _launchUrl(context, widget.redirectUrl),
                       icon: const Icon(Icons.arrow_forward),
                       label: CustomTextWidget(
                         textString: DynamicAppLocalizations.of(
@@ -161,8 +229,9 @@ class _ImageViewerPageState extends State<ImageViewerPage>
                         isFontBold: false,
                       ),
                       style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            AppColors.white.withValues(alpha: 0.9),
                         foregroundColor: AppColors.primaryColor,
-                        backgroundColor: AppColors.white.withValues(alpha: 0.9),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 12,
@@ -174,29 +243,6 @@ class _ImageViewerPageState extends State<ImageViewerPage>
                     ),
                   ),
                 ),
-              Align(
-                alignment: Alignment.topLeft,
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.black.withValues(alpha: 0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        padding: const EdgeInsets.all(8),
-                        child: const Icon(
-                          Icons.close,
-                          color: AppColors.white,
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
