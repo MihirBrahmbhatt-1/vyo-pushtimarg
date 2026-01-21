@@ -5,7 +5,6 @@ import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../utility/api_service_interceptor.dart';
-import '../../utility/common_functions.dart';
 import '../../widget/custom_alert_widget.dart';
 
 class ChangePasswordController extends GetxController {
@@ -51,7 +50,14 @@ class ChangePasswordController extends GetxController {
         );
         isBtnLoading.value = false;
         if (isSuccess) {
-          clearAppDataAndLogout();
+          try {
+            apiController.logoutUser(
+              deviceId: homeController.userDeviceIdString.value,
+              jwtToken: homeController.jwtToken.value,
+            );
+          } catch (e) {
+            talker.error('Error in _perforLogout func: ${e.toString()}');
+          }
         }
       } else {
         CustomAlertWidget().simpleAlertDialog(

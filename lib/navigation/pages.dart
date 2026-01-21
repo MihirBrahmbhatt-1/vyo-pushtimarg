@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 
 import '../view/change_password/change_password_view.dart';
+import '../view/contact_us/contact_us_view.dart';
 import '../view/forgot_password/forgot_password/forgot_password_view.dart';
 import '../view/forgot_password/otp/otp_view.dart';
 import '../view/forgot_password/otp/otp_view_controller.dart';
@@ -141,6 +142,12 @@ class Pages {
     GetPage(
       name: _Paths.surveycompleted,
       page: () => SurveySuccessView(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 200),
+    ),
+    GetPage(
+      name: _Paths.contactus,
+      page: () => ContactUsView(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 200),
     ),

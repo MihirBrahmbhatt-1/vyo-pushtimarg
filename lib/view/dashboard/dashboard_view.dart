@@ -36,7 +36,7 @@ class DashboardView extends GetView<DashboardViewController> {
           body: Obx(() {
             if (controller.isLoading.value) {
               return Center(
-                child: CircularProgressIndicator(color: AppColors.primaryColor),
+                child: CircularProgressIndicator(color: AppColors.grey400),
               );
             }
 
@@ -57,7 +57,7 @@ class DashboardView extends GetView<DashboardViewController> {
                               height: 300,
                               child: Center(
                                 child: CircularProgressIndicator(
-                                  color: AppColors.primaryColor,
+                                  color: AppColors.grey400,
                                 ),
                               ),
                             ),
@@ -88,8 +88,6 @@ class DashboardView extends GetView<DashboardViewController> {
                                   .map((item) {
                                 // The item.content field is assumed to be the URL or a complex JSON string
                                 final content = item.content.toString();
-                                print(
-                                    '--------- item.contentType: ${item.sectionType.toString()} ${item.content.toString()}');
                                 switch (item.sectionType) {
                                   case 0:
                                     return _buildHtmlContent(
@@ -143,7 +141,7 @@ class DashboardView extends GetView<DashboardViewController> {
           }),
           floatingActionButton: FloatingActionButton(
             onPressed: controller.openWhatsApp,
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.green,
             child: FaIcon(
               FontAwesomeIcons.whatsapp,
               color: AppColors.white,
@@ -151,55 +149,6 @@ class DashboardView extends GetView<DashboardViewController> {
             ),
           )),
     );
-  }
-
-  displayHtmlResponseContent(BuildContext context, dynamic htmlResponse) async {
-    // return controller
-    //                               .apiController.dashboardHtmlResponseModel
-    //                               .map((item) {
-    return htmlResponse.map((item) {
-      // The item.content field is assumed to be the URL or a complex JSON string
-      final content = item.content.toString();
-
-      switch (item.sectionType) {
-        case 0:
-          return _buildHtmlContent(
-            content,
-            item.sequence.toString(),
-          );
-
-        case 1:
-          // Type 1: Single Image URL
-          return _buildSingleImage(
-            context,
-            content,
-          );
-
-        case 2:
-          // Type 2: Multiple Images Slider
-          return _buildMultipleImageSlider(
-            context,
-            content,
-          );
-        case 3:
-          // Type 3: Single YouTube Video URL
-          return _buildSingleVideo(
-            context,
-            content,
-          );
-
-        case 4:
-          // Type 4: Multiple YouTube Video URLs
-          return _buildMultipleVideos(
-            context,
-            content,
-          );
-
-        default:
-          // Fallback for unknown type
-          return const SizedBox.shrink();
-      }
-    });
   }
 
   Color? _parseColor(String colorString) {
@@ -273,7 +222,7 @@ class DashboardView extends GetView<DashboardViewController> {
         if (snapshot.connectionState != ConnectionState.done) {
           return SizedBox(
             height: 200,
-            child: const Center(child: CircularProgressIndicator()),
+            child: Center(child: CircularProgressIndicator(color: AppColors.grey400,)),
           );
         }
 
@@ -323,8 +272,8 @@ class DashboardView extends GetView<DashboardViewController> {
                       child: CachedNetworkImage(
                         imageUrl: url,
                         fit: BoxFit.contain,
-                        placeholder: (context, url) => const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                        placeholder: (context, url) => Center(
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.grey400,),
                         ),
                         errorWidget: (context, url, error) =>
                             const Center(child: Icon(Icons.error, size: 40)),
@@ -872,11 +821,11 @@ class DashboardView extends GetView<DashboardViewController> {
                 HtmlWidget(
                   imgHtml,
                   onLoadingBuilder: (context, element, loadingProgress) =>
-                      const SizedBox(
+                  SizedBox(
                     width: 40,
                     height: 40,
                     child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.grey400,),
                     ),
                   ),
                 ),

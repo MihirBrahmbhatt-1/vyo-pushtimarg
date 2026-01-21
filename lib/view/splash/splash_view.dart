@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../const/app_color.dart';
 import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
+import '../../utility/common_functions.dart';
 import '../../utility/local_db.dart';
 import '../home/home_view.dart';
 import '../language/language_selection_view.dart';
@@ -53,6 +54,7 @@ class _SplashViewState extends State<SplashView>
   }
 
   checkStatus() async {
+    checkDeviceConfig();
     ApiController apiController = Get.put(ApiController());
     HomeController homeController = Get.put(HomeController());
     bool? isLoggedIn = await LocalDB().getIsLoggedIn();
@@ -74,6 +76,7 @@ class _SplashViewState extends State<SplashView>
         isUserLoggedIn: true,
         jwtToken: homeController.jwtToken.value,
       );
+      apiController.deviceInfo();
 
       await apiController.getUserProfileByPhoneNumber(
         phoneNumber: homeController.userPhoneNumber.value,

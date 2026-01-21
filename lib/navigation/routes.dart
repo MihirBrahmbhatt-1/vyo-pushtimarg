@@ -25,6 +25,7 @@ abstract class Routes {
   static const audiolist = _Paths.audiolist;
   static const habits = _Paths.habits;
   static const surveycompleted = _Paths.surveycompleted;
+  static const contactus = _Paths.contactus;
 }
 
 abstract class _Paths {
@@ -52,4 +53,5 @@ abstract class _Paths {
   static const  audiolist = "/audio";
   static const  habits = "/habits";
   static const  surveycompleted = "/surveycompleted";
+  static const  contactus = "/contactus";
 }

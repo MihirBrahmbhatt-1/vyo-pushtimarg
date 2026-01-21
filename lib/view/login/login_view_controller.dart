@@ -25,7 +25,6 @@ class LoginViewController extends GetxController {
 
   RxString phoneErrorMessage = "".obs;
 
-  // Country selectedCountry = countries.firstWhere((c) => c.code == "IN");
   final Rx<Country> selectedCountry = countries
       .firstWhere((c) => c.code == "IN")
       .obs;
@@ -77,7 +76,6 @@ class LoginViewController extends GetxController {
       );
       if (result) {
         isLoading.value = false;
-        // Get.put(DashboardViewController());
         Get.offAllNamed(Routes.home);
       } else {
         isLoading.value = false;
@@ -85,5 +83,11 @@ class LoginViewController extends GetxController {
     } catch (e) {
       talker.error('Error in userLogin func: ${e.toString()}');
     }
+  }
+
+  handleSpecificTap() {
+    debugPrint("The specific text was tapped!");
+    Get.toNamed(Routes.contactus);
+
   }
 }

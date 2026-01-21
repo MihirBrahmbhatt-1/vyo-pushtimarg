@@ -8,10 +8,11 @@ import '../../const/app_color.dart';
 import '../../widget/custom_text_widget.dart';
 import '../const/app_assets.dart';
 import '../const/app_constant.dart';
+import '../const/logger.dart';
+import '../controller/api_controller.dart';
 import '../controller/home_controller.dart';
 import '../localization/dynamic_app_localizations.dart';
 import '../navigation/pages.dart';
-import '../utility/common_functions.dart';
 import '../view/dashboard/dashboard_view_controller.dart';
 import 'custom_alert_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -228,7 +229,15 @@ class AppDrawer extends StatelessWidget {
   }
 
   Future<void> _performLogout(HomeController homeController) async {
-    clearAppDataAndLogout();
+    ApiController apiController = Get.put(ApiController());
+    try {
+      apiController.logoutUser(
+        deviceId: homeController.userDeviceIdString.value,
+        jwtToken: homeController.jwtToken.value,
+      );
+    } catch (e) {
+      talker.error('Error in _perforLogout func: ${e.toString()}');
+    }
   }
 
   void _launchURL(String url) async {

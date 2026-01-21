@@ -1,5 +1,8 @@
+import 'package:get/get.dart';
+
 import '../const/app_constant.dart';
 import '../const/app_string.dart';
+import '../localization/dynamic_app_localizations.dart';
 
 class Validators {
   emailValidators(String value, String label) {
@@ -30,7 +33,7 @@ class Validators {
   }
 
   dynamicIsRequiredValidator(String label) {
-    return '$label $isRequired';
+    return '$label ' '${DynamicAppLocalizations.of(Get.context!).t("is_required")}';
   }
 
   dynamicIsInValid(String label) {

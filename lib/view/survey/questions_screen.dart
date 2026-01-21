@@ -9,6 +9,7 @@ import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../model/survey_complete_answers_model.dart';
 import '../../navigation/pages.dart';
+import '../../widget/custom_elevated_button_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import 'questions_model.dart';
 import 'questions_page.dart';
@@ -117,7 +118,6 @@ class _QuestionsScreenState extends State<QuestionsScreen>
                 onPrimary: AppColors.white,
                 onSurface: AppColors.primaryColor,
               ),
-
               timePickerTheme: TimePickerThemeData(
                 backgroundColor: AppColors.white,
                 hourMinuteColor: AppColors.primaryColor,
@@ -132,7 +132,6 @@ class _QuestionsScreenState extends State<QuestionsScreen>
                       ? AppColors.primaryColor
                       : AppColors.grey200;
                 }),
-
                 dayPeriodTextColor: WidgetStateColor.resolveWith((
                   Set<WidgetState> states,
                 ) {
@@ -216,7 +215,6 @@ class _QuestionsScreenState extends State<QuestionsScreen>
                 onPrimary: AppColors.white,
                 onSurface: AppColors.primaryColor,
               ),
-
               timePickerTheme: TimePickerThemeData(
                 backgroundColor: AppColors.white,
                 hourMinuteColor: AppColors.primaryColor,
@@ -231,7 +229,6 @@ class _QuestionsScreenState extends State<QuestionsScreen>
                       ? AppColors.primaryColor
                       : AppColors.grey200;
                 }),
-
                 dayPeriodTextColor: WidgetStateColor.resolveWith((
                   Set<WidgetState> states,
                 ) {
@@ -340,13 +337,10 @@ class _QuestionsScreenState extends State<QuestionsScreen>
       final List<Answer> answerObjects = submissionModel.answers;
       final List<AnswerOption> answerOptionsObject =
           submissionModel.answerOptions;
-      final List<Map<String, dynamic>> answerMaps = answerObjects
-          .map((answer) => answer.toJson())
-          .toList();
-      final List<Map<String, dynamic>> answerOptionsMap = answerOptionsObject
-          .map((answer) => answer.toJson())
-          .toList();
-
+      final List<Map<String, dynamic>> answerMaps =
+          answerObjects.map((answer) => answer.toJson()).toList();
+      final List<Map<String, dynamic>> answerOptionsMap =
+          answerOptionsObject.map((answer) => answer.toJson()).toList();
 
       bool isSuccess = await apiController.submitUserSurvey(
         jwtToken: homeController.jwtToken.value,
@@ -437,7 +431,6 @@ class _QuestionsScreenState extends State<QuestionsScreen>
             child: Column(
               children: [
                 _SurveyProgressHeader(controller: controller),
-        
                 Expanded(
                   child: PageView.builder(
                     controller: controller.pageController,
@@ -446,12 +439,13 @@ class _QuestionsScreenState extends State<QuestionsScreen>
                     itemBuilder: (context, index) {
                       final question = controller.questions[index];
                       final answerValue = controller.answers[question.id];
-        
+
                       return QuestionsPage(
                         key: ValueKey(question.id),
                         question: question,
                         value: answerValue,
-                        showError: _showValidationError && index == currentIndex,
+                        showError:
+                            _showValidationError && index == currentIndex,
                         onYesNo: controller.setYesNo,
                         onToggleMulti: controller.toggleMulti,
                         onSingleSelect: controller.setSingleSelect,
@@ -466,7 +460,6 @@ class _QuestionsScreenState extends State<QuestionsScreen>
                     },
                   ),
                 ),
-        
                 Container(
                   padding: const EdgeInsets.only(top: 10, bottom: 24),
                   decoration: BoxDecoration(
@@ -507,26 +500,23 @@ class _QuestionsScreenState extends State<QuestionsScreen>
                           ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: ElevatedButton(
-                            onPressed: () => _nextQuestion(),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: const StadiumBorder(),
-                              elevation: 6,
-                              backgroundColor: AppColors.primaryColor,
-                            ),
-                            child: isLoading.value ?SizedBox(height: 14, width: 14, child: CircularProgressIndicator(color: AppColors.white,)) : CustomTextWidget(
-                              textString: isLastQuestion
-                                  ? DynamicAppLocalizations.of(
-                                      Get.context!,
-                                    ).t("finish")
-                                  : DynamicAppLocalizations.of(
-                                      Get.context!,
-                                    ).t('next'),
-                              textSize: FontSize().regular,
-                              fontColor: AppColors.white,
-                              isFontBold: true,
-                            ),
+                          child: CustomElevatedButtonWidget(
+                            buttonKey: const Key('btn-surbey-button'),
+                            isLoading: isLoading.value,
+                            buttonText: isLastQuestion
+                                ? DynamicAppLocalizations.of(
+                                    Get.context!,
+                                  ).t("finish")
+                                : DynamicAppLocalizations.of(
+                                    Get.context!,
+                                  ).t('next'),
+                            onPressed: () async {
+                              if (isLoading.value == true) {
+                                return;
+                              } else {
+                                _nextQuestion(forceSkip: true);
+                              }
+                            },
                           ),
                         ),
                       ],
@@ -554,11 +544,11 @@ class _SurveyProgressHeader extends StatelessWidget {
       final current = controller.currentIndex.value;
 
       final progress = (current + 1) / total;
-      final String questionProgress = DynamicAppLocalizations.of(Get.context!)
-          .t(
-            "question_current_of_total",
-            params: {'current': current + 1, 'total': total},
-          );
+      final String questionProgress =
+          DynamicAppLocalizations.of(Get.context!).t(
+        "question_current_of_total",
+        params: {'current': current + 1, 'total': total},
+      );
 
       return Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),

@@ -14,6 +14,8 @@ import '../model/dynamic_label.dart';
 import '../model/language_model.dart';
 import '../model/login_response_model.dart';
 import '../model/media_list_response_model.dart';
+import '../model/pushti_practices_response_model.dart';
+import '../model/query_type_response_model.dart';
 import '../model/send_otp_response_model.dart';
 import '../model/state_list_response_model.dart';
 import '../model/survey_question_list_response_model.dart';
@@ -24,6 +26,7 @@ import '../navigation/pages.dart';
 import '../utility/api_base_response.dart';
 import '../utility/api_service_interceptor.dart';
 import '../utility/app_api.dart';
+import '../utility/common_functions.dart';
 import '../utility/local_db.dart';
 import '../widget/common_widget.dart';
 import 'dynamic_locale_controller.dart';
@@ -55,8 +58,12 @@ class ApiController extends GetxController {
       <DashboardHtmlContentResponseModel>[].obs;
   RxList<DashboardImageSliderResponseModel> dashboardImageSliderResponseModel =
       <DashboardImageSliderResponseModel>[].obs;
+  RxList<PushtiPracticeApiResponseModel> pushtiPracticeResponseModel =
+      <PushtiPracticeApiResponseModel>[].obs;
   RxList<UserHabitListResponseModel> userHabitListResponseModel =
       <UserHabitListResponseModel>[].obs;
+  RxList<QueryTypeResponseModel> queryTypeListResponseModel =
+      <QueryTypeResponseModel>[].obs;
 
   Future<dynamic> sendPhoneNumberOtp(
     String phoneNumber,
@@ -96,56 +103,63 @@ class ApiController extends GetxController {
     }
   }
 
-fetchVersionsList({
-  required bool isUserLoggedIn,
-  required String jwtToken,
-}) async {
-  try {
-    bool isConnected = await ApiServiceInterceptor.checkInternet();
+  fetchVersionsList({
+    required bool isUserLoggedIn,
+    required String jwtToken,
+    bool isFromPushti = false,
+  }) async {
+    try {
+      bool isConnected = await ApiServiceInterceptor.checkInternet();
 
-    if (isConnected) {
-      var request = <String, String>{};
-      Map<String, String> header = {'authorization': ""};
-      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
-        url: AppApi().commonVersionsApiUrl,
-        request: request,
-        headers: header,
-      );
-      talker.info('---------- Internet available, fetched version list');
+      if (isConnected) {
+        var request = <String, String>{};
+        Map<String, String> header = {'authorization': ""};
+        var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+          url: AppApi().commonVersionsApiUrl,
+          request: request,
+          headers: header,
+        );
+        talker.info('---------- Internet available, fetched version list');
 
-      if (homeController.statusCode.value == 200) {
-        var convertedResponse = json.decode(response);
-        ApiBaseResponse apiBaseResponse =
-            ApiBaseResponse.fromJson(convertedResponse);
+        if (homeController.statusCode.value == 200) {
+          var convertedResponse = json.decode(response);
+          ApiBaseResponse apiBaseResponse =
+              ApiBaseResponse.fromJson(convertedResponse);
 
-        if (apiBaseResponse.statusCode == 209 &&
-            apiBaseResponse.data != null) {
-          Map<String, dynamic> customObj = {"Data": apiBaseResponse.data};
-          var convertedObjString = jsonEncode(customObj);
-          versionListData.value = (json.decode(convertedObjString)["Data"] as List)
-              .map((data) => VersionListResponseModel.fromJson(data))
-              .toList();
+          if (apiBaseResponse.statusCode == 209 &&
+              apiBaseResponse.data != null) {
+            Map<String, dynamic> customObj = {"Data": apiBaseResponse.data};
+            var convertedObjString = jsonEncode(customObj);
+            versionListData.value =
+                (json.decode(convertedObjString)["Data"] as List)
+                    .map((data) => VersionListResponseModel.fromJson(data))
+                    .toList();
+          } else {
+            versionListData.value = [];
+          }
         } else {
           versionListData.value = [];
         }
       } else {
-        versionListData.value = [];
+        talker.info('---------- No internet, skipping API fetch');
       }
-    } else {
-      talker.info('---------- No internet, skipping API fetch');
-    }
 
-    await _checkForLabelVersionUpdate();
-    if (isConnected && isUserLoggedIn) {
-      talker.info('User is logged in. Checking dashboard and slider versions.');
-      await _checkForDashboardVersionUpdate();
-      await _checkForDashboardSliderVersionUpdate();
+      await _checkForLabelVersionUpdate();
+      if (isConnected && isUserLoggedIn) {
+        if(isFromPushti) {
+        talker
+            .info('User is logged in. Checking Pushti Practices versions.');  
+        await _checkForPushtiPracticesVersionUpdate();        
+        }
+        talker
+            .info('User is logged in. Checking dashboard and slider versions.');
+        await _checkForDashboardVersionUpdate();
+        await _checkForDashboardSliderVersionUpdate();
+      }
+    } catch (e) {
+      talker.error('Exception in fetchVersionList API: $e');
     }
-  } catch (e) {
-    talker.error('Exception in fetchVersionList API: $e');
   }
-}
-
 
   fetchLanguageList() async {
     try {
@@ -392,12 +406,10 @@ fetchVersionsList({
             if (apiBaseResponse.data != null) {
               userDetailsResponseModel.value =
                   UserProfileDetailsResponseModel.fromJson(
-                    apiBaseResponse.data,
-                  );
-              homeController.jwtToken.value = userDetailsResponseModel
-                  .value!
-                  .jwtToken
-                  .toString();
+                apiBaseResponse.data,
+              );
+              homeController.jwtToken.value =
+                  userDetailsResponseModel.value!.jwtToken.toString();
 
               await LocalDB().setJwtToken(
                 userDetailsResponseModel.value!.jwtToken.toString(),
@@ -413,9 +425,7 @@ fetchVersionsList({
 
             await getUserProfileByPhoneNumber(
               phoneNumber: phoneNumber,
-              jwtToken: userDetailsResponseModel
-                  .value!
-                  .jwtToken.toString(),
+              jwtToken: userDetailsResponseModel.value!.jwtToken.toString(),
             );
             return result;
           } else {
@@ -535,71 +545,48 @@ fetchVersionsList({
             userDetailsResponseModel.value =
                 UserProfileDetailsResponseModel.fromJson(apiBaseResponse.data);
 
-            homeController.customerIdString.value = userDetailsResponseModel
-                .value!
-                .id
-                .toString();
+            homeController.customerIdString.value =
+                userDetailsResponseModel.value!.id.toString();
 
             homeController.isUserProfileCompleted.value =
                 userDetailsResponseModel.value!.isProfileCompleted!;
 
-            homeController.userNameString.value = userDetailsResponseModel
-                .value!
-                .name
-                .toString();
+            homeController.userNameString.value =
+                userDetailsResponseModel.value!.name.toString();
 
             homeController.userEmailString.value =
                 userDetailsResponseModel.value!.email == null
-                ? ''
-                : userDetailsResponseModel.value!.email.toString();
-            homeController.userPhoneNumber.value = userDetailsResponseModel
-                .value!
-                .mobileNo
-                .toString();
-            homeController.countryCode.value = userDetailsResponseModel
-                .value!
-                .mobileCountryCode
-                .toString();
-            homeController.selectedLanguageId.value = userDetailsResponseModel
-                .value!
-                .preferredLanguageId
-                .toString();
-            homeController.userCityId.value = userDetailsResponseModel
-                .value!
-                .cityId
-                .toString();
-            homeController.userCountryId.value = userDetailsResponseModel
-                .value!
-                .countryId
-                .toString();
-            homeController.userStateId.value = userDetailsResponseModel
-                .value!
-                .stateId
-                .toString();
+                    ? ''
+                    : userDetailsResponseModel.value!.email.toString();
+            homeController.userPhoneNumber.value =
+                userDetailsResponseModel.value!.mobileNo.toString();
+            homeController.countryCode.value =
+                userDetailsResponseModel.value!.mobileCountryCode.toString();
+            homeController.selectedLanguageId.value =
+                userDetailsResponseModel.value!.preferredLanguageId.toString();
+            homeController.userCityId.value =
+                userDetailsResponseModel.value!.cityId.toString();
+            homeController.userCountryId.value =
+                userDetailsResponseModel.value!.countryId.toString();
+            homeController.userStateId.value =
+                userDetailsResponseModel.value!.stateId.toString();
             homeController.userGenderId.value =
                 userDetailsResponseModel.value!.gender == null
-                ? ''
-                : userDetailsResponseModel.value!.gender.toString();
+                    ? ''
+                    : userDetailsResponseModel.value!.gender.toString();
             homeController.userDOB.value =
                 userDetailsResponseModel.value!.birthdate == null
-                ? ''
-                : userDetailsResponseModel.value!.birthdate.toString();
+                    ? ''
+                    : userDetailsResponseModel.value!.birthdate.toString();
 
-            homeController.userCountryName.value = userDetailsResponseModel
-                .value!
-                .countryName
-                .toString();
-            homeController.userStateName.value = userDetailsResponseModel
-                .value!
-                .stateName
-                .toString();
-            homeController.userCityName.value = userDetailsResponseModel
-                .value!
-                .cityName
-                .toString();
-            homeController.isUserSurveyCompleted.value = userDetailsResponseModel
-                .value!
-                .isSurveyCompleted!;
+            homeController.userCountryName.value =
+                userDetailsResponseModel.value!.countryName.toString();
+            homeController.userStateName.value =
+                userDetailsResponseModel.value!.stateName.toString();
+            homeController.userCityName.value =
+                userDetailsResponseModel.value!.cityName.toString();
+            homeController.isUserSurveyCompleted.value =
+                userDetailsResponseModel.value!.isSurveyCompleted!;
 
             await LocalDB().setCustomerId(userDetailsResponseModel.value!.id!);
             await LocalDB().setIsUserProfileCompleted(
@@ -769,20 +756,32 @@ fetchVersionsList({
     }
   }
 
-  userLoginApi({required countryCode, required phoneNumber, required password}) async {
+  userLoginApi(
+      {required countryCode, required phoneNumber, required password}) async {
     try {
       if (await ApiServiceInterceptor.checkInternet()) {
         Map<String, String> body = <String, String>{};
         body['mobile_no'] = phoneNumber.toString();
         body['password'] = password.toString();
-        body['language_id'] = homeController.selectedLanguageId.value.toString();
+        body['language_id'] =
+            homeController.selectedLanguageId.value.toString();
         body['country_code'] = '+${countryCode.toString()}';
-        body['login_type'] = '1'; // 1 - User, 0 - admin 
-        body['device_os'] = homeController.userDeviceOsTypeString.value.toString();
+        body['login_type'] = '1'; // 1 - User, 0 - admin
+        body['device_os'] =
+            homeController.userDeviceOsTypeString.value.toString();
         body['device_id'] = homeController.userDeviceIdString.value.toString();
-        body['device_name'] = homeController.userDeviceNameString.value.toString();
-        body['device_notification_token'] = homeController.fcmTokenString.value.isEmpty ? '' : homeController.fcmTokenString.value.toString();
-        body['app_version'] = homeController.userAppInstalledVersionName.value.toString();
+        body['device_name'] =
+            homeController.userDeviceNameString.value.toString();
+        body['device_notification_token'] =
+            homeController.fcmTokenString.value.isEmpty
+                ? ''
+                : homeController.fcmTokenString.value.toString();
+        body['app_version'] =
+            homeController.userAppInstalledVersionName.value.toString();
+        body['device_model_number'] =
+            homeController.userDeviceModelNumberString.value.toString();
+        body['os_version'] =
+            homeController.userDeviceOsVersionString.value.toString();
 
         Map<String, String> header = {};
         var response = await ApiServiceInterceptor.postDecryptLambdaCall(
@@ -804,47 +803,37 @@ fetchVersionsList({
 
               homeController.isUserProfileCompleted.value =
                   loginResponseModel.value!.isProfileCompleted!;
-              homeController.jwtToken.value = loginResponseModel.value!.jwtToken
-                  .toString();
-              homeController.userNameString.value = loginResponseModel
-                  .value!
-                  .name
-                  .toString();
+              homeController.jwtToken.value =
+                  loginResponseModel.value!.jwtToken.toString();
+              homeController.userNameString.value =
+                  loginResponseModel.value!.name.toString();
+              homeController.customerIdString.value = loginResponseModel.value!.id.toString();
               homeController.userEmailString.value =
                   loginResponseModel.value!.email == null
-                  ? ''
-                  : loginResponseModel.value!.email.toString();
-              homeController.userPhoneNumber.value = loginResponseModel
-                  .value!
-                  .mobileNo
-                  .toString();
-              homeController.countryCode.value = loginResponseModel
-                  .value!
-                  .mobileCountryCode
-                  .toString();
-              homeController.selectedLanguageId.value = loginResponseModel
-                  .value!
-                  .preferredLanguageId
-                  .toString();
-              homeController.userCityId.value = loginResponseModel.value!.cityId
-                  .toString();
-              homeController.userCountryId.value = loginResponseModel
-                  .value!
-                  .countryId
-                  .toString();
-              homeController.userStateId.value = loginResponseModel
-                  .value!
-                  .stateId
-                  .toString();
+                      ? ''
+                      : loginResponseModel.value!.email.toString();
+              homeController.userPhoneNumber.value =
+                  loginResponseModel.value!.mobileNo.toString();
+              homeController.countryCode.value =
+                  loginResponseModel.value!.mobileCountryCode.toString();
+              homeController.selectedLanguageId.value =
+                  loginResponseModel.value!.preferredLanguageId.toString();
+              homeController.userCityId.value =
+                  loginResponseModel.value!.cityId.toString();
+              homeController.userCountryId.value =
+                  loginResponseModel.value!.countryId.toString();
+              homeController.userStateId.value =
+                  loginResponseModel.value!.stateId.toString();
               homeController.userGenderId.value =
                   loginResponseModel.value!.gender == null
-                  ? ''
-                  : loginResponseModel.value!.gender.toString();
+                      ? ''
+                      : loginResponseModel.value!.gender.toString();
               homeController.userDOB.value =
                   loginResponseModel.value!.birthdate == null
-                  ? ''
-                  : loginResponseModel.value!.birthdate.toString();
-              homeController.isUserSurveyCompleted.value = loginResponseModel.value!.isSurveyCompleted!;
+                      ? ''
+                      : loginResponseModel.value!.birthdate.toString();
+              homeController.isUserSurveyCompleted.value =
+                  loginResponseModel.value!.isSurveyCompleted!;
               homeController.isUserExists.value = true;
               homeController.passwordString.value = password;
               await LocalDB().setIsUserProfileCompleted(
@@ -861,6 +850,9 @@ fetchVersionsList({
               );
               await LocalDB().setUserPhoneNumber(
                 loginResponseModel.value!.mobileNo.toString(),
+              );
+              await LocalDB().setCustomerId(
+                loginResponseModel.value!.id.toString(),
               );
               await LocalDB().setUserPassword(
                 password.toString(),
@@ -911,7 +903,6 @@ fetchVersionsList({
         } else {
           return false;
         }
-      
       }
     } catch (e) {
       talker.error('Exception in userLoginApi API: $e');
@@ -995,8 +986,8 @@ fetchVersionsList({
           if (apiBaseResponse.statusCode == 209) {
             forgotPasswordsendOtpResponseModel.value =
                 ForgotPasswordSendOtpResponseModel.fromJson(
-                  apiBaseResponse.data,
-                );
+              apiBaseResponse.data,
+            );
             return true;
           } else {
             return false;
@@ -1077,8 +1068,8 @@ fetchVersionsList({
 
           if (apiBaseResponse.statusCode == 209) {
             if (apiBaseResponse.data != null) {
-              return surveyQuestionListResponseModel
-                  .value = (apiBaseResponse.data as List)
+              return surveyQuestionListResponseModel.value = (apiBaseResponse
+                      .data as List)
                   .map((data) => SurveyQuestionListResponseModel.fromJson(data))
                   .toList();
             }
@@ -1259,7 +1250,8 @@ fetchVersionsList({
     }
   }
 
-  fetchDashboardSevaPranalika({required String date, required String jwtToken}) async {
+  fetchDashboardSevaPranalika(
+      {required String date, required String jwtToken}) async {
     try {
       if (await ApiServiceInterceptor.checkInternet()) {
         var request = <String, String>{};
@@ -1280,8 +1272,8 @@ fetchVersionsList({
             if (apiBaseResponse.data != null) {
               dailySevaPranalikaResponseModel.value =
                   DailySevaPranalikaResponseModel.fromJson(
-                    apiBaseResponse.data,
-                  );
+                apiBaseResponse.data,
+              );
             } else {
               dailySevaPranalikaResponseModel.value = null;
             }
@@ -1294,11 +1286,10 @@ fetchVersionsList({
   }
 
   Future<dynamic> validateUserOtp(
-  {required String phoneNumber,
-  required String countryCode,
-  required String verificationId,
-  required String userEnteredOtp}
-  ) async {
+      {required String phoneNumber,
+      required String countryCode,
+      required String verificationId,
+      required String userEnteredOtp}) async {
     try {
       if (await ApiServiceInterceptor.checkInternet()) {
         Map<String, String> body = <String, String>{};
@@ -1401,55 +1392,54 @@ fetchVersionsList({
   // }
 
   Future<void> _checkForLabelVersionUpdate({bool isConnected = true}) async {
-  try {
-    final apiVersionString = _getVersionString("@@labels_version@@");
-    String? storedVersion = await LocalDB().getLabelLanguageVersion() ?? '';
-    bool shouldUpdate = false;
+    try {
+      final apiVersionString = _getVersionString("@@labels_version@@");
+      String? storedVersion = await LocalDB().getLabelLanguageVersion() ?? '';
+      bool shouldUpdate = false;
 
-    if (isConnected && apiVersionString.isNotEmpty) {
-      if (storedVersion.isEmpty) {
-        shouldUpdate = true;
+      if (isConnected && apiVersionString.isNotEmpty) {
+        if (storedVersion.isEmpty) {
+          shouldUpdate = true;
+        } else {
+          try {
+            final apiDate = DateTime.parse(apiVersionString);
+            final localDate = DateTime.parse(storedVersion);
+            if (apiDate.isAfter(localDate)) shouldUpdate = true;
+          } catch (e) {
+            shouldUpdate = true;
+          }
+        }
+      }
+
+      final dynamicCtrl = Get.put(DynamicLocaleController());
+
+      if (shouldUpdate && isConnected) {
+        talker.info('Label version mismatch or new. Updating labels from API.');
+
+        if (homeController.selectedLanguageId.value.isNotEmpty) {
+          await getLanguageLabels(homeController.selectedLanguageId.value);
+        }
+        await LocalDB().setLabelLanguageVersion(apiVersionString);
       } else {
         try {
-          final apiDate = DateTime.parse(apiVersionString);
-          final localDate = DateTime.parse(storedVersion);
-          if (apiDate.isAfter(localDate)) shouldUpdate = true;
+          final cachedJson = await LocalDB().getLanguageLabelsCache();
+          if (cachedJson != null && cachedJson.isNotEmpty) {
+            final List<dynamic> cachedList = json.decode(cachedJson);
+            final List<DynamicLabel> cachedLabels = cachedList
+                .map<DynamicLabel>((e) => DynamicLabel.fromJson(e))
+                .toList();
+
+            dynamicCtrl.setLabels(cachedLabels, isFromCache: true);
+            talker.info('Loaded labels from cache.');
+          }
         } catch (e) {
-          shouldUpdate = true;
+          talker.error('Exception loading language labels from cache: $e');
         }
       }
+    } catch (e) {
+      talker.error('Exception in _checkForLabelVersionUpdate: $e');
     }
-
-    final dynamicCtrl = Get.put(DynamicLocaleController());
-
-    if (shouldUpdate && isConnected) {
-      talker.info('Label version mismatch or new. Updating labels from API.');
-
-      if (homeController.selectedLanguageId.value.isNotEmpty) {
-        await getLanguageLabels(homeController.selectedLanguageId.value);
-      }
-      await LocalDB().setLabelLanguageVersion(apiVersionString);
-    } else {
-      try {
-        final cachedJson = await LocalDB().getLanguageLabelsCache();
-        if (cachedJson != null && cachedJson.isNotEmpty) {
-          final List<dynamic> cachedList = json.decode(cachedJson);
-          final List<DynamicLabel> cachedLabels = cachedList
-              .map<DynamicLabel>((e) => DynamicLabel.fromJson(e))
-              .toList();
-
-          dynamicCtrl.setLabels(cachedLabels, isFromCache: true);
-          talker.info('Loaded labels from cache.');
-        }
-      } catch (e) {
-        talker.error('Exception loading language labels from cache: $e');
-      }
-    }
-  } catch (e) {
-    talker.error('Exception in _checkForLabelVersionUpdate: $e');
   }
-}
-
 
   // -------------------------------------------------------------
   // 2. Dashboard HTML Version Logic (Extracted)
@@ -1520,6 +1510,262 @@ fetchVersionsList({
         languageId: homeController.selectedLanguageId.value,
         jwtToken: homeController.jwtToken.value,
       );
+    }
+  }
+
+    // -------------------------------------------------------------
+  // 4. Pushti Practices Check Label Version (Extracted)
+  // -------------------------------------------------------------
+  Future<void> _checkForPushtiPracticesVersionUpdate() async {
+    final versionString = _getVersionString("@@pushti_practices_version@@");
+
+    if (versionString.isEmpty) return;
+
+    String? storedVersion = await LocalDB().getPushtiPracticesVersion() ?? '';
+    bool shouldUpdate = false;
+
+    if (storedVersion.isEmpty) {
+      shouldUpdate = true;
+    } else {
+      try {
+        final apiDate = DateTime.parse(versionString);
+        final localDate = DateTime.parse(storedVersion);
+        if (apiDate.isAfter(localDate)) {
+          shouldUpdate = true;
+        }
+      } catch (e) {
+        shouldUpdate = true;
+      }
+    }
+
+    if (shouldUpdate) {
+      talker.info(
+        'Pushti Practices version mismatch/new. Updating puushti Practices....',
+      );
+      await LocalDB().setPushtiPracticesVersion(versionString);
+      await pushtiPracticesApi(
+        languageId: homeController.selectedLanguageId.value,
+        jwtToken: homeController.jwtToken.value,
+      );
+    }
+  }
+
+  deviceInfo() async {
+    try {
+      if (await ApiServiceInterceptor.checkInternet()) {
+        var request = <String, String>{};
+
+        Map<String, dynamic> body = <String, dynamic>{};
+        body['device_os'] =
+            homeController.userDeviceOsTypeString.value.toString();
+        body['device_id'] = homeController.userDeviceIdString.value.toString();
+        body['device_name'] =
+            homeController.userDeviceNameString.value.toString();
+        body['device_notification_token'] =
+            homeController.fcmTokenString.value.isEmpty
+                ? ''
+                : homeController.fcmTokenString.value.toString();
+        body['app_version'] =
+            homeController.userAppInstalledVersionName.value.toString();
+        body['os_version'] =
+            homeController.userDeviceOsVersionString.value.toString();
+        body['device_version'] =
+            homeController.userDeviceOsVersionString.value.toString();
+        body['device_model_number'] =
+            homeController.userDeviceModelNumberString.value.toString();
+
+        Map<String, dynamic> header = {
+          'authorization': homeController.jwtToken.value
+        };
+        await ApiServiceInterceptor.putDecryptLamdaCall(
+          url: AppApi().deviceInfoApiUrl,
+          request: request,
+          header: header,
+          body: json.encode(body),
+        );
+      }
+    } catch (e) {
+      talker.error('Exception in deviceInfo API: $e');
+    }
+  }
+
+  queryTypeListApi({
+    required String languageId,
+  }) async {
+    try {
+      if (await ApiServiceInterceptor.checkInternet()) {
+        var request = <String, String>{};
+        request["language_id"] = languageId;
+        Map<String, String> header = {'authorization': ''};
+
+        var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+          url: AppApi().queryTypeListApiUrl,
+          request: request,
+          headers: header,
+        );
+
+        if (homeController.statusCode.value == 200) {
+          var decodeString = jsonDecode(response);
+          ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+            decodeString,
+          );
+
+          if (apiBaseResponse.statusCode == 209) {
+            if (apiBaseResponse.data != null) {
+              queryTypeListResponseModel.value = (apiBaseResponse.data as List)
+                  .map((data) => QueryTypeResponseModel.fromJson(data))
+                  .toList();
+            } else {
+              queryTypeListResponseModel.value = [];
+            }
+          }
+        } else {
+          queryTypeListResponseModel.value = [];
+        }
+      }
+    } catch (e) {
+      talker.error('Exception in queryTypeListApi API: $e');
+    }
+  }
+
+  submitContactUsQuery({
+    required String name,
+    required String email,
+    required String countryCode,
+    required String mobileNumber,
+    required String queryType,
+    required String queryName,
+    required String queryDescription,
+  }) async {
+    try {
+      if (await ApiServiceInterceptor.checkInternet()) {
+        Map<String, String> body = <String, String>{};
+        body['name'] = name.toString();
+        body['email'] = email.toString();
+        body['country_code'] = '+${countryCode.toString()}';
+        body['mobile_no'] = mobileNumber.toString();
+        body['query_type'] = queryType.toString();
+        body['message'] = queryDescription.trim().toString();
+        body['user_type'] = "1";
+
+        talker.info('------ input body: $body');
+
+        Map<String, String> header = {};
+        var response = await ApiServiceInterceptor.postDecryptLambdaCall(
+          url: AppApi().submitContactUsApiUrl,
+          header: header,
+          body: json.encode(body),
+        );
+
+        if (homeController.statusCode.value == 200) {
+          var convertedResponse = json.decode(response);
+          ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+            convertedResponse,
+          );
+          if (apiBaseResponse.statusCode == 209) {
+            showCustomSnackBar(
+              DynamicAppLocalizations.of(Get.context!).t("info"),
+              DynamicAppLocalizations.of(
+                Get.context!,
+              ).t(apiBaseResponse.message.toString()),
+              true,
+            );
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+    } catch (e) {
+      talker.error('Exception in submitContactUsQuery API: $e');
+    }
+  }
+
+  logoutUser({required String deviceId, required String jwtToken}) async {
+    try {
+      if (await ApiServiceInterceptor.checkInternet()) {
+        Map<String, String> request = <String, String>{};
+        request["device_id"] = deviceId;
+        Map<String, String> header = {
+          'authorization': jwtToken,
+          'Content-Type': 'application/json',
+        };
+        dynamic response = await ApiServiceInterceptor.deleteDecryptLambdaCall(
+          url: AppApi().logoutApiUrl,
+          request: request,
+          headers: header,
+        );
+        if (homeController.statusCode.value == 200) {
+          var encodedString = jsonDecode(response);
+          ApiBaseResponse apiBaseResponse =
+              ApiBaseResponse.fromJson(encodedString);
+          if (apiBaseResponse.statusCode == 209) {
+            ApiServiceInterceptor.cancelRequest();
+            clearAppDataAndLogout();
+            showCustomSnackBar(
+              DynamicAppLocalizations.of(Get.context!).t("info"),
+              DynamicAppLocalizations.of(
+                Get.context!,
+              ).t(apiBaseResponse.message.toString()),
+              true,
+            );
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } catch (e) {
+      talker.error('Exception in logoutUser API: $e');
+      return false;
+    }
+  }
+
+  pushtiPracticesApi({required String languageId, required String jwtToken}) async {
+    try {
+      if (await ApiServiceInterceptor.checkInternet()) {
+        var request = <String, String>{};
+        request["language_id"] = languageId;
+        Map<String, String> header = {'authorization': jwtToken};
+
+        var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+          url: AppApi().pushtiPracticesApiUrl,
+          request: request,
+          headers: header,
+        );
+
+        if (homeController.statusCode.value == 200) {
+          var decodeString = jsonDecode(response);
+          ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+            decodeString,
+          );
+
+          if (apiBaseResponse.statusCode == 209) {
+            talker.debug('------Executed APIcall Pushti Practices');
+            if (apiBaseResponse.data != null) {
+              pushtiPracticeResponseModel.value = (apiBaseResponse.data as List)
+                  .map(
+                    (data) => PushtiPracticeApiResponseModel.fromJson(data),
+                  )
+                  .toList();
+              final List<Map<String, dynamic>> jsonList =
+                  pushtiPracticeResponseModel.map((e) => e.toJson()).toList();
+              final String jsonString = jsonEncode(jsonList);
+              await LocalDB().setPushtiPracticesCache(jsonString);
+            } else {
+              pushtiPracticeResponseModel.value = [];
+            }
+          }
+        }
+      }
+    } catch (e) {
+      talker.error('Exception in pushtiPracticesApi API: $e');
     }
   }
 }

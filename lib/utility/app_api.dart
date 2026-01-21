@@ -48,5 +48,10 @@ class AppApi {
       late String dashboardHtmlSectionApiUrl = '${baseUrl}dashboard/sections';
       late String dashboardImageSlidersApiUrl = '${baseUrl}dashboard/sliders';
       late String validateOtpApiUrl = '${baseUrl}common/validateotp';
+      late String deviceInfoApiUrl = '${baseUrl}common/deviceinfo';
+      late String queryTypeListApiUrl = '${baseUrl}common/querytypelist';
+      late String submitContactUsApiUrl = '${baseUrl}common/contactus';
+      late String logoutApiUrl = '${baseUrl}auth/logout';
+      late String pushtiPracticesApiUrl = '${baseUrl}practice/pushtipractices';
 }
 

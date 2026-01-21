@@ -26,8 +26,10 @@ clearAppDataAndLogout() async {
   await LocalDB().setDashboardImageSliderCache('');
   await LocalDB().setLabelLanguageVersion('');
   await LocalDB().setLanguageLabelsCache('');
+  await LocalDB().setCustomerId('');
   await LocalDB().setUserPassword('');
   await LocalDB().removeJwtToken();
+  await LocalDB().removeCustomerId();
   homeController.jwtToken.value = '';
   homeController.isLoggedIn.value = false;
   homeController.selectedIndex.value = 0;

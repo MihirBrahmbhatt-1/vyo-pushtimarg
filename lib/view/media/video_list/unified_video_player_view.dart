@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:omni_video_player/omni_video_player.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -128,34 +129,41 @@ class _UnifiedVideoPlayerState extends State<UnifiedVideoPlayer> {
           _buildPlayer(),
           _closeButton(),
           Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 40.0),
-                    child: ElevatedButton.icon(
-                      onPressed: () => {},
-                      icon: const Icon(Icons.arrow_forward),
-                      label: CustomTextWidget(
-                        textString: DynamicAppLocalizations.of(
-                          Get.context!,
-                        ).t("open_in_youtube"),
-                        textSize: FontSize().regular,
-                        fontColor: AppColors.primaryColor,
-                        isFontBold: false,
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: AppColors.primaryColor,
-                        backgroundColor: AppColors.white.withValues(alpha: 0.9),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                    ),
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 40.0),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final uri = Uri.tryParse(widget.url);
+                  if (uri != null && await canLaunchUrl(uri)) {
+                    await launchUrl(uri);
+                  } else {
+                    debugPrint('Could not launch URL: ${widget.url}');
+                  }
+                },
+                icon: const Icon(Icons.arrow_forward),
+                label: CustomTextWidget(
+                  textString: DynamicAppLocalizations.of(
+                    Get.context!,
+                  ).t("open_in_youtube"),
+                  textSize: FontSize().regular,
+                  fontColor: AppColors.primaryColor,
+                  isFontBold: false,
+                ),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: AppColors.primaryColor,
+                  backgroundColor: AppColors.white.withValues(alpha: 0.9),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
                   ),
                 ),
+              ),
+            ),
+          ),
           // if (_bufferedPercentage < 100)
           //   _loadingIndicator(),
         ],
@@ -256,8 +264,8 @@ class _UnifiedVideoPlayerState extends State<UnifiedVideoPlayer> {
             _ytController?.pause();
             _omniController?.pause();
             SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+              DeviceOrientation.portraitUp,
+            ]);
             Get.back();
           },
           child: Container(

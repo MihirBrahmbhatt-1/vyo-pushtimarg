@@ -28,7 +28,7 @@ class CommonWidget {
           width: width,
           decoration: ShapeDecoration(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13),
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
             color: AppColors.grey,
           ),
@@ -115,7 +115,7 @@ class CommonWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(borderRadius),
               borderSide: BorderSide(
-                color: isEnabled ? AppColors.primaryColor : AppColors.grey200,
+                color: isEnabled ? AppColors.grey400 : AppColors.grey200,
                 width: 1,
               ),
             ),
@@ -128,9 +128,9 @@ class CommonWidget {
               borderSide: const BorderSide(color: AppColors.red),
             ),
             errorStyle: TextStyle(
-              fontSize: FontSize().small,
+              fontSize: FontSize().xsmall,
               color: AppColors.red,
-              // fontStyle: FontStyle.normal,
+              fontStyle: FontStyle.normal,
             ),
           ),
 

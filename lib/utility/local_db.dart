@@ -26,6 +26,7 @@ class LocalDB {
   final labelLanguageVersionCacheKey = "labelLanguageVersionCacheKey";
   final dashboardVersionKey = "dashboardVersionKey";
   final dashboardSliderVersionKey = "dashboardSliderVersionKey";
+  final pushtiPracticesVersionKey = "pushtiPracticesVersionKey";
   final isUserProfileCompletedKey = "isUserProfileCompletedKey";
   final userCountryIdKey = 'userCountryIdKey';
   final userCountryNameKey = 'userCountryNameKey';
@@ -40,6 +41,7 @@ class LocalDB {
   final forgotPasswordOtpResendAttemptsKey = 'forgotPasswordOtpResendAttemptsKey';
   final forgotPasswordOtpNextResendTimeKey = 'forgotPasswordOtpNextResendTimeKey';
   final isUserSurveyCompletedKey = "isUserSurveyCompletedKey";
+  final pushtiPracticesCachekey = "pushtiPracticesCachekey";
 
 
   Future<bool> setIsLanguageSelected(bool isLanguageSelected) async {
@@ -197,6 +199,19 @@ class LocalDB {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     return sharedPreferences.getString(dashboardSliderVersionKey);
   }
+
+  Future<bool> setPushtiPracticesVersion(String pushtiPracticesLabelVersion) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return await sharedPreferences.setString(pushtiPracticesVersionKey, pushtiPracticesLabelVersion);
+  }
+
+  Future<String?> getPushtiPracticesVersion() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return sharedPreferences.getString(pushtiPracticesVersionKey);
+  }
+
+
+
   Future<bool> setUserPhoneNumber(String userPhoneNumber) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     return await sharedPreferences.setString(userPhoneNumberKey, userPhoneNumber);
@@ -524,6 +539,18 @@ class LocalDB {
   Future<String?> getDashboardHtmlCache() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     return sharedPreferences.getString(dashboardHtmlCacheKey);
+  }
+
+  // 🎯 Saves the raw JSON string
+  Future<void> setPushtiPracticesCache(String jsonString) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.setString(pushtiPracticesCachekey, jsonString);
+  }
+
+  // 🎯 Retrieves the raw JSON string
+  Future<String?> getPushtiPracticesCache() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    return sharedPreferences.getString(pushtiPracticesCachekey);
   }
 
   // 🎯 Saves the raw JSON string

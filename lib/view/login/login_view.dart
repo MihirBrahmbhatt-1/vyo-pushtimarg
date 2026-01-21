@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -78,10 +79,9 @@ class LoginView extends GetView<LoginViewController> {
                           isValidPhoneNumber: (isValid) {
                             talker.info("Valid phone: $isValid");
                             controller.isValidePhoneNumber.value = isValid;
-                          }
+                          },
                         ),
                         const SizedBox(height: 16),
-
                         CustomTextFormFieldWidget(
                           controller: controller.passwordController,
                           isOutlineBorder: true,
@@ -90,8 +90,10 @@ class LoginView extends GetView<LoginViewController> {
                           cursorColor: AppColors.primaryColor,
                           // filled: true,
                           // fillColor: AppColors.blue,
-                          hintText: DynamicAppLocalizations.of(Get.context!).t("enter_password"),
-                          label: DynamicAppLocalizations.of(Get.context!).t("password"),
+                          hintText: DynamicAppLocalizations.of(Get.context!)
+                              .t("enter_password"),
+                          label: DynamicAppLocalizations.of(Get.context!)
+                              .t("password"),
                           enabled: controller.isLoading.value ? false : true,
                           autoValidateMode: AutovalidateMode.onUserInteraction,
                           obscure: controller.isPasswordVisible.value,
@@ -100,8 +102,10 @@ class LoginView extends GetView<LoginViewController> {
                           inputFormatters: [
                             FilteringTextInputFormatter.deny(RegExp(r'[ ]')),
                           ],
-                          validator: (value) =>
-                              Validators().validatePassword(value, DynamicAppLocalizations.of(Get.context!).t("password")),
+                          validator: (value) => Validators().validatePassword(
+                              value,
+                              DynamicAppLocalizations.of(Get.context!)
+                                  .t("password")),
                           suffixIcon: controller.isPasswordVisible.value
                               ? CustomIconWidget(
                                   icon: AppIcons.lockIcon,
@@ -122,10 +126,11 @@ class LoginView extends GetView<LoginViewController> {
                           alignment: Alignment.centerRight,
                           child: InkWell(
                             onTap: () {
-                            Get.toNamed(Routes.forgotpassword);
+                              Get.toNamed(Routes.forgotpassword);
                             },
                             child: CustomTextWidget(
-                              textString: "${DynamicAppLocalizations.of(Get.context!).t("forgot_password")} ?",
+                              textString:
+                                  "${DynamicAppLocalizations.of(Get.context!).t("forgot_password")} ?",
                               textSize: FontSize().regular,
                               fontColor: AppColors.black,
                               isFontUnderline: true,
@@ -139,19 +144,20 @@ class LoginView extends GetView<LoginViewController> {
                           child: CustomElevatedButtonWidget(
                             buttonKey: const Key('btn-login-button'),
                             isLoading: ctrl.isLoading.value,
-                            buttonText:  DynamicAppLocalizations.of(Get.context!).t("login"),
+                            buttonText: DynamicAppLocalizations.of(Get.context!)
+                                .t("login"),
                             onPressed: () async {
                               controller.validatePhone();
 
                               if (!ctrl.isLoading.value &&
-                                  ctrl.formKey.value.currentState!.validate() && ctrl.isValidePhoneNumber.value) {
+                                  ctrl.formKey.value.currentState!.validate() &&
+                                  ctrl.isValidePhoneNumber.value) {
                                 ctrl.homeController.reload();
                                 controller.userLogin();
                               }
                             },
                           ),
                         ),
-
                         const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -186,6 +192,39 @@ class LoginView extends GetView<LoginViewController> {
                   ],
                 ),
               ),
+            ),
+          ),
+          bottomNavigationBar: SizedBox(
+            height: 40,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      text: DynamicAppLocalizations.of(context)
+                          .t("issues_and_support_login"),
+                      style: TextStyle(color: AppColors.primaryColor),
+                      children: <TextSpan>[
+                        TextSpan(text: ' '),
+                        TextSpan(
+                          text: DynamicAppLocalizations.of(context)
+                              .t("click_here"),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              await controller.handleSpecificTap();
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

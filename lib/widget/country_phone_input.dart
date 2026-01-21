@@ -46,7 +46,7 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
     return Obx(() {
       final borderColor = widget.showError.value
           ? AppColors.red
-          : (isFocused ? AppColors.primaryColor : AppColors.grey400);
+          : (isFocused ? AppColors.primaryColor : AppColors.black);
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,11 +185,12 @@ class _PhoneNumberFieldState extends State<PhoneNumberField> {
           /// ---- ERROR MESSAGE ----
           if (widget.showError.value)
             Padding(
-              padding: const EdgeInsets.only(top: 5),
+              padding: const EdgeInsets.only(top: 5, left: 18),
               child: CustomTextWidget(
                 textString: widget.errorText.value,
-                textSize: FontSize().small,
+                textSize: FontSize().xsmall,
                 fontColor: AppColors.red,
+                isFontBold: true,
                 isFontUnderline: false,
               ),
             ),
