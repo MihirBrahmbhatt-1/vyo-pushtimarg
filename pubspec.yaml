@@ -60,10 +60,11 @@ dependencies:
   http: ^1.6.0
   share_plus: ^11.1.0
   font_awesome_flutter: ^10.12.0
-  confetti: ^0.8.0
+  # confetti: ^0.8.0
   youtube_player_flutter: ^9.1.3
   webview_flutter: ^4.13.0
   android_id: ^0.5.1
+  flutter_confetti: ^0.5.1
   # spotify_sdk: ^3.0.2
 
   # flutter_localizations:

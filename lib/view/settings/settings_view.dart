@@ -19,57 +19,69 @@ class SettingsView extends GetView<SettingsViewController> {
       backgroundColor: AppColors.white,
       body: Stack(
         children: [
-          
           ListView(
             padding: const EdgeInsets.symmetric(vertical: 20),
             children: [
-          
               // PROFILE
               ListTile(
-                leading: const Icon(Icons.person, color: AppColors.primaryColor),
+                leading:
+                    const Icon(Icons.person, color: AppColors.primaryColor),
                 title: CustomTextWidget(
-                    textString: DynamicAppLocalizations.of(Get.context!).t("profile"),
-                    textSize: FontSize().regular,
-                    fontColor: AppColors.primaryColor,
-                    isFontBold: false,
-                  ),
+                  textString:
+                      DynamicAppLocalizations.of(Get.context!).t("profile"),
+                  textSize: FontSize().regular,
+                  fontColor: AppColors.primaryColor,
+                  isFontBold: false,
+                ),
                 onTap: () {
                   Get.toNamed(Routes.userprofile);
                 },
               ),
-          
-              const Divider(indent: 10.0, endIndent: 10.0,),
-          
+
+              const Divider(
+                indent: 10.0,
+                endIndent: 10.0,
+              ),
+
               ListTile(
                 leading: const Icon(Icons.lock, color: AppColors.primaryColor),
                 title: CustomTextWidget(
-                    textString: DynamicAppLocalizations.of(Get.context!).t("change_password"),
-                    textSize: FontSize().regular,
-                    fontColor: AppColors.primaryColor,
-                    isFontBold: false,
-                  ),
+                  textString: DynamicAppLocalizations.of(Get.context!)
+                      .t("change_password"),
+                  textSize: FontSize().regular,
+                  fontColor: AppColors.primaryColor,
+                  isFontBold: false,
+                ),
                 onTap: () {
                   Get.toNamed(Routes.changepassword);
                 },
               ),
-          
-              const Divider(indent: 10.0, endIndent: 10.0,),
-          
+
+              const Divider(
+                indent: 10.0,
+                endIndent: 10.0,
+              ),
+
               ListTile(
                 leading: const Icon(Icons.logout, color: AppColors.red),
                 title: CustomTextWidget(
-                    textString: DynamicAppLocalizations.of(Get.context!).t("logout"),
-                    textSize: FontSize().regular,
-                    fontColor: AppColors.red,
-                    isFontBold: false,
-                  ),
+                  textString:
+                      DynamicAppLocalizations.of(Get.context!).t("logout"),
+                  textSize: FontSize().regular,
+                  fontColor: AppColors.red,
+                  isFontBold: false,
+                ),
                 textColor: AppColors.red,
                 onTap: () {
                   CustomAlertWidget().infoAlertDialog(
-                    displayText: DynamicAppLocalizations.of(Get.context!).t("logout_title"), 
-                    displaySubText: DynamicAppLocalizations.of(Get.context!).t("logout_description"),
-                    buttonText: DynamicAppLocalizations.of(Get.context!).t("yes"),
-                    cancelButtonText: DynamicAppLocalizations.of(Get.context!).t("cancel"),
+                    displayText: DynamicAppLocalizations.of(Get.context!)
+                        .t("logout_title"),
+                    displaySubText: DynamicAppLocalizations.of(Get.context!)
+                        .t("logout_description"),
+                    buttonText:
+                        DynamicAppLocalizations.of(Get.context!).t("yes"),
+                    cancelButtonText:
+                        DynamicAppLocalizations.of(Get.context!).t("cancel"),
                     statusType: false,
                     showCancelButton: true,
                     onButtonTap: () {
@@ -80,7 +92,11 @@ class SettingsView extends GetView<SettingsViewController> {
               ),
             ],
           ),
-        controller.isLoading.value ? CircularProgressIndicator(color: AppColors.primaryColor,) : const SizedBox(),
+          controller.isLoading.value
+              ? CircularProgressIndicator(
+                  color: AppColors.primaryColor,
+                )
+              : const SizedBox(),
         ],
       ),
     );

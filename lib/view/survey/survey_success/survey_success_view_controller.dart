@@ -1,5 +1,5 @@
-import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:get/get.dart';
 
 import '../../../controller/api_controller.dart';
@@ -7,35 +7,34 @@ import '../../../controller/home_controller.dart';
 
 class SurveySuccessViewController extends GetxController
     with WidgetsBindingObserver {
-  late ConfettiController? confettiController;
   final ApiController apiController = Get.find<ApiController>();
   final HomeController homeController = Get.find<HomeController>();
 
   RxBool showButton = false.obs;
+  final controller = ConfettiController();
 
   @override
-  void onInit() async {
-    WidgetsBinding.instance.addObserver(this);
+  void onInit() {
     super.onInit();
-    confettiController = ConfettiController(
-      duration: const Duration(milliseconds: 200),
-    );
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
     await apiController.getUserProfileByPhoneNumber(
       phoneNumber: homeController.userPhoneNumber.value,
       jwtToken: homeController.jwtToken.toString(),
     );
-    
-    confettiController?.play();
-    confettiController?.addListener(() {
-      if (confettiController?.state == ConfettiControllerState.stopped) {
-        showButton.value = true;
-      }
-    });
   }
 
-  @override
-  void dispose() {
-    confettiController?.dispose();
-    super.dispose();
+  void playConfetti(BuildContext context) {
+    Confetti.launch(
+      context,
+      options: const ConfettiOptions(
+          particleCount: 200, spread: 100, y: 1, startVelocity: 60),
+    );
+
+    Future.delayed(const Duration(seconds: 2), () {
+      showButton.value = true;
+    });
   }
 }
