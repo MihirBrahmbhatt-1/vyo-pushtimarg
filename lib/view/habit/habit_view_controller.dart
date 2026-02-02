@@ -10,6 +10,7 @@ import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../model/pushti_practices_response_model.dart';
 import '../../model/user_habit_list_response_model.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../utility/local_db.dart';
 
 class HabitViewController extends GetxController with WidgetsBindingObserver {
@@ -33,6 +34,11 @@ class HabitViewController extends GetxController with WidgetsBindingObserver {
   }
 
   fetchPushtiPractise() async {
+    if (await ApiServiceInterceptor.checkInternet()) {
+      homeController.isDisplayInternetConnection.value = false;
+    } else {
+      homeController.isDisplayInternetConnection.value = true;
+    }
     final cachedJson = await LocalDB().getPushtiPracticesCache() ?? '';
 
     if (cachedJson.isEmpty) {
@@ -66,10 +72,16 @@ class HabitViewController extends GetxController with WidgetsBindingObserver {
   }
 
   Future<void> refreshPushtiPractices() async {
+    print(
+        'isDisplayInternetConnection: ${homeController.isDisplayInternetConnection.value}');
+
     await apiController.fetchVersionsList(
       isUserLoggedIn: true,
       jwtToken: homeController.jwtToken.value,
+      isFromPushti: true,
     );
+    print(
+        'isDisplayInternetConnection: ${homeController.isDisplayInternetConnection.value}');
     await fetchPushtiPractise();
   }
 

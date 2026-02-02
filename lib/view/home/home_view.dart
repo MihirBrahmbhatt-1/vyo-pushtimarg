@@ -58,7 +58,7 @@ class HomeView extends GetView<HomeViewController> {
     switch (controller.homeController.selectedIndex.value) {
       case 0:
         return CustomTextWidget(
-          textString: 'VYO World',
+          textString: DynamicAppLocalizations.of(Get.context!).t("app_title"),
           textSize: FontSize().appBar,
           fontColor: AppColors.white,
         );

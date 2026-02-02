@@ -6,8 +6,10 @@ import '../../../const/app_color.dart';
 import '../../../const/app_constant.dart';
 import '../../../const/logger.dart';
 import '../../../localization/dynamic_app_localizations.dart';
+import '../../../utility/api_service_interceptor.dart';
 import '../../../widget/country_phone_input.dart';
 import '../../../widget/custom_elevated_button_widget.dart';
+import '../../../widget/custom_no_internet_widget.dart';
 import '../../../widget/custom_text_widget.dart';
 import 'forgot_password_view_controller.dart';
 
@@ -36,7 +38,27 @@ class ForgotPasswordView extends GetView<ForgotPasswordViewController> {
               fontStyle: FontStyle.normal,
             ),
           ),
-          body: 
+          body: controller.homeController.isDisplayInternetConnection.value ?
+                Center(
+                  child: CustomNoInternetWidget(
+                      onPressed: () async {
+                        if (await ApiServiceInterceptor.checkInternet()) {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = false;
+                          controller.isLoading.value = true;
+                          await controller.apiController.fetchVersionsList(
+                            isUserLoggedIn: false,
+                            jwtToken: '',
+                          );
+                          controller.isLoading.value = false;
+                        } else {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = true;
+                        }
+                      },
+                    ),
+                )
+                 :  
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0),

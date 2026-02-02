@@ -9,7 +9,10 @@ import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../model/survey_complete_answers_model.dart';
 import '../../navigation/pages.dart';
+import '../../utility/api_service_interceptor.dart';
+import '../../widget/custom_button_widget.dart';
 import '../../widget/custom_elevated_button_widget.dart';
+import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import 'questions_model.dart';
 import 'questions_page.dart';
@@ -396,6 +399,41 @@ class _QuestionsScreenState extends State<QuestionsScreen>
         );
       }
 
+      if (controller.homeController.isDisplayInternetConnection.value) {
+        return Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CustomNoInternetWidget(
+                  onPressed: () async {
+                    if (await ApiServiceInterceptor.checkInternet()) {
+                      controller.loadQuestions();
+                    } else {
+                      controller.homeController.isDisplayInternetConnection
+                          .value = true;
+                    }
+                  },
+                ),
+                CustomTextButton(
+                  title: DynamicAppLocalizations.of(
+                    Get.context!,
+                  ).t("navigate_back"),
+                  // width: 120,
+                  textColor: AppColors.black,
+                  isFontBold: false,
+                  backgroundColor: AppColors.white,
+                  onPressed: () {
+                    Navigator.of(Get.context!).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
       if (controller.questions.isEmpty) {
         return Scaffold(
           body: Center(
@@ -514,7 +552,7 @@ class _QuestionsScreenState extends State<QuestionsScreen>
                               if (isLoading.value == true) {
                                 return;
                               } else {
-                                _nextQuestion(forceSkip: true);
+                                _nextQuestion();
                               }
                             },
                           ),

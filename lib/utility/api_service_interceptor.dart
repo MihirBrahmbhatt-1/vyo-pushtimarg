@@ -24,10 +24,9 @@ class ApiServiceInterceptor {
       late List<ConnectivityResult> connectivityResult;
       connectivityResult = await Connectivity().checkConnectivity();
       if (connectivityResult.contains(ConnectivityResult.none)) {
-        // homeController.isNoInternetLottieLoading.value = true;
         return false;
       } else {
-        homeController.isNoInternetLottieLoading.value = false;
+        homeController.isDisplayInternetConnection.value = false;
         return true;
       }
     } catch (e) {

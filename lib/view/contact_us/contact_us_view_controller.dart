@@ -6,6 +6,7 @@ import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../navigation/pages.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../widget/countries.dart';
 
 class ContactUsViewController extends GetxController
@@ -58,8 +59,16 @@ class ContactUsViewController extends GetxController
       talker.info("PHONE UPDATED → ${phoneNumberTextController.value.text}");
       talker.info("FULL PHONE → ${getFullPhone()}");
     });
+  checkForDeviceInternetConnectivity();
   }
 
+  checkForDeviceInternetConnectivity() async {
+    if (await ApiServiceInterceptor.checkInternet()) {
+      homeController.isDisplayInternetConnection.value = false;
+    } else {
+      homeController.isDisplayInternetConnection.value = true;
+    }
+  }
   bool validatePhone() {
     if (phoneNumberTextController.value.text.isEmpty) {
       phoneErrorMessage.value = DynamicAppLocalizations.of(Get.context!)

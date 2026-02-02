@@ -6,8 +6,10 @@ import 'package:lottie/lottie.dart';
 import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../widget/custom_alert_widget.dart';
 import '../../widget/custom_button_widget.dart';
+import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_field_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import 'change_password_view_controller.dart';
@@ -38,7 +40,21 @@ class ChangePasswordView extends GetView<ChangePasswordController> {
             ),
           ),
           body: Obx(
-            () => SingleChildScrollView(
+            () => controller.homeController.isDisplayInternetConnection.value ?
+                Center(
+                  child: CustomNoInternetWidget(
+                      onPressed: () async {
+                        if (await ApiServiceInterceptor.checkInternet()) {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = false;
+                        } else {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = true;
+                        }
+                      },
+                    ),
+                )
+                 : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 child: Form(

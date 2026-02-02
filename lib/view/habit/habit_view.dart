@@ -12,6 +12,8 @@ import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../navigation/pages.dart';
+import '../../utility/api_service_interceptor.dart';
+import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import '../media/video_list/unified_video_player_view.dart';
 import 'habit_view_controller.dart';
@@ -25,15 +27,22 @@ class HabitView extends GetView<HabitViewController> {
       Get.put(HabitViewController());
     }
 
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
+    return Obx(() => 
+      controller.homeController.isDisplayInternetConnection.value
+                ? CustomNoInternetWidget(
+                    onPressed: () async {
+                      if (await ApiServiceInterceptor.checkInternet()) {
+                        controller.refreshPushtiPractices();
+                      } else {
+                        controller.homeController.isDisplayInternetConnection
+                            .value = true;
+                      }
+                    },
+                  ) : controller.isLoading.value ?
+        const Center(child: CircularProgressIndicator()) :
+      
 
-      final practices = controller.apiController.pushtiPracticeResponseModel;
-
-      if (practices.isEmpty) {
-        return Center(
+     controller.apiController.pushtiPracticeResponseModel.isEmpty ? Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: CustomTextWidget(
@@ -45,11 +54,8 @@ class HabitView extends GetView<HabitViewController> {
               isFontBold: false,
             ),
           ),
-        );
-      }
-
-      return DefaultTabController(
-        length: practices.length,
+        )  : DefaultTabController(
+        length:  controller.apiController.pushtiPracticeResponseModel.length,
         child: Column(
           children: [
             Container(
@@ -61,14 +67,14 @@ class HabitView extends GetView<HabitViewController> {
                 indicatorWeight: 3,
                 labelColor: AppColors.black,
                 unselectedLabelColor: AppColors.grey,
-                tabs: practices
+                tabs:  controller.apiController.pushtiPracticeResponseModel
                     .map((p) => Tab(text: p.practiceName ?? ''))
                     .toList(),
               ),
             ),
             Expanded(
               child: TabBarView(
-                children: practices.map((practice) {
+                children:  controller.apiController.pushtiPracticeResponseModel.map((practice) {
                   return RefreshIndicator(
                       color: AppColors.white,
                       onRefresh: () async {
@@ -80,8 +86,8 @@ class HabitView extends GetView<HabitViewController> {
             ),
           ],
         ),
-      );
-    });
+      )
+    );
   }
 
   Widget _buildPracticePage(BuildContext context, dynamic practice) {
@@ -358,7 +364,7 @@ class HabitView extends GetView<HabitViewController> {
 
         final scaledSizes = imgs.map((img) {
           final w = Get.width * 0.80;
-          final h = 500.0;
+          final h = 450.0;
           final scale = h > screenMaxHeight ? (screenMaxHeight / h) : 1.0;
           return Size(w * scale, h * scale);
         }).toList();

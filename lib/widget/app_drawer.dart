@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -13,6 +12,7 @@ import '../controller/api_controller.dart';
 import '../controller/home_controller.dart';
 import '../localization/dynamic_app_localizations.dart';
 import '../navigation/pages.dart';
+import '../utility/api_service_interceptor.dart';
 import '../view/dashboard/dashboard_view_controller.dart';
 import 'custom_alert_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -43,7 +43,8 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     HomeController homeController = Get.put(HomeController());
-    final DashboardViewController dashboardViewController = Get.find<DashboardViewController>();
+    final DashboardViewController dashboardViewController =
+        Get.find<DashboardViewController>();
     return SafeArea(
       top: false,
       child: Drawer(
@@ -78,88 +79,122 @@ class AppDrawer extends StatelessWidget {
                 ),
               ),
             ),
-      
+
             // DRAWER ITEMS
             _buildDrawerItem(
-              icon: Icon(Icons.home, color: AppColors.primaryColor,),
+              icon: Icon(
+                Icons.home,
+                color: AppColors.primaryColor,
+              ),
               titleKey: "home",
               onTap: () {
                 Get.back();
               },
             ),
-      
+
             _buildDrawerItem(
-              icon:  CustomImageAssetWidget(imagePath: AppIcons.sevaPranalikaImg, height: 40, width: 30,),
+              icon: CustomImageAssetWidget(
+                imagePath: AppIcons.sevaPranalikaImg,
+                height: 40,
+                width: 30,
+              ),
               titleKey: "seva_pranalika_title",
-              onTap: () {
-                Get.back();
-                dashboardViewController.displaySevaPranalikaAlert(false, false);
+              onTap: () async {
+                if (await ApiServiceInterceptor.checkInternet()) {
+                  Get.back();
+                  dashboardViewController.displaySevaPranalikaAlert(
+                      false, false);
+                } else {
+                  Get.back();
+                  homeController.isDisplayInternetConnection.value = true;
+                }
               },
             ),
-      
+
             _buildDrawerItem(
-              icon: Icon(Icons.group,color: AppColors.primaryColor,),
+              icon: Icon(
+                Icons.group,
+                color: AppColors.primaryColor,
+              ),
               titleKey: "about_vyo",
               onTap: () {
                 Get.back();
                 _launchURL('https://vyoworld.org/about-us/');
               },
             ),
-      
+
             _buildDrawerItem(
-              icon: Icon(Icons.person,color: AppColors.primaryColor,),
+              icon: Icon(
+                Icons.person,
+                color: AppColors.primaryColor,
+              ),
               titleKey: "about_founder",
               onTap: () {
                 Get.back();
                 _launchURL('https://vyoworld.org/founder/');
               },
             ),
-      
+
             _buildDrawerItem(
-              icon: Icon(Icons.video_camera_back, color: AppColors.primaryColor,),
+              icon: Icon(
+                Icons.video_camera_back,
+                color: AppColors.primaryColor,
+              ),
               titleKey: "video_gallery",
               onTap: () {
                 Get.back();
                 _launchURL('https://vyoworld.org/video-gallery/');
               },
             ),
-      
+
             _buildDrawerItem(
-              icon: FaIcon(FontAwesomeIcons.dollarSign, color: AppColors.primaryColor,),
+              icon: FaIcon(
+                FontAwesomeIcons.dollarSign,
+                color: AppColors.primaryColor,
+              ),
               titleKey: "donate",
               onTap: () {
                 Get.back();
                 _launchURL('https://vyoworld.org/donations/');
               },
             ),
-      
+
             _buildDrawerItem(
-              icon: FaIcon(FontAwesomeIcons.bookOpen, color: AppColors.primaryColor,),
+              icon: FaIcon(
+                FontAwesomeIcons.bookOpen,
+                color: AppColors.primaryColor,
+              ),
               titleKey: "vyo_education",
               onTap: () {
                 Get.back();
                 _launchURL('https://vyoworld.org/vyo-education/');
               },
             ),
-      
+
             _buildDrawerItem(
-              icon: Icon(Icons.work_outline_outlined, color: AppColors.primaryColor,),
+              icon: Icon(
+                Icons.work_outline_outlined,
+                color: AppColors.primaryColor,
+              ),
               titleKey: "projects",
               onTap: () {
                 Get.back();
                 _launchURL('https://vyoworld.org/projects/');
               },
             ),
-      
+
             _buildDrawerItem(
-              icon: Icon(Icons.event, color: AppColors.primaryColor,),
+              icon: Icon(
+                Icons.event,
+                color: AppColors.primaryColor,
+              ),
               titleKey: "upcoming_events",
               onTap: () {
                 Get.back();
                 _launchURL('https://vyoworld.org/events/');
               },
             ),
-      
+
             // _buildDrawerItem(
             //   icon: Icons.home,
             //   titleKey: "past_events",
@@ -169,36 +204,46 @@ class AppDrawer extends StatelessWidget {
             //   },
             // ),
             _buildDrawerItem(
-              icon: Icon(Icons.person, color: AppColors.primaryColor,),
+              icon: Icon(
+                Icons.person,
+                color: AppColors.primaryColor,
+              ),
               titleKey: "profile",
               onTap: () {
                 Get.back();
                 Get.toNamed(Routes.userprofile);
               },
             ),
-      
+
             _buildDrawerItem(
-              icon: Icon(Icons.share, color: AppColors.primaryColor,),
-              titleKey:
-                  "share_app",
+              icon: Icon(
+                Icons.share,
+                color: AppColors.primaryColor,
+              ),
+              titleKey: "share_app",
               onTap: () {
                 Get.back();
                 _shareApp();
               },
             ),
-      
+
             _buildDrawerItem(
-              icon: Icon(Icons.contact_page, color: AppColors.primaryColor,),
-              titleKey:
-                  "contact_us",
+              icon: Icon(
+                Icons.contact_page,
+                color: AppColors.primaryColor,
+              ),
+              titleKey: "contact_us",
               onTap: () {
                 Get.back();
                 _launchURL('https://vyoworld.org/contact-us/');
               },
             ),
-      
+
             _buildDrawerItem(
-              icon: Icon(Icons.logout, color: AppColors.primaryColor,),
+              icon: Icon(
+                Icons.logout,
+                color: AppColors.primaryColor,
+              ),
               titleKey: "logout",
               onTap: () async {
                 Get.back();
@@ -221,7 +266,9 @@ class AppDrawer extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 20,),
+            const SizedBox(
+              height: 20,
+            ),
           ],
         ),
       ),
@@ -254,12 +301,11 @@ class AppDrawer extends StatelessWidget {
         "https://play.google.com/store/apps/details?id=com.app.vyo_world";
     final String iOSAppUrl =
         "https://apps.apple.com/us/app/vyo-world/id6473687179";
-    final String message = "Download VYO World App Now And Share with Your Family | Freinds.\n\nFor Android:\n$androidAppUrl\n\nForiOS:\n$iOSAppUrl";
+    final String message =
+        "Download VYO World App Now And Share with Your Family | Freinds.\n\nFor Android:\n$androidAppUrl\n\nForiOS:\n$iOSAppUrl";
 
     await SharePlus.instance.share(
-      ShareParams(
-        text: message
-      ),
+      ShareParams(text: message),
     );
   }
 }

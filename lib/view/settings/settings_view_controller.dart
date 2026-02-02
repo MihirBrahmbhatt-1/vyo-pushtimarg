@@ -9,10 +9,10 @@ class SettingsViewController extends GetxController {
 
   RxBool isLoading = false.obs;
 
-  void logoutUser() async {
+  logoutUser() async {
     try {
       isLoading.value = true;
-      apiController.logoutUser(
+      await apiController.logoutUser(
         deviceId: homeController.userDeviceIdString.value,
         jwtToken: homeController.jwtToken.value,
       );

@@ -9,6 +9,7 @@ import '../../const/app_constant.dart';
 import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../navigation/pages.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../utility/local_db.dart';
 import '../dashboard/dashboard_view_controller.dart';
 
@@ -57,8 +58,16 @@ class OtpViewController extends GetxController with WidgetsBindingObserver {
     fetchUserPhoneNumber.value = Get.arguments['phoneNumber'];
     fetchUserCountryCode.value = Get.arguments['countryCode'];
     super.onInit();
+ checkForDeviceInternetConnectivity();
   }
 
+  checkForDeviceInternetConnectivity() async {
+    if (await ApiServiceInterceptor.checkInternet()) {
+      homeController.isDisplayInternetConnection.value = false;
+    } else {
+      homeController.isDisplayInternetConnection.value = true;
+    }
+  }
   formattedTime({required int timeInSecond}) {
     int sec = timeInSecond % 60;
     int min = (timeInSecond / 60).floor();

@@ -16,7 +16,7 @@ class GetApiEnv {
       // } else {
       //   return 'Testing';
       // }
-      return 'Development';
+      return 'Testing';
     }
   }
 }
@@ -28,16 +28,15 @@ class AppApi {
 
       late String languageListApiUrl = '${baseUrl}common/language';
       late String languageLabelApiUrl = '${baseUrl}common/labels';
-      late String sendOtpApiUrl = '${baseUrl}common/sendotp';
+      late String sendOtpApiUrl = '${baseUrl}auth/sendotp';
       late String countryListApiUrl = '${baseUrl}common/countries';
       late String stateListApiUrl = '${baseUrl}common/statesbycountry';
       late String cityListApiUrl = '${baseUrl}common/citybystate';
       late String commonVersionsApiUrl = '${baseUrl}common/versions';
-      late String loginApiUrl = '${baseUrl}common/login';
-      late String loginV2ApiUrl = '${baseUrl}auth/login';
+      late String loginApiUrl = '${baseUrl}auth/login';
       late String changePasswordApiUrl = '${baseUrl}common/changepassword';
-      late String forgotPasswordApiUrl = '${baseUrl}common/forgotpassword';
-      late String resetPasswordApiUrl = '${baseUrl}common/resetpassword';
+      late String forgotPasswordApiUrl = '${baseUrl}auth/forgotpassword';
+      late String resetPasswordApiUrl = '${baseUrl}auth/resetpassword';
       late String userHabitListApiUrl = '${baseUrl}common/contact_details';
       late String dailySevaPranalikaApiUrl = '${baseUrl}common/sevapranalika';
       late String userProfileApiUrl = '${baseUrl}users/profile';
@@ -47,11 +46,13 @@ class AppApi {
       late String userSurveyCompleteApiUrl = '${baseUrl}survey/surveycomplete';
       late String dashboardHtmlSectionApiUrl = '${baseUrl}dashboard/sections';
       late String dashboardImageSlidersApiUrl = '${baseUrl}dashboard/sliders';
-      late String validateOtpApiUrl = '${baseUrl}common/validateotp';
+      late String validateOtpApiUrl = '${baseUrl}auth/validateotp';
       late String deviceInfoApiUrl = '${baseUrl}common/deviceinfo';
       late String queryTypeListApiUrl = '${baseUrl}common/querytypelist';
       late String submitContactUsApiUrl = '${baseUrl}common/contactus';
       late String logoutApiUrl = '${baseUrl}auth/logout';
       late String pushtiPracticesApiUrl = '${baseUrl}practice/pushtipractices';
+      late String appVersionApiUrl = '${baseUrl}common/app-version';
+      late String changeLanguageApiUrl = '${baseUrl}users/changelanguage';
 }
 

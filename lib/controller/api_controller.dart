@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../const/logger.dart';
 import '../localization/dynamic_app_localizations.dart';
@@ -64,6 +67,63 @@ class ApiController extends GetxController {
       <UserHabitListResponseModel>[].obs;
   RxList<QueryTypeResponseModel> queryTypeListResponseModel =
       <QueryTypeResponseModel>[].obs;
+  RxList<AppUpdates> checkAppVersionListModel = <AppUpdates>[].obs;
+
+  RxString androidAppCurrentVersionString = "".obs;
+  RxString iosAppCurrentVersionString = "".obs;
+  RxBool isAndroidForceUpdate = false.obs;
+  RxBool isAndroidDisplay = false.obs;
+  RxBool isIosForceUpdate = false.obs;
+  RxBool isiOSDisplay = false.obs;
+
+  Rx<PackageInfo> packageInfo = PackageInfo(
+    appName: "",
+    packageName: "",
+    version: "",
+    buildNumber: "",
+  ).obs;
+
+  RxBool isRefreshingToken = false.obs;
+  final List<Completer<bool>> _pendingRequests = [];
+  Future<T?> _handleUnauthorizedAndRetry<T>({
+    required Future<T> Function() apiCall,
+    required String methodName,
+  }) async {
+    try {
+      if (isRefreshingToken.value) {
+        final completer = Completer<bool>();
+        _pendingRequests.add(completer);
+        final success = await completer.future;
+        if (success) {
+          return await apiCall();
+        }
+        return null;
+      }
+
+      isRefreshingToken.value = true;
+      bool isAuthenticateUser = await reAuthenticateUser();
+
+      for (var completer in _pendingRequests) {
+        completer.complete(isAuthenticateUser);
+      }
+      _pendingRequests.clear();
+      isRefreshingToken.value = false;
+      if (isAuthenticateUser) {
+        return await apiCall();
+      }
+      return null;
+    } catch (e) {
+      talker.error(
+          'Exception in _handleUnauthorizedAndRetry for $methodName: $e');
+      isRefreshingToken.value = false;
+      return null;
+    }
+  }
+
+  bool _isUnauthorized() {
+    return homeController.statusCode.value == 401 ||
+        homeController.statusCode.value == 403;
+  }
 
   Future<dynamic> sendPhoneNumberOtp(
     String phoneNumber,
@@ -97,6 +157,8 @@ class ApiController extends GetxController {
         } else {
           return false;
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in sendPhoneNumberOTP API: $e');
@@ -107,6 +169,7 @@ class ApiController extends GetxController {
     required bool isUserLoggedIn,
     required String jwtToken,
     bool isFromPushti = false,
+    bool isForcedUpdate = false,
   }) async {
     try {
       bool isConnected = await ApiServiceInterceptor.checkInternet();
@@ -141,15 +204,15 @@ class ApiController extends GetxController {
           versionListData.value = [];
         }
       } else {
+        homeController.isDisplayInternetConnection.value = true;
         talker.info('---------- No internet, skipping API fetch');
       }
 
       await _checkForLabelVersionUpdate();
       if (isConnected && isUserLoggedIn) {
-        if(isFromPushti) {
-        talker
-            .info('User is logged in. Checking Pushti Practices versions.');  
-        await _checkForPushtiPracticesVersionUpdate();        
+        if (isFromPushti) {
+          talker.info('User is logged in. Checking Pushti Practices versions.');
+          await _checkForPushtiPracticesVersionUpdate();
         }
         talker
             .info('User is logged in. Checking dashboard and slider versions.');
@@ -185,24 +248,25 @@ class ApiController extends GetxController {
                     .map((data) => LanguageModel.fromJson(data))
                     .toList();
             dynamic result = {
-              "langualgeList": languageListData,
+              "languageList": languageListData,
               "success": true,
             };
             return result;
           } else {
-            dynamic result = {"langualgeList": [], "success": false};
+            dynamic result = {"languageList": [], "success": false};
             return result;
           }
         } else {
-          dynamic result = {"langualgeList": [], "success": false};
+          dynamic result = {"languageList": [], "success": false};
           return result;
         }
       } else {
-        dynamic result = {"langualgeList": [], "success": false};
+        homeController.isDisplayInternetConnection.value = true;
+        dynamic result = {"languageList": [], "success": false};
         return result;
       }
     } catch (e) {
-      dynamic result = {"langualgeList": [], "success": false};
+      dynamic result = {"languageList": [], "success": false};
       talker.error('Exception in fetchLanguageList API: $e');
       return result;
     }
@@ -291,6 +355,8 @@ class ApiController extends GetxController {
                 .toList();
           }
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in fetchCountryList API: $e');
@@ -320,6 +386,8 @@ class ApiController extends GetxController {
                 .toList();
           }
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in fetchStateListByCountry API: $e');
@@ -349,6 +417,8 @@ class ApiController extends GetxController {
                 .toList();
           }
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in fetchCityListByState API: $e');
@@ -436,9 +506,11 @@ class ApiController extends GetxController {
             return result;
           }
         } else {
-          dynamic result = {"message": '', "success": false};
+          dynamic result = {"message": "", "success": false};
           return result;
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in addUserProfile API: $e');
@@ -508,9 +580,11 @@ class ApiController extends GetxController {
             return result;
           }
         } else {
-          dynamic result = {"message": '', "success": false};
+          dynamic result = {"message": "", "success": false};
           return result;
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in updateUserProfile API: $e');
@@ -522,8 +596,10 @@ class ApiController extends GetxController {
     required String jwtToken,
   }) async {
     try {
-      var request = <String, String>{};
+      if (await ApiServiceInterceptor.checkInternet()) {
+              var request = <String, String>{};
       request["mobile_no"] = phoneNumber;
+      request["country_code"] = homeController.countryCode.value;
 
       Map<String, String> header = {'authorization': jwtToken};
 
@@ -678,6 +754,9 @@ class ApiController extends GetxController {
       } else {
         return false;
       }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
+      }
     } catch (e) {
       talker.error('Exception in getUserProfileByPhoneNumber API: $e');
       return false;
@@ -706,14 +785,56 @@ class ApiController extends GetxController {
           );
 
           if (apiBaseResponse.statusCode == 209) {
+            if(apiBaseResponse.data != null) {
             categoryListData.value = (apiBaseResponse.data as List)
                 .map((data) => CategoryListResponseModel.fromJson(data))
                 .toList();
+            } else {
+              categoryListData.value = [];
+            }
           }
+        } else if (_isUnauthorized()) {
+          await _handleUnauthorizedAndRetry<dynamic>(
+            apiCall: () => _retryFetchCategoryList(languageId),
+            methodName: 'fetchCategoryList',
+          );
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in fetchCategoryList API: $e');
+    }
+  }
+
+  Future<dynamic> _retryFetchCategoryList(String languageId) async {
+    try {
+      var request = <String, String>{};
+      request["language_id"] = languageId;
+      Map<String, String> header = {};
+      header = {'authorization': homeController.jwtToken.value};
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().categoryListApiUrl,
+        request: request,
+        headers: header,
+      );
+      if (homeController.statusCode.value == 200) {
+        var decodeString = jsonDecode(response);
+        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+          decodeString,
+        );
+
+        if (apiBaseResponse.statusCode == 209) {
+          categoryListData.value = (apiBaseResponse.data as List)
+              .map((data) => CategoryListResponseModel.fromJson(data))
+              .toList();
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      talker.error('Exception in _retryFetchCategoryList API: $e');
+      return false;
     }
   }
 
@@ -749,10 +870,56 @@ class ApiController extends GetxController {
               mediaListData.value = [];
             }
           }
+        } else if (_isUnauthorized()) {
+          // Handle 401/403 with retry
+          await _handleUnauthorizedAndRetry<dynamic>(
+            apiCall: () => _retryFetchMediaList(languageId, id),
+            methodName: 'fetchMediaList',
+          );
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in fetchMediaList API: $e');
+    }
+  }
+
+  Future<dynamic> _retryFetchMediaList(String languageId, String id) async {
+    try {
+      var request = <String, String>{};
+      request["language_id"] = languageId;
+      request["id"] = id;
+      Map<String, String> header = {
+        'authorization': homeController.jwtToken.value
+      };
+
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().mediaListApiUrl,
+        request: request,
+        headers: header,
+      );
+      if (homeController.statusCode.value == 200) {
+        var decodeString = jsonDecode(response);
+        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+          decodeString,
+        );
+
+        if (apiBaseResponse.statusCode == 209) {
+          if (apiBaseResponse.data != null) {
+            mediaListData.value = (apiBaseResponse.data as List)
+                .map((data) => MediaModel.fromJson(data))
+                .toList();
+          } else {
+            mediaListData.value = [];
+          }
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      talker.error('Exception in _retryFetchMediaList API: $e');
+      return false;
     }
   }
 
@@ -765,7 +932,8 @@ class ApiController extends GetxController {
         body['password'] = password.toString();
         body['language_id'] =
             homeController.selectedLanguageId.value.toString();
-        body['country_code'] = '+${countryCode.toString()}';
+        // body['country_code'] = '+${countryCode.toString()}';
+        body['country_code'] = countryCode.toString();
         body['login_type'] = '1'; // 1 - User, 0 - admin
         body['device_os'] =
             homeController.userDeviceOsTypeString.value.toString();
@@ -785,7 +953,7 @@ class ApiController extends GetxController {
 
         Map<String, String> header = {};
         var response = await ApiServiceInterceptor.postDecryptLambdaCall(
-          url: AppApi().loginV2ApiUrl,
+          url: AppApi().loginApiUrl,
           header: header,
           body: json.encode(body),
         );
@@ -807,7 +975,8 @@ class ApiController extends GetxController {
                   loginResponseModel.value!.jwtToken.toString();
               homeController.userNameString.value =
                   loginResponseModel.value!.name.toString();
-              homeController.customerIdString.value = loginResponseModel.value!.id.toString();
+              homeController.customerIdString.value =
+                  loginResponseModel.value!.id.toString();
               homeController.userEmailString.value =
                   loginResponseModel.value!.email == null
                       ? ''
@@ -903,6 +1072,8 @@ class ApiController extends GetxController {
         } else {
           return false;
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in userLoginApi API: $e');
@@ -956,6 +1127,8 @@ class ApiController extends GetxController {
         } else {
           return false;
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in changePassword API: $e');
@@ -995,6 +1168,8 @@ class ApiController extends GetxController {
         } else {
           return false;
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in sendForgotPasswordOtp API: $e');
@@ -1040,6 +1215,8 @@ class ApiController extends GetxController {
         } else {
           return false;
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in resetPasswordApi API: $e');
@@ -1074,10 +1251,52 @@ class ApiController extends GetxController {
                   .toList();
             }
           }
+        } else if (_isUnauthorized()) {
+          // Handle 401/403 with retry
+          await _handleUnauthorizedAndRetry<dynamic>(
+            apiCall: () => _retryFetchSurveyQuestionList(languageId),
+            methodName: 'fetchSurveyQuestionListApi',
+          );
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in fetchSurveyQuestionListApi API: $e');
+    }
+  }
+
+  Future<dynamic> _retryFetchSurveyQuestionList(String languageId) async {
+    try {
+      var request = <String, String>{};
+      request["language_id"] = languageId;
+      Map<String, String> header = {
+        'authorization': homeController.jwtToken.value
+      };
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().surveyQuestionListApiUrl,
+        request: request,
+        headers: header,
+      );
+      if (homeController.statusCode.value == 200) {
+        var decodeString = jsonDecode(response);
+        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+          decodeString,
+        );
+        if (apiBaseResponse.statusCode == 209) {
+          if (apiBaseResponse.data != null) {
+            surveyQuestionListResponseModel.value = (apiBaseResponse.data
+                    as List)
+                .map((data) => SurveyQuestionListResponseModel.fromJson(data))
+                .toList();
+            return true;
+          }
+        }
+      }
+      return false;
+    } catch (e) {
+      talker.error('Exception in _retryFetchSurveyQuestionList API: $e');
+      return false;
     }
   }
 
@@ -1116,6 +1335,8 @@ class ApiController extends GetxController {
         } else {
           return false;
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in submitUserSurvey API: $e');
@@ -1159,10 +1380,61 @@ class ApiController extends GetxController {
               dashboardHtmlResponseModel.value = [];
             }
           }
+        } else if (_isUnauthorized()) {
+          // Handle 401/403 with retry
+          await _handleUnauthorizedAndRetry<dynamic>(
+            apiCall: () => _retryFetchDashboardHtmlContent(languageId),
+            methodName: 'fetchDashboardHtmlContentApi',
+          );
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in fetchDashboardHtmlContent API: $e');
+    }
+  }
+
+  Future<dynamic> _retryFetchDashboardHtmlContent(String languageId) async {
+    try {
+      var request = <String, String>{};
+      request["language_id"] = languageId;
+      Map<String, String> header = {
+        'authorization': homeController.jwtToken.value
+      };
+
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().dashboardHtmlSectionApiUrl,
+        request: request,
+        headers: header,
+      );
+      if (homeController.statusCode.value == 200) {
+        var decodeString = jsonDecode(response);
+        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+          decodeString,
+        );
+
+        if (apiBaseResponse.statusCode == 209) {
+          if (apiBaseResponse.data != null) {
+            dashboardHtmlResponseModel.value = (apiBaseResponse.data as List)
+                .map(
+                  (data) => DashboardHtmlContentResponseModel.fromJson(data),
+                )
+                .toList();
+            final List<Map<String, dynamic>> jsonList =
+                dashboardHtmlResponseModel.map((e) => e.toJson()).toList();
+            final String jsonString = jsonEncode(jsonList);
+            await LocalDB().setDashboardHtmlCache(jsonString);
+          } else {
+            dashboardHtmlResponseModel.value = [];
+          }
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      talker.error('Exception in _retryFetchDashboardHtmlContent API: $e');
+      return false;
     }
   }
 
@@ -1206,10 +1478,65 @@ class ApiController extends GetxController {
               dashboardImageSliderResponseModel.value = [];
             }
           }
+        } else if (_isUnauthorized()) {
+          // Handle 401/403 with retry
+          await _handleUnauthorizedAndRetry<dynamic>(
+            apiCall: () => _retryFetchDashboardImageSlider(languageId),
+            methodName: 'fetchDashboardImageSliderApi',
+          );
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in fetchDashboardImageSlider API: $e');
+    }
+  }
+
+  Future<dynamic> _retryFetchDashboardImageSlider(String languageId) async {
+    try {
+      var request = <String, String>{};
+      request["language_id"] = languageId;
+      Map<String, String> header = {
+        'authorization': homeController.jwtToken.value
+      };
+
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().dashboardImageSlidersApiUrl,
+        request: request,
+        headers: header,
+      );
+      if (homeController.statusCode.value == 200) {
+        var decodeString = jsonDecode(response);
+        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+          decodeString,
+        );
+
+        if (apiBaseResponse.statusCode == 209) {
+          if (apiBaseResponse.data != null) {
+            dashboardImageSliderResponseModel.value =
+                (apiBaseResponse.data as List)
+                    .map(
+                      (data) =>
+                          DashboardImageSliderResponseModel.fromJson(data),
+                    )
+                    .toList();
+            final List<Map<String, dynamic>> jsonList =
+                dashboardImageSliderResponseModel
+                    .map((e) => e.toJson())
+                    .toList();
+            final String jsonString = jsonEncode(jsonList);
+            await LocalDB().setDashboardImageSliderCache(jsonString);
+          } else {
+            dashboardImageSliderResponseModel.value = [];
+          }
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      talker.error('Exception in _retryFetchDashboardImageSlider API: $e');
+      return false;
     }
   }
 
@@ -1243,10 +1570,54 @@ class ApiController extends GetxController {
               userHabitListResponseModel.value = [];
             }
           }
+        } else if (_isUnauthorized()) {
+          // Handle 401/403 with retry
+          await _handleUnauthorizedAndRetry<dynamic>(
+            apiCall: () => _retryFetchUserHabits(languageId),
+            methodName: 'fetchUserHabits',
+          );
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in fetchUserHabits API: $e');
+    }
+  }
+
+  Future<dynamic> _retryFetchUserHabits(String languageId) async {
+    try {
+      var request = <String, String>{};
+      request["language_id"] = languageId;
+      Map<String, String> header = {
+        'authorization': homeController.jwtToken.value
+      };
+
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().userHabitListApiUrl,
+        request: request,
+        headers: header,
+      );
+      if (homeController.statusCode.value == 200) {
+        var decodeString = jsonDecode(response);
+        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+          decodeString,
+        );
+        if (apiBaseResponse.statusCode == 209) {
+          if (apiBaseResponse.data != null) {
+            userHabitListResponseModel.value = (apiBaseResponse.data as List)
+                .map((data) => UserHabitListResponseModel.fromJson(data))
+                .toList();
+          } else {
+            userHabitListResponseModel.value = [];
+          }
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      talker.error('Exception in _retryFetchUserHabits API: $e');
+      return false;
     }
   }
 
@@ -1262,7 +1633,6 @@ class ApiController extends GetxController {
           request: request,
           headers: header,
         );
-        //dailySevaPranalikaResponseModel
         if (homeController.statusCode.value == 200) {
           var decodeString = jsonDecode(response);
           ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
@@ -1278,10 +1648,55 @@ class ApiController extends GetxController {
               dailySevaPranalikaResponseModel.value = null;
             }
           }
+          return true;
+        } else if (_isUnauthorized()) {
+          // Handle 401/403 with retry
+          await _handleUnauthorizedAndRetry<dynamic>(
+            apiCall: () => _retryFetchDashboardSevaPranalika(date),
+            methodName: 'fetchDashboardSevaPranalika',
+          );
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in fetchDashboardSevaPranalika API: $e');
+    }
+  }
+
+  Future<dynamic> _retryFetchDashboardSevaPranalika(String date) async {
+    try {
+      var request = <String, String>{};
+      request["date"] = date;
+      Map<String, String> header = {
+        'authorization': homeController.jwtToken.value
+      };
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().dailySevaPranalikaApiUrl,
+        request: request,
+        headers: header,
+      );
+      if (homeController.statusCode.value == 200) {
+        var decodeString = jsonDecode(response);
+        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+          decodeString,
+        );
+        if (apiBaseResponse.statusCode == 209) {
+          if (apiBaseResponse.data != null) {
+            dailySevaPranalikaResponseModel.value =
+                DailySevaPranalikaResponseModel.fromJson(
+              apiBaseResponse.data,
+            );
+          } else {
+            dailySevaPranalikaResponseModel.value = null;
+          }
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      talker.error('Exception in _retryFetchDashboardSevaPranalika API: $e');
+      return false;
     }
   }
 
@@ -1320,6 +1735,8 @@ class ApiController extends GetxController {
         } else {
           return false;
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in sendPhoneNumberOTP API: $e');
@@ -1513,7 +1930,7 @@ class ApiController extends GetxController {
     }
   }
 
-    // -------------------------------------------------------------
+  // -------------------------------------------------------------
   // 4. Pushti Practices Check Label Version (Extracted)
   // -------------------------------------------------------------
   Future<void> _checkForPushtiPracticesVersionUpdate() async {
@@ -1583,6 +2000,8 @@ class ApiController extends GetxController {
           header: header,
           body: json.encode(body),
         );
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in deviceInfo API: $e');
@@ -1622,6 +2041,8 @@ class ApiController extends GetxController {
         } else {
           queryTypeListResponseModel.value = [];
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in queryTypeListApi API: $e');
@@ -1677,6 +2098,8 @@ class ApiController extends GetxController {
         } else {
           return false;
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in submitContactUsQuery API: $e');
@@ -1719,6 +2142,7 @@ class ApiController extends GetxController {
           return false;
         }
       } else {
+        homeController.isDisplayInternetConnection.value = true;
         return false;
       }
     } catch (e) {
@@ -1727,7 +2151,10 @@ class ApiController extends GetxController {
     }
   }
 
-  pushtiPracticesApi({required String languageId, required String jwtToken}) async {
+  pushtiPracticesApi({
+    required String languageId,
+    required String jwtToken,
+  }) async {
     try {
       if (await ApiServiceInterceptor.checkInternet()) {
         var request = <String, String>{};
@@ -1762,10 +2189,264 @@ class ApiController extends GetxController {
               pushtiPracticeResponseModel.value = [];
             }
           }
+        } else if (_isUnauthorized()) {
+          // Handle 401/403 with retry
+          await _handleUnauthorizedAndRetry<dynamic>(
+            apiCall: () => _retryFetchPushtiPractices(languageId),
+            methodName: 'pushtiPracticesApi',
+          );
         }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       talker.error('Exception in pushtiPracticesApi API: $e');
+    }
+  }
+
+  Future<dynamic> _retryFetchPushtiPractices(String languageId) async {
+    try {
+      var request = <String, String>{};
+      request["language_id"] = languageId;
+      Map<String, String> header = {
+        'authorization': homeController.jwtToken.value
+      };
+
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().pushtiPracticesApiUrl,
+        request: request,
+        headers: header,
+      );
+
+      if (homeController.statusCode.value == 200) {
+        var decodeString = jsonDecode(response);
+        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+          decodeString,
+        );
+
+        if (apiBaseResponse.statusCode == 209) {
+          if (apiBaseResponse.data != null) {
+            pushtiPracticeResponseModel.value = (apiBaseResponse.data as List)
+                .map(
+                  (data) => PushtiPracticeApiResponseModel.fromJson(data),
+                )
+                .toList();
+            final List<Map<String, dynamic>> jsonList =
+                pushtiPracticeResponseModel.map((e) => e.toJson()).toList();
+            final String jsonString = jsonEncode(jsonList);
+            await LocalDB().setPushtiPracticesCache(jsonString);
+          } else {
+            pushtiPracticeResponseModel.value = [];
+          }
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      talker.error('Exception in _retryFetchPushtiPractices API: $e');
+      return false;
+    }
+  }
+
+  Future<dynamic> changeLanguage({
+    required String userId,
+    required String languageId,
+  }) async {
+    try {
+      if (await ApiServiceInterceptor.checkInternet()) {
+
+      Map<String, String> body = <String, String>{};
+      body["user_id"] = userId;
+      body["language_id"] = languageId;
+
+      Map<String, String> header = {
+        'authorization': homeController.jwtToken.value
+      };
+
+      var response = await ApiServiceInterceptor.postDecryptLambdaCall(
+        url: AppApi().changeLanguageApiUrl,
+        body: json.encode(body),
+        header: header,
+      );
+
+      if (homeController.statusCode.value == 200) {
+        var decodeString = jsonDecode(response);
+        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+          decodeString,
+        );
+
+        if (apiBaseResponse.statusCode == 209) {
+          homeController.selectedLanguageId.value = languageId;
+          await LocalDB().setLanguageId(languageId);
+          await clearVersionList();
+          await fetchVersionsList(
+              isUserLoggedIn: true,
+              jwtToken: homeController.jwtToken.value,
+              isFromPushti: true,
+              isForcedUpdate: true);
+          await getLanguageLabels(languageId);
+          dynamic result = {
+            "responseMessage": apiBaseResponse.message.toString(),
+            "success": true
+          };
+          return result;
+        } else {
+          dynamic result = {"responseMessage": "", "success": true};
+
+          return result;
+        }
+      } else if (_isUnauthorized()) {
+        // Handle 401/403 with retry
+        await _handleUnauthorizedAndRetry<dynamic>(
+          apiCall: () => fetchLanguageList(),
+          methodName: 'changeLanguage',
+        );
+      }
+      return false;
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
+      }
+    } catch (e) {
+      talker.error('Exception in changeLanguage API: $e');
+      dynamic result = {"apiMessage": "", "success": false};
+
+      return result;
+    }
+  }
+
+  reAuthenticateUser() async {
+    try {
+      bool isSuccess = await userLoginApi(
+        countryCode: homeController.countryCode.value,
+        phoneNumber: homeController.userPhoneNumber.value,
+        password: homeController.passwordString.value,
+      );
+      if (!isSuccess) {
+        await LocalDB().setIsLoggedIn(false);
+        await LocalDB().setIsUserExists(false);
+        await LocalDB().setIsUserProfileCompleted(false);
+        await LocalDB().setJwtToken('');
+        await LocalDB().setDashboardVersion('');
+        await LocalDB().setDashboardSliderVersion('');
+        await LocalDB().setDashboardHtmlCache('');
+        await LocalDB().setDashboardImageSliderCache('');
+        await LocalDB().removeJwtToken();
+        homeController.jwtToken.value = '';
+        homeController.isLoggedIn.value = false;
+        homeController.selectedIndex.value = 0;
+        Get.offAllNamed(Routes.signin);
+        return false;
+      } else {
+        return true;
+      }
+    } catch (e) {
+      talker.error('Exception in reAuthenticateUser API: $e');
+      return false;
+    }
+  }
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    packageInfo.value = info;
+  }
+
+  checkAppVersionUpdate() async {
+    try {
+      if (await ApiServiceInterceptor.checkInternet()) {
+        var request = <String, String>{};
+        Map<String, String> header = {};
+        var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+          url: AppApi().appVersionApiUrl,
+          request: request,
+          headers: header,
+        );
+        if (homeController.statusCode.value == 200) {
+          var decodeString = jsonDecode(response);
+          ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+            decodeString,
+          );
+
+          if (apiBaseResponse.statusCode == 209) {
+            if (apiBaseResponse.data != null) {
+              await _initPackageInfo();
+              Map<String, dynamic> customObj = {"Data": apiBaseResponse.data};
+              var convertedObjString = jsonEncode(customObj);
+              checkAppVersionListModel.value =
+                  (json.decode(convertedObjString)["Data"] as List)
+                      .map((data) => AppUpdates.fromJson(data))
+                      .toList();
+              if (checkAppVersionListModel.isNotEmpty) {
+                final update = getPlatformUpdate(checkAppVersionListModel);
+                if (update != null && update.isDisplay == true) {
+                  if (Platform.isAndroid) {
+                    androidAppCurrentVersionString.value =
+                        update.currentVersion.toString();
+                    isAndroidForceUpdate.value = update.forceUpdate;
+                    isAndroidDisplay.value = update.isDisplay;
+                    if (getExtendedVersionNumber(
+                            packageInfo.value.version.toString()) ==
+                        getExtendedVersionNumber(
+                            androidAppCurrentVersionString.value.toString())) {
+                      return false;
+                    } else if (getExtendedVersionNumber(
+                            packageInfo.value.version.toString()) >
+                        getExtendedVersionNumber(
+                            androidAppCurrentVersionString.value.toString())) {
+                      return false;
+                    } else if (getExtendedVersionNumber(
+                            packageInfo.value.version.toString()) >
+                        getExtendedVersionNumber(
+                            androidAppCurrentVersionString.value.toString())) {
+                      return true;
+                    } else {
+                      if (isAndroidDisplay.value == true) {
+                        showForceUpdateDialog(update);
+                        return true;
+                      } else {
+                        return false;
+                      }
+                    }
+                  } else if (Platform.isIOS) {
+                    iosAppCurrentVersionString.value = update.currentVersion;
+                    isIosForceUpdate.value = update.forceUpdate;
+                    isiOSDisplay.value = update.isDisplay;
+                    if (getExtendedVersionNumber(
+                            packageInfo.value.version.toString()) ==
+                        getExtendedVersionNumber(
+                            iosAppCurrentVersionString.value.toString())) {
+                      return false;
+                    } else if (getExtendedVersionNumber(
+                            packageInfo.value.version.toString()) >
+                        getExtendedVersionNumber(
+                            iosAppCurrentVersionString.value.toString())) {
+                      return false;
+                    } else if (getExtendedVersionNumber(
+                            packageInfo.value.version.toString()) >
+                        getExtendedVersionNumber(
+                            iosAppCurrentVersionString.value.toString())) {
+                      return false;
+                    } else {
+                      if (isiOSDisplay.value == true) {
+                        showForceUpdateDialog(update);
+                        return true;
+                      } else {
+                        return false;
+                      }
+                    }
+                  } else {
+                    return false;
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
+      }
+    } catch (e) {
+      talker.error('Exception in checkAppVersionUpdate API: $e');
+      return false;
     }
   }
 }

@@ -312,9 +312,9 @@ class CustomAlertWidget {
                   textCenter: true,
                   numberOfLines: 5,
                 ),
-        
+
               if (title != null) const SizedBox(height: 8),
-        
+
               // Description
               if (description != null && description.isNotEmpty)
                 CustomTextWidget(
@@ -326,14 +326,14 @@ class CustomAlertWidget {
                   numberOfLines: 20,
                   textCenter: true,
                 ),
-        
+
               if (content != null) ...[
                 const SizedBox(height: 12),
                 content,
               ],
-        
+
               const SizedBox(height: 20),
-        
+
               // Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -342,12 +342,15 @@ class CustomAlertWidget {
                     Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: CustomTextButton(
-                        title: cancelButtonText,
+                        title: DynamicAppLocalizations.of(
+                          Get.context!,
+                        ).t("cancel"),
                         width: 110,
                         textColor: AppColors.black,
                         backgroundColor: AppColors.white,
                         onPressed: () {
-                          Navigator.of(Get.context!).pop();
+                          // Navigator.of(Get.context!).pop();
+                          Get.back(result: 'cancel');
                         },
                       ),
                     ),

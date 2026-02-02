@@ -7,10 +7,12 @@ import '../../const/constant.dart';
 import '../../const/logger.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../navigation/pages.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../utility/validators.dart';
 import '../../widget/country_phone_input.dart';
 import '../../widget/custom_elevated_button_widget.dart';
 import '../../widget/custom_icon_widget.dart';
+import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_field_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import 'login_view_controller.dart';
@@ -25,15 +27,35 @@ class LoginView extends GetView<LoginViewController> {
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: SafeArea(
-        top: false,
-        child: Scaffold(
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Form(
-              key: ctrl.formKey.value,
-              child: Obx(
-                () => Column(
+      child: Obx(
+        () => SafeArea(
+          top: false,
+          child: Scaffold(
+            body: controller.homeController.isDisplayInternetConnection.value ?
+                Center(
+                  child: CustomNoInternetWidget(
+                      onPressed: () async {
+                        if (await ApiServiceInterceptor.checkInternet()) {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = false;
+                          controller.isLoading.value = true;
+                          await controller.apiController.fetchVersionsList(
+                            isUserLoggedIn: false,
+                            jwtToken: '',
+                          );
+                          controller.isLoading.value = false;
+                        } else {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = true;
+                        }
+                      },
+                    ),
+                )
+                 :  SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Form(
+                key: ctrl.formKey.value,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 80),
@@ -193,38 +215,39 @@ class LoginView extends GetView<LoginViewController> {
                 ),
               ),
             ),
-          ),
-          bottomNavigationBar: SizedBox(
-            height: 40,
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      text: DynamicAppLocalizations.of(context)
-                          .t("issues_and_support_login"),
-                      style: TextStyle(color: AppColors.primaryColor),
-                      children: <TextSpan>[
-                        TextSpan(text: ' '),
-                        TextSpan(
-                          text: DynamicAppLocalizations.of(context)
-                              .t("click_here"),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
+            bottomNavigationBar: controller.homeController.isDisplayInternetConnection
+                              .value ? const SizedBox() : SizedBox(
+              height: 40,
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        text: DynamicAppLocalizations.of(context)
+                            .t("issues_and_support_login"),
+                        style: TextStyle(color: AppColors.primaryColor),
+                        children: <TextSpan>[
+                          TextSpan(text: ' '),
+                          TextSpan(
+                            text: DynamicAppLocalizations.of(context)
+                                .t("click_here"),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () async {
+                                await controller.handleSpecificTap();
+                              },
                           ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () async {
-                              await controller.handleSpecificTap();
-                            },
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -23,6 +23,7 @@ import '../view/sub_category/sub_category_view_controller.dart';
 import '../view/survey/survey_success/survey_success_view.dart';
 import '../view/user_details/user_details_view.dart';
 import '../view/user_details/user_details_view_controller.dart';
+import '../view/settings/preferred_language_settings_view.dart';
 
 part 'routes.dart';
 
@@ -148,6 +149,12 @@ class Pages {
     GetPage(
       name: _Paths.contactus,
       page: () => ContactUsView(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 200),
+    ),
+    GetPage(
+      name: _Paths.preferredlanguage,
+      page: () => PreferredLanguageSettingsView(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 200),
     ),

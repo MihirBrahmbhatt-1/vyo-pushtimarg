@@ -60,15 +60,16 @@ class ChangePasswordController extends GetxController {
           }
         }
       } else {
-        CustomAlertWidget().simpleAlertDialog(
-            title: DynamicAppLocalizations.of(Get.context!)
-                .t("no_internet_connection"),
-            description: '',
-            canPop: false,
-            buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
-            onButtonTap: () {
-              Get.back();
-            });
+        homeController.isDisplayInternetConnection.value = true;
+        // CustomAlertWidget().simpleAlertDialog(
+        //     title: DynamicAppLocalizations.of(Get.context!)
+        //         .t("no_internet_connection"),
+        //     description: '',
+        //     canPop: false,
+        //     buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+        //     onButtonTap: () {
+        //       Get.back();
+        //     });
       }
     } catch (e) {
       talker.error('No Internet connection');

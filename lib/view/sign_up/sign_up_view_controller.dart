@@ -5,10 +5,11 @@ import '../../const/logger.dart';
 import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../navigation/pages.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../utility/local_db.dart';
 import '../../widget/countries.dart';
 
-class SignUpViewController extends GetxController {
+class SignUpViewController extends GetxController with WidgetsBindingObserver  {
   HomeController homeController = Get.put(HomeController());
   ApiController apiController = Get.put(ApiController());
 
@@ -28,6 +29,23 @@ class SignUpViewController extends GetxController {
   // Country selectedCountry = countries.firstWhere((c) => c.code == "IN");
   final Rx<Country> selectedCountry =
     countries.firstWhere((c) => c.code == "IN").obs;
+
+     @override
+  void onInit() async {
+    WidgetsBinding.instance.addObserver(this);
+
+    super.onInit();
+
+    checkForDeviceInternetConnectivity();
+  }
+
+  checkForDeviceInternetConnectivity() async {
+    if (await ApiServiceInterceptor.checkInternet()) {
+      homeController.isDisplayInternetConnection.value = false;
+    } else {
+      homeController.isDisplayInternetConnection.value = true;
+    }
+  }
 
     bool validatePhone() {
     if (phoneNumberTextController.text.isEmpty) {

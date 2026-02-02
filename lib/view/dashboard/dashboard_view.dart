@@ -17,6 +17,8 @@ import '../../const/constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../model/dashboard_image_slider_response_model.dart';
 import '../../navigation/pages.dart';
+import '../../utility/api_service_interceptor.dart';
+import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import '../media/image_list/image_preview_view.dart';
 import '../media/video_list/unified_video_player_view.dart';
@@ -33,112 +35,133 @@ class DashboardView extends GetView<DashboardViewController> {
     return SafeArea(
       top: false,
       child: Scaffold(
-          body: Obx(() {
-            if (controller.isLoading.value) {
-              return Center(
-                child: CircularProgressIndicator(color: AppColors.grey400),
-              );
-            }
+          body: Obx(
+            () => controller.homeController.isDisplayInternetConnection.value
+                ? CustomNoInternetWidget(
+                    onPressed: () async {
+                      if (await ApiServiceInterceptor.checkInternet()) {
+                      print('Btn click');
+                        controller.homeController.isDisplayInternetConnection
+                            .value = false;
 
-            // --- Main Content Display Logic ---
-            return RefreshIndicator(
-              color: AppColors.white,
-              onRefresh: controller.refreshDashboard,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  // Dynamically generate the list of widgets
-                  children: [
-                    controller.isImageSliderLoading.value
-                        ? Center(
-                            child: SizedBox(
-                              width: Get.width,
-                              height: 300,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: AppColors.grey400,
-                                ),
-                              ),
-                            ),
-                          )
-                        : _buildImageSlider(
-                            context,
-                            controller.apiController
-                                .dashboardImageSliderResponseModel,
-                          ),
-                    controller.apiController.dashboardHtmlResponseModel.isEmpty
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: CustomTextWidget(
-                                textString: DynamicAppLocalizations.of(
-                                  Get.context!,
-                                ).t("no_content_available"),
-                                textSize: FontSize().regular,
-                                fontColor: AppColors.grey,
-                                isFontBold: false,
-                              ),
-                            ),
-                          )
-                        : Column(
+                        controller.refreshDashboard();
+                      } else {
+                        controller.homeController.isDisplayInternetConnection
+                            .value = true;
+                      }
+                    },
+                  )
+                : controller.isLoading.value
+                    ? Center(
+                        child:
+                            CircularProgressIndicator(color: AppColors.grey400),
+                      )
+                    :
+
+                    // --- Main Content Display Logic ---
+                    RefreshIndicator(
+                        color: AppColors.white,
+                        onRefresh: controller.refreshDashboard,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            // Dynamically generate the list of widgets
                             children: [
-                              ...controller
-                                  .apiController.dashboardHtmlResponseModel
-                                  .map((item) {
-                                // The item.content field is assumed to be the URL or a complex JSON string
-                                final content = item.content.toString();
-                                switch (item.sectionType) {
-                                  case 0:
-                                    return _buildHtmlContent(
-                                      content,
-                                      item.sequence.toString(),
-                                    );
-
-                                  case 1:
-                                    // Type 1: Single Image URL
-                                    return _buildSingleImage(
+                              controller.isImageSliderLoading.value
+                                  ? Center(
+                                      child: SizedBox(
+                                        width: Get.width,
+                                        height: 300,
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            color: AppColors.grey400,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : _buildImageSlider(
                                       context,
-                                      content,
-                                    );
+                                      controller.apiController
+                                          .dashboardImageSliderResponseModel,
+                                    ),
+                              controller.apiController
+                                      .dashboardHtmlResponseModel.isEmpty
+                                  ? Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: CustomTextWidget(
+                                          textString:
+                                              DynamicAppLocalizations.of(
+                                            Get.context!,
+                                          ).t("no_content_available"),
+                                          textSize: FontSize().regular,
+                                          fontColor: AppColors.grey,
+                                          isFontBold: false,
+                                        ),
+                                      ),
+                                    )
+                                  : Column(
+                                      children: [
+                                        ...controller.apiController
+                                            .dashboardHtmlResponseModel
+                                            .map((item) {
+                                          // The item.content field is assumed to be the URL or a complex JSON string
+                                          final content =
+                                              item.content.toString();
+                                          switch (item.sectionType) {
+                                            case 0:
+                                              return _buildHtmlContent(
+                                                content,
+                                                item.sequence.toString(),
+                                              );
 
-                                  case 2:
-                                    // Type 2: Multiple Images Slider
-                                    return _buildMultipleImageSlider(
-                                      context,
-                                      content,
-                                    );
-                                  case 3:
-                                    // Type 3: Single YouTube Video URL
-                                    return _buildSingleVideo(
-                                      context,
-                                      content,
-                                    );
+                                            case 1:
+                                              // Type 1: Single Image URL
+                                              return _buildSingleImage(
+                                                context,
+                                                content,
+                                              );
 
-                                  case 4:
-                                    // Type 4: Multiple YouTube Video URLs
-                                    return _buildMultipleVideos(
-                                      context,
-                                      content,
-                                    );
-                                  case 5:
-                                    return scrollImagesCustom(context, content);
+                                            case 2:
+                                              // Type 2: Multiple Images Slider
+                                              return _buildMultipleImageSlider(
+                                                context,
+                                                content,
+                                              );
+                                            case 3:
+                                              // Type 3: Single YouTube Video URL
+                                              return _buildSingleVideo(
+                                                context,
+                                                content,
+                                              );
 
-                                  case 6:
-                                    return _buildTypeSixItem(context, content);
+                                            case 4:
+                                              // Type 4: Multiple YouTube Video URLs
+                                              return _buildMultipleVideos(
+                                                context,
+                                                content,
+                                              );
+                                            case 5:
+                                              return scrollImagesCustom(
+                                                  context, content);
 
-                                  default:
-                                    // Fallback for unknown type
-                                    return const SizedBox.shrink();
-                                }
-                              }),
+                                            case 6:
+                                              return _buildTypeSixItem(
+                                                  context, content);
+
+                                            default:
+                                              // Fallback for unknown type
+                                              return const SizedBox.shrink();
+                                          }
+                                        }),
+                                      ],
+                                    ),
                             ],
                           ),
-                  ],
-                ),
-              ),
-            );
-          }),
+                        ),
+                      ),
+          ),
           floatingActionButton: FloatingActionButton(
             onPressed: controller.openWhatsApp,
             backgroundColor: AppColors.green,
@@ -222,7 +245,10 @@ class DashboardView extends GetView<DashboardViewController> {
         if (snapshot.connectionState != ConnectionState.done) {
           return SizedBox(
             height: 200,
-            child: Center(child: CircularProgressIndicator(color: AppColors.grey400,)),
+            child: Center(
+                child: CircularProgressIndicator(
+              color: AppColors.grey400,
+            )),
           );
         }
 
@@ -238,7 +264,7 @@ class DashboardView extends GetView<DashboardViewController> {
           // final w = img.width.toDouble();
           final w = Get.width * 0.80;
           // final h = img.height.toDouble();
-          final h = 500.0;
+          final h = 450.0;
           final scale = h > screenMaxHeight ? (screenMaxHeight / h) : 1.0;
           return Size(w * scale, h * scale);
         }).toList();
@@ -273,7 +299,10 @@ class DashboardView extends GetView<DashboardViewController> {
                         imageUrl: url,
                         fit: BoxFit.contain,
                         placeholder: (context, url) => Center(
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.grey400,),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.grey400,
+                          ),
                         ),
                         errorWidget: (context, url, error) =>
                             const Center(child: Icon(Icons.error, size: 40)),
@@ -297,15 +326,12 @@ class DashboardView extends GetView<DashboardViewController> {
       return const SizedBox(height: 100);
     }
 
-    final double sliderHeight = 200.0;
-
     List<Widget> imageWidgets = sliderData.map((obj) {
       final String imageUrl = obj.imageUrl ?? '';
       final String redirectUrl = obj.redirectUrl?.toString() ?? '';
 
-      return SizedBox(
-        height: sliderHeight,
-        width: double.infinity,
+      return AspectRatio(
+        aspectRatio: 16 / 9,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -326,17 +352,11 @@ class DashboardView extends GetView<DashboardViewController> {
             ),
 
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              padding: const EdgeInsets.symmetric(horizontal: 0.0),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
+                borderRadius: BorderRadius.circular(0.0),
                 child: InkWell(
                   onTap: () {
-                    // Get.to(
-                    //   () => ImageViewerPage(
-                    //     imageUrl: imageUrl,
-                    //     redirectUrl: redirectUrl,
-                    //   ),
-                    // );
                     Get.to(
                       () => ImageViewerPage(
                         images: [imageUrl],
@@ -347,7 +367,7 @@ class DashboardView extends GetView<DashboardViewController> {
                   },
                   child: CachedNetworkImage(
                     imageUrl: imageUrl,
-                    fit: BoxFit.contain,
+                    fit: BoxFit.fill,
                     progressIndicatorBuilder: (context, url, downloadProgress) {
                       return Center(
                         child: CircularProgressIndicator(
@@ -371,7 +391,7 @@ class DashboardView extends GetView<DashboardViewController> {
     return CarouselSlider(
       items: imageWidgets,
       options: CarouselOptions(
-        height: sliderHeight,
+        aspectRatio: 16 / 9,
         viewportFraction: 1,
         autoPlay: true,
         autoPlayInterval: const Duration(seconds: 4),
@@ -749,11 +769,11 @@ class DashboardView extends GetView<DashboardViewController> {
 
   Widget _buildHtmlContent(String content, String sequence) {
     final String htmlData = content;
-
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: HtmlWidget(htmlData,
-          textStyle: const TextStyle(fontStyle: FontStyle.normal),
+          textStyle: TextStyle(
+              fontStyle: FontStyle.normal, overflow: TextOverflow.ellipsis),
           customWidgetBuilder: (dom.Element element) {
         if (element.localName == 'div' &&
             element.parent?.localName == 'a' &&
@@ -809,7 +829,6 @@ class DashboardView extends GetView<DashboardViewController> {
           // Convert the inner content HTML to strings for recursive rendering
           final imgHtml = element.children[0].outerHtml;
           final textDivHtml = element.children[1].outerHtml;
-
           return Container(
             padding: padding,
             decoration: decoration,
@@ -821,11 +840,14 @@ class DashboardView extends GetView<DashboardViewController> {
                 HtmlWidget(
                   imgHtml,
                   onLoadingBuilder: (context, element, loadingProgress) =>
-                  SizedBox(
+                      SizedBox(
                     width: 40,
                     height: 40,
                     child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.grey400,),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.grey400,
+                      ),
                     ),
                   ),
                 ),

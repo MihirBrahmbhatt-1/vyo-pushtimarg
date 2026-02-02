@@ -4,8 +4,10 @@ import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../controller/language_controller.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../utility/local_db.dart';
 import '../../widget/custom_button_widget.dart';
+import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import '../login/login_view.dart';
 import 'language_selection_view_controller.dart';
@@ -36,7 +38,28 @@ class LanguageSelectionView extends GetView<LanguageSelectionViewController> {
           backgroundColor: AppColors.primaryColor,
         ),
         body: Obx(
-          () => controller.isLoading.value
+          () => controller.homeController.isDisplayInternetConnection.value ?
+                Center(
+                  child: CustomNoInternetWidget(
+                      onPressed: () async {
+                        if (await ApiServiceInterceptor.checkInternet()) {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = false;
+                          controller.isLoading.value = true;
+                          await controller.apiController.fetchVersionsList(
+                            isUserLoggedIn: false,
+                            jwtToken: '',
+                          );
+                          await controller.fetchLanguage();
+                          controller.isLoading.value = false;
+                        } else {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = true;
+                        }
+                      },
+                    ),
+                )
+                 : controller.isLoading.value
               ? Center(
                   child: CircularProgressIndicator(color: AppColors.primaryColor),
                 )

@@ -59,7 +59,6 @@ class _SplashViewState extends State<SplashView>
     HomeController homeController = Get.put(HomeController());
     bool? isLoggedIn = await LocalDB().getIsLoggedIn();
     bool? isInitialLanguageSelected = await LocalDB().getIsLanguageSelected();
-
     if (isLoggedIn == null || !isLoggedIn) {
       await apiController.fetchVersionsList(
         isUserLoggedIn: false,

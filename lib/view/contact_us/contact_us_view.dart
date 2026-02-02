@@ -6,10 +6,12 @@ import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../const/logger.dart';
 import '../../localization/dynamic_app_localizations.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../utility/validators.dart';
 import '../../widget/common_widget.dart';
 import '../../widget/country_phone_input.dart';
 import '../../widget/custom_button_widget.dart';
+import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_field_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import 'contact_us_view_controller.dart';
@@ -39,7 +41,30 @@ class ContactUsView extends GetView<ContactUsViewController> {
               fontStyle: FontStyle.normal,
             ),
           ),
-          body: SingleChildScrollView(
+          body: controller.homeController.isDisplayInternetConnection.value ?
+                Center(
+                  child: CustomNoInternetWidget(
+                      onPressed: () async {
+                        if (await ApiServiceInterceptor.checkInternet()) {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = false;
+                          controller.isLoading.value = true;
+                          await controller.apiController.fetchVersionsList(
+                            isUserLoggedIn: false,
+                            jwtToken: '',
+                          );
+                          // controller.selectedQueryName.value = '';
+                          // controller.selectedQueryId.value = '';
+                          // await controller.fetchQueryType();
+                          controller.isLoading.value = false;
+                        } else {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = true;
+                        }
+                      },
+                    ),
+                )
+                 :  SingleChildScrollView(
             child: Form(
               key: controller.contactUsFormKey.value,
                autovalidateMode: AutovalidateMode.onUserInteraction,

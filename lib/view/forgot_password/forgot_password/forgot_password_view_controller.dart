@@ -5,10 +5,12 @@ import '../../../const/logger.dart';
 import '../../../controller/api_controller.dart';
 import '../../../controller/home_controller.dart';
 import '../../../navigation/pages.dart';
+import '../../../utility/api_service_interceptor.dart';
 import '../../../widget/countries.dart';
 
-class ForgotPasswordViewController extends GetxController with WidgetsBindingObserver {
-    HomeController homeController = Get.put(HomeController());
+class ForgotPasswordViewController extends GetxController
+    with WidgetsBindingObserver {
+  HomeController homeController = Get.put(HomeController());
   ApiController apiController = Get.put(ApiController());
 
   final formKey = GlobalKey<FormState>().obs;
@@ -20,15 +22,15 @@ class ForgotPasswordViewController extends GetxController with WidgetsBindingObs
   RxBool isLoading = false.obs;
   RxBool isValidePhoneNumber = false.obs;
 
-    final Rx<Country> selectedCountry = countries
-      .firstWhere((c) => c.code == "IN")
-      .obs;
-
+  final Rx<Country> selectedCountry =
+      countries.firstWhere((c) => c.code == "IN").obs;
 
   @override
   void onInit() async {
     WidgetsBinding.instance.addObserver(this);
+
     super.onInit();
+
     /// Listen to country change
     ever(selectedCountry, (c) {
       talker.info("COUNTRY CHANGED → ${c.name} (+${c.dialCode})");
@@ -40,9 +42,18 @@ class ForgotPasswordViewController extends GetxController with WidgetsBindingObs
       talker.info("PHONE UPDATED → ${phoneNumberTextController.text}");
       talker.info("FULL PHONE → ${getFullPhone()}");
     });
+    checkForDeviceInternetConnectivity();
   }
 
-   /// Get final combined number
+  checkForDeviceInternetConnectivity() async {
+    if (await ApiServiceInterceptor.checkInternet()) {
+      homeController.isDisplayInternetConnection.value = false;
+    } else {
+      homeController.isDisplayInternetConnection.value = true;
+    }
+  }
+
+  /// Get final combined number
   String getFullPhone() {
     return "+${selectedCountry.value.dialCode}${phoneNumberTextController.text}";
   }
@@ -61,12 +72,19 @@ class ForgotPasswordViewController extends GetxController with WidgetsBindingObs
     return true;
   }
 
-   sendForgotPasswordOtp() async {
+  sendForgotPasswordOtp() async {
     try {
       isLoading.value = true;
-      bool result = await apiController.sendForgotPasswordOtp(phoneNumberTextController.text, '+${selectedCountry.value.dialCode}');
+      bool result = await apiController.sendForgotPasswordOtp(
+          phoneNumberTextController.text, '+${selectedCountry.value.dialCode}');
       if (result) {
-        Get.toNamed(Routes.forgotpasswordverifyotp, arguments: {'verificationId': apiController.forgotPasswordsendOtpResponseModel.value?.verificationId.toString(), 'phoneNumber': phoneNumberTextController.value.text.toString(), 'countryCode': selectedCountry.value.dialCode});
+        Get.toNamed(Routes.forgotpasswordverifyotp, arguments: {
+          'verificationId': apiController
+              .forgotPasswordsendOtpResponseModel.value?.verificationId
+              .toString(),
+          'phoneNumber': phoneNumberTextController.value.text.toString(),
+          'countryCode': selectedCountry.value.dialCode
+        });
         isLoading.value = false;
       } else {
         isLoading.value = false;

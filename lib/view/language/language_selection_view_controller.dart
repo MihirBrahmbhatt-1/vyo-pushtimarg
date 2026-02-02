@@ -5,6 +5,7 @@ import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../controller/language_controller.dart';
 import '../../model/language_model.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../utility/local_db.dart';
 
 class LanguageSelectionViewController extends GetxController
@@ -33,9 +34,9 @@ class LanguageSelectionViewController extends GetxController
 
     dynamic apiResponse = await apiController.fetchLanguageList();
 
-    if (apiResponse['langualgeList'] != null) {
+    if (apiResponse['languageList'] != null) {
       if (apiResponse['success'] == true) {
-        languageListData = apiResponse['langualgeList'];
+        languageListData = apiResponse['languageList'];
       }
       isLoading.value = false;
     }
@@ -49,10 +50,17 @@ class LanguageSelectionViewController extends GetxController
   }
 
   submitLanguageSelection(String languageId) async {
+    if (await ApiServiceInterceptor.checkInternet()) {
+      homeController.isDisplayInternetConnection.value = false;
+      
     isLoading.value = true;
     await apiController.getLanguageLabels(languageId);
     await LocalDB().setIsLanguageSelected(true);
     await LocalDB().reloadSharedPref();
     isLoading.value = false;
+    } else {
+      homeController.isDisplayInternetConnection.value = true;
+
+    }
   }
 }

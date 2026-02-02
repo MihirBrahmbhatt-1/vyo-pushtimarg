@@ -6,7 +6,9 @@ import 'package:shimmer/shimmer.dart';
 import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../widget/custom_elevated_button_widget.dart';
+import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_field_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import 'user_details_view_controller.dart';
@@ -38,10 +40,26 @@ class UserDetailsView extends GetView<UserDetailsViewController> {
                 fontStyle: FontStyle.normal,
               ),
             ),
-            body: SingleChildScrollView(
+            body: controller.homeController.isDisplayInternetConnection.value ?
+                Center(
+                  child: CustomNoInternetWidget(
+                      onPressed: () async {
+                        if (await ApiServiceInterceptor.checkInternet()) {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = false;
+                          controller.fetchUserDetails();
+                        } else {
+                          controller.homeController.isDisplayInternetConnection
+                              .value = true;
+                        }
+                      },
+                    ),
+                )
+                 :  SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
-                child: controller.isFetchingData.value
+                child: 
+                controller.isFetchingData.value
                     ? _buildShimmerLayout()
                     : Form(
                         key: controller.formKey.value,

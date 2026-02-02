@@ -32,6 +32,7 @@ class LoginViewController extends GetxController {
   @override
   void onInit() {
     checkDeviceConfig();
+    checkForAppUpdates();
     super.onInit();
 
     /// Listen to country change
@@ -45,6 +46,13 @@ class LoginViewController extends GetxController {
       talker.info("PHONE UPDATED → ${phoneNumberTextController.text}");
       talker.info("FULL PHONE → ${getFullPhone()}");
     });
+  }
+
+  checkForAppUpdates() async {
+      homeController.jwtToken.value = '';
+  homeController.isLoggedIn.value = false;
+  homeController.selectedIndex.value = 0;
+    await apiController.checkAppVersionUpdate(); 
   }
 
   bool validatePhone() {
@@ -70,12 +78,13 @@ class LoginViewController extends GetxController {
     try {
       isLoading.value = true;
       bool result = await apiController.userLoginApi(
-        countryCode: selectedCountry.value.dialCode.toString(),
+        countryCode: '+${selectedCountry.value.dialCode.toString()}',
         phoneNumber: phoneNumberTextController.value.text,
         password: passwordController.value.text,
       );
       if (result) {
         isLoading.value = false;
+      
         Get.offAllNamed(Routes.home);
       } else {
         isLoading.value = false;

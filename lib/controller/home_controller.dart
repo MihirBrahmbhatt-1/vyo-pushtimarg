@@ -52,10 +52,11 @@ class HomeController extends GetxController {
   // RxBool isInternetOff = false.obs;
   // RxBool isInternetLoading = false.obs;
   // RxBool isConnected = false.obs;
-  RxBool isNoInternetLottieLoading = false.obs;
   RxBool isMailExist = false.obs;
   RxBool isDialogShowing = false.obs;
   RxBool isFirstTimeFCMOpen = false.obs;
+
+  RxBool isDisplayInternetConnection = false.obs;
 
 
   RxInt otp = 0.obs;

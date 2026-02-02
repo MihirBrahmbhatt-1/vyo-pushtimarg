@@ -165,6 +165,8 @@ class UserDetailsViewController extends GetxController
   updateUserDetails() async {
     try {
       if (await ApiServiceInterceptor.checkInternet()) {
+        homeController.isDisplayInternetConnection.value = false;
+
         isFetchingData.value = true;
         dynamic apiResponse = await apiController.updateUserProfile(
           userId: homeController.customerIdString.value,
@@ -193,15 +195,7 @@ class UserDetailsViewController extends GetxController
           }
         }
       } else {
-        CustomAlertWidget().simpleAlertDialog(
-            title: DynamicAppLocalizations.of(Get.context!)
-                .t("no_internet_connection"),
-            description: '',
-            canPop: false,
-            buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
-            onButtonTap: () {
-              Get.back();
-            });
+        homeController.isDisplayInternetConnection.value = true;
       }
     } catch (e) {
       // CustomAlertWidget().simpleAlertDialog(title: DynamicAppLocalizations.of(Get.context!).t("no_internet_connection"), description: '',

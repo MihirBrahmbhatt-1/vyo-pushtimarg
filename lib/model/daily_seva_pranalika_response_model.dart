@@ -116,14 +116,18 @@ class AppUpdates {
   String? url;
   bool? isDisplay;
   bool? forceUpdate;
+  String? minimumVersion;
+  String? currentVersion;
 
-  AppUpdates({this.appOsType, this.url, this.isDisplay, this.forceUpdate});
+  AppUpdates({this.appOsType, this.url, this.isDisplay, this.forceUpdate, this.minimumVersion, this.currentVersion,});
 
   AppUpdates.fromJson(Map<String, dynamic> json) {
     appOsType = json['app_os_type'];
     url = json['url'];
     isDisplay = json['is_display'];
     forceUpdate = json['force_update'];
+    minimumVersion = json['minimum_version'];
+    currentVersion = json['current_version'];
   }
 
   Map<String, dynamic> toJson() {
@@ -132,6 +136,8 @@ class AppUpdates {
     data['url'] = url;
     data['is_display'] = isDisplay;
     data['force_update'] = forceUpdate;
+    data['minimum_version'] = minimumVersion;
+    data['current_version'] = currentVersion;
     return data;
   }
 }

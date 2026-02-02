@@ -4,6 +4,8 @@ import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../navigation/pages.dart';
+import '../../utility/api_service_interceptor.dart';
+import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_shimmer_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import '../../widget/empty_data_with_retry_widget.dart';
@@ -26,17 +28,31 @@ class CategoryListView extends GetView<CategoryListViewController> {
             backgroundColor: AppColors.primaryColor,
             onRefresh: controller.refreshCategoryList,
             child: Obx(() {
-              final dynamicAppLocalizations = DynamicAppLocalizations.of(
-                Get.context!,
-              );
               if (controller.isShimmerLoading.value) {
                 return const ShimmerGrid();
+              } else if(controller.homeController.isDisplayInternetConnection.value) {
+                return CustomNoInternetWidget(
+                    onPressed: () async {
+                      if (await ApiServiceInterceptor.checkInternet()) {
+                        controller.refreshCategoryList();
+                        controller.homeController.isDisplayInternetConnection.value = false;
+                      } else {
+                        controller.homeController.isDisplayInternetConnection
+                            .value = true;
+                      }
+                    },
+                  );
+
               } else if (controller.apiController.categoryListData.isEmpty) {
                 return EmptyDataWithRetry(
-                  messageLabel: dynamicAppLocalizations.t(
+                  messageLabel: DynamicAppLocalizations.of(
+                    Get.context!,
+                  ).t(
                     'no_categories_found',
                   ),
-                  buttonText: dynamicAppLocalizations.t('retry'),
+                  buttonText: DynamicAppLocalizations.of(
+                    Get.context!,
+                  ).t('retry'),
                   onRetry: controller.refreshCategoryList,
                   icon: Icons.category_outlined,
                 );
@@ -54,7 +70,9 @@ class CategoryListView extends GetView<CategoryListViewController> {
                     final categoryObj =
                         controller.apiController.categoryListData[index];
                     final categoryNameKey = categoryObj.categoryName.toString();
-                    final categoryName = dynamicAppLocalizations.t(
+                    final categoryName = DynamicAppLocalizations.of(
+                      Get.context!,
+                    ).t(
                       categoryNameKey,
                     );
                     final mediaDetails = controller.getMediaDetails(
@@ -90,7 +108,6 @@ class CategoryGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return GestureDetector(
       onTap: () {
         Get.toNamed(

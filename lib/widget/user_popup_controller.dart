@@ -226,7 +226,7 @@ class UserPopupController extends GetxController {
     );
     if (apiResponse != null) {
       if (apiResponse['success'] == true) {
-        // languageListData = apiResponse['langualgeList'];
+        // languageListData = apiResponse['languageList'];
         homeController.isUserExists.value = true;
         await LocalDB().setIsUserExists(true);
         await LocalDB().reloadSharedPref();
