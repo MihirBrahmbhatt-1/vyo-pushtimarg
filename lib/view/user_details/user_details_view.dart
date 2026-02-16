@@ -6,7 +6,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
-import '../../utility/api_service_interceptor.dart';
+import '../../utility/common_functions.dart';
 import '../../widget/custom_elevated_button_widget.dart';
 import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_field_widget.dart';
@@ -42,18 +42,25 @@ class UserDetailsView extends GetView<UserDetailsViewController> {
             ),
             body: controller.homeController.isDisplayInternetConnection.value ?
                 Center(
-                  child: CustomNoInternetWidget(
-                      onPressed: () async {
-                        if (await ApiServiceInterceptor.checkInternet()) {
-                          controller.homeController.isDisplayInternetConnection
-                              .value = false;
-                          controller.fetchUserDetails();
-                        } else {
-                          controller.homeController.isDisplayInternetConnection
-                              .value = true;
-                        }
-                      },
-                    ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: CustomNoInternetWidget(
+                       displayMessage: controller.displayInternetConnection.isEmpty
+                        ? ""
+                        : controller.displayInternetConnection.value,
+                        onPressed: () async {
+                          await checkInternetStatus(
+                            onConnected: () async {
+                              controller.homeController.isDisplayInternetConnection.value = false;
+                              controller.fetchUserDetails();
+                            },
+                            onNoConnection: () {
+                              controller.homeController.isDisplayInternetConnection.value = true;
+                            },
+                          );
+                        },
+                      ),
+                  ),
                 )
                  :  SingleChildScrollView(
               child: Padding(

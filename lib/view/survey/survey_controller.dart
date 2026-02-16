@@ -4,9 +4,11 @@ import 'package:get/get.dart';
 import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../model/survey_question_list_response_model.dart';
+import '../../utility/api_service_interceptor.dart';
+import '../../utility/common_functions.dart';
 import 'questions_model.dart';
 
-class SurveyController extends GetxController {
+class SurveyController extends GetxController with WidgetsBindingObserver {
   final PageController pageController = PageController();
   final AnimationController? animationController;
 
@@ -19,7 +21,35 @@ class SurveyController extends GetxController {
 
   final RxInt currentIndex = 0.obs;
 
+  RxString displayInternetConnection = "".obs;
+
   SurveyController({this.animationController});
+
+  @override
+  void onInit() async {
+    super.onInit();
+    WidgetsBinding.instance.addObserver(this);
+    fetchInternetStatus();
+  }
+
+  showMessage(String message) {
+    displayInternetConnection.value = message.toString();
+  }
+
+  fetchInternetStatus() async {
+  await checkInternetStatus(
+      checkInternet: ApiServiceInterceptor.checkInternetFunction,
+      showMessage: showMessage,
+      onConnected: () async {
+        homeController.isDisplayInternetConnection.value = false;
+        isLoading.value = true;
+      },
+      onNoConnection: () {
+        isLoading.value = false;
+        homeController.isDisplayInternetConnection.value = true;
+      },
+    );
+  }
 
   Future<void> loadQuestions() async {
     isLoading.value = true;

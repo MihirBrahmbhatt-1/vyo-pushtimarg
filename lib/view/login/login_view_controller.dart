@@ -31,6 +31,7 @@ class LoginViewController extends GetxController {
 
   @override
   void onInit() {
+    
     checkDeviceConfig();
     checkForAppUpdates();
     super.onInit();

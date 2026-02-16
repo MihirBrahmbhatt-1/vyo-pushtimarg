@@ -8,6 +8,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../controller/api_controller.dart';
 import '../../../controller/home_controller.dart';
 import '../../../model/media_list_response_model.dart';
+import '../../../utility/api_service_interceptor.dart';
+import '../../../utility/common_functions.dart';
 
 class AudioListViewController extends GetxController
     with WidgetsBindingObserver {
@@ -20,6 +22,8 @@ class AudioListViewController extends GetxController
   final RxString currentlyPlayingUrl = "".obs;
   final RxString currentTrackName = "".obs;
   final RxString bufferingUrl = "".obs;
+  RxString displayInternetConnection = "".obs;
+
   final Rx<PlayerState> playerState = PlayerState.stopped.obs;
 
   final Rx<Duration> currentPosition = Duration.zero.obs;
@@ -52,6 +56,26 @@ class AudioListViewController extends GetxController
     fetchMediaList();
     _initAudioListeners();
     _initVolumeController();
+    fetchInternetStatus();
+  }
+
+  showMessage(String message) {
+    displayInternetConnection.value = message.toString();
+  }
+
+  fetchInternetStatus() async {
+    await checkInternetStatus(
+      checkInternet: ApiServiceInterceptor.checkInternetFunction,
+      showMessage: showMessage,
+      onConnected: () async {
+        homeController.isDisplayInternetConnection.value = false;
+        // isLoading.value = true;
+      },
+      onNoConnection: () {
+        // isLoading.value = false;
+        homeController.isDisplayInternetConnection.value = true;
+      },
+    );
   }
 
   void _initAudioListeners() {
@@ -184,8 +208,8 @@ class AudioListViewController extends GetxController
       const double itemHeight = 120.0;
       const int prefetchCount = 6;
 
-      var firstVisibleIndex = (scrollController.position.pixels / itemHeight)
-          .floor();
+      var firstVisibleIndex =
+          (scrollController.position.pixels / itemHeight).floor();
       var lastVisibleIndex = firstVisibleIndex + prefetchCount;
 
       for (int i = firstVisibleIndex; i <= lastVisibleIndex; i++) {

@@ -21,6 +21,7 @@ import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../model/dashboard_html_content_response_model.dart';
 import '../../model/dashboard_image_slider_response_model.dart';
+import '../../utility/api_service_interceptor.dart';
 import '../../utility/common_functions.dart';
 import '../../utility/local_db.dart';
 import '../../widget/custom_alert_widget.dart';
@@ -37,6 +38,8 @@ class DashboardViewController extends GetxController
   RxBool isLoading = true.obs;
   RxBool isImageSliderLoading = true.obs;
   RxBool isInternalNavigation = false.obs;
+
+  RxString displayInternetConnection = "".obs;
 
   RxString androidAppCurrentVersionString = "".obs;
   RxString iosAppCurrentVersionString = "".obs;
@@ -70,9 +73,10 @@ class DashboardViewController extends GetxController
     }
 
     if (homeController.isUserProfileCompleted.value == true) {
-      fetchSevaPranalikaDetails();
-      fetchDashboardDetails();
-      fetchDashboardImageSlider();
+      // fetchSevaPranalikaDetails();
+      // fetchDashboardDetails();
+      // fetchDashboardImageSlider();
+      fetchData();
     }
   }
 
@@ -97,6 +101,24 @@ class DashboardViewController extends GetxController
         !homeController.isUserProfileCompleted.value) {
       showUserDetailsDialog(Get.context!);
     }
+  }
+
+  fetchData() async {
+    await checkInternetStatus(
+      checkInternet: ApiServiceInterceptor.checkInternetFunction,
+      showMessage: showMessage,
+      onConnected: () async {
+        homeController.isDisplayInternetConnection.value = false;
+        isLoading.value = true;
+        fetchSevaPranalikaDetails();
+        fetchDashboardDetails();
+        fetchDashboardImageSlider();
+      },
+      onNoConnection: () {
+        isLoading.value = false;
+        homeController.isDisplayInternetConnection.value = true;
+      },
+    );
   }
 
   fetchDashboardDetails() async {
@@ -140,12 +162,25 @@ class DashboardViewController extends GetxController
   }
 
   Future<void> refreshDashboard() async {
-    await apiController.fetchVersionsList(
-      isUserLoggedIn: true,
-      jwtToken: homeController.jwtToken.value,
+    await checkInternetStatus(
+      checkInternet: ApiServiceInterceptor.checkInternetFunction,
+      showMessage: showMessage,
+      onConnected: () async {
+        isLoading.value = true;
+        await apiController.fetchVersionsList(
+          isUserLoggedIn: true,
+          jwtToken: homeController.jwtToken.value,
+        );
+        await fetchDashboardDetails();
+        await fetchDashboardImageSlider();
+        homeController.isDisplayInternetConnection.value = false;
+
+      },
+      onNoConnection: () {
+        isLoading.value = false;
+        homeController.isDisplayInternetConnection.value = true;
+      },
     );
-    await fetchDashboardDetails();
-    await fetchDashboardImageSlider();
   }
 
   Future<ui.Image> getImageDimensions(String url) async {
@@ -170,6 +205,10 @@ class DashboardViewController extends GetxController
   Future<List<ui.Image>> getImagesDimensions(List<String> urls) async {
     final futures = urls.map((u) => getImageDimensions(u)).toList();
     return Future.wait(futures);
+  }
+
+  showMessage(String message) {
+    displayInternetConnection.value = message.toString();
   }
 
   fetchSevaPranalikaDetails() async {
@@ -335,9 +374,6 @@ class DashboardViewController extends GetxController
                 title: DynamicAppLocalizations.of(Get.context!).t("ok"),
                 textColor: AppColors.white,
                 onPressed: () async {
-                  print('on ok button');
-                  print('on ok button : $checkAppUpdate');
-                  print('on ok button : $isDisplayHtmlContent');
                   if (!checkAppUpdate) {
                     if (isDisplayHtmlContent) {
                       Get.back();

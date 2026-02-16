@@ -7,6 +7,8 @@ import '../../../const/app_color.dart';
 import '../../../controller/api_controller.dart';
 import '../../../controller/home_controller.dart';
 import '../../../model/media_list_response_model.dart';
+import '../../../utility/api_service_interceptor.dart';
+import '../../../utility/common_functions.dart';
 
 class VideoListViewController extends GetxController
     with WidgetsBindingObserver {
@@ -19,6 +21,8 @@ class VideoListViewController extends GetxController
   final RxBool isShimmerLoading = true.obs;
 
   RxString appBarTitle = ''.obs;
+  RxString displayInternetConnection = "".obs;
+
 
   late String subCategoryId;
 
@@ -36,6 +40,27 @@ class VideoListViewController extends GetxController
     super.onInit();
     appBarTitle.value = Get.arguments['title'];
     fetchMediaList();
+      fetchInternetStatus();
+
+  }
+
+    showMessage(String message) {
+    displayInternetConnection.value = message.toString();
+  }
+
+  fetchInternetStatus() async {
+    await checkInternetStatus(
+      checkInternet: ApiServiceInterceptor.checkInternetFunction,
+      showMessage: showMessage,
+      onConnected: () async {
+        homeController.isDisplayInternetConnection.value = false;
+        // isLoading.value = true;
+      },
+      onNoConnection: () {
+        // isLoading.value = false;
+        homeController.isDisplayInternetConnection.value = true;
+      },
+    );
   }
 
   String extractYoutubeId(String url) {

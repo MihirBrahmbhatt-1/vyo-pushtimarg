@@ -9,7 +9,7 @@ import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../model/survey_complete_answers_model.dart';
 import '../../navigation/pages.dart';
-import '../../utility/api_service_interceptor.dart';
+import '../../utility/common_functions.dart';
 import '../../widget/custom_button_widget.dart';
 import '../../widget/custom_elevated_button_widget.dart';
 import '../../widget/custom_no_internet_widget.dart';
@@ -406,15 +406,23 @@ class _QuestionsScreenState extends State<QuestionsScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                CustomNoInternetWidget(
-                  onPressed: () async {
-                    if (await ApiServiceInterceptor.checkInternet()) {
-                      controller.loadQuestions();
-                    } else {
-                      controller.homeController.isDisplayInternetConnection
-                          .value = true;
-                    }
-                  },
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: CustomNoInternetWidget(
+                    displayMessage: controller.displayInternetConnection.isEmpty
+                        ? ""
+                        : controller.displayInternetConnection.value,
+                    onPressed: () async {
+                      await checkInternetStatus(
+                        onConnected: () async {
+                          controller.loadQuestions();
+                        },
+                        onNoConnection: () {
+                          controller.homeController.isDisplayInternetConnection.value = true;
+                        },
+                      );
+                    },
+                  ),
                 ),
                 CustomTextButton(
                   title: DynamicAppLocalizations.of(

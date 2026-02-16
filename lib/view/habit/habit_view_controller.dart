@@ -72,16 +72,11 @@ class HabitViewController extends GetxController with WidgetsBindingObserver {
   }
 
   Future<void> refreshPushtiPractices() async {
-    print(
-        'isDisplayInternetConnection: ${homeController.isDisplayInternetConnection.value}');
-
     await apiController.fetchVersionsList(
       isUserLoggedIn: true,
       jwtToken: homeController.jwtToken.value,
       isFromPushti: true,
     );
-    print(
-        'isDisplayInternetConnection: ${homeController.isDisplayInternetConnection.value}');
     await fetchPushtiPractise();
   }
 

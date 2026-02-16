@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import '../../const/app_color.dart';
 import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
+import '../../utility/api_service_interceptor.dart';
+import '../../utility/common_functions.dart';
 
 class CategoryListViewController extends GetxController
     with WidgetsBindingObserver {
@@ -11,6 +13,7 @@ class CategoryListViewController extends GetxController
   HomeController homeController = Get.put(HomeController());
 
   final RxBool isShimmerLoading = true.obs;
+  RxString displayInternetConnection = "".obs;
 
   @override
   void onInit() async {
@@ -20,13 +23,32 @@ class CategoryListViewController extends GetxController
     super.onInit();
   }
 
+  showMessage(String message) {
+    displayInternetConnection.value = message.toString();
+  }
+
   fetchCategoryList() async {
     isShimmerLoading.value = true;
-    await apiController.fetchCategoryList(
-      languageId: homeController.selectedLanguageId.value,
-      jwtToken: homeController.jwtToken.value,
+
+    await checkInternetStatus(
+      checkInternet: ApiServiceInterceptor.checkInternetFunction,
+      showMessage: showMessage,
+      onConnected: () async {
+        homeController.isDisplayInternetConnection.value = false;
+        isShimmerLoading.value = true;
+
+        await apiController.fetchCategoryList(
+          languageId: homeController.selectedLanguageId.value,
+          jwtToken: homeController.jwtToken.value,
+        );
+        isShimmerLoading.value = false;
+      },
+      onNoConnection: () {
+        isShimmerLoading.value = false;
+
+        homeController.isDisplayInternetConnection.value = true;
+      },
     );
-    isShimmerLoading.value = false;
   }
 
   Future<void> refreshCategoryList() async {
@@ -43,8 +65,7 @@ class CategoryListViewController extends GetxController
 
     final categoryTypeString = categoryType.toLowerCase();
     for (final keyword in mediaTypeLookup.keys) {
-      if (categoryTypeString.contains(keyword) ||
-          (keyword == '1')) {
+      if (categoryTypeString.contains(keyword) || (keyword == '1')) {
         final details = mediaTypeLookup[keyword]!;
         return {
           'icon': details['icon'],

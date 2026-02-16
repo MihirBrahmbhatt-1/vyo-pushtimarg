@@ -32,6 +32,7 @@ import '../utility/app_api.dart';
 import '../utility/common_functions.dart';
 import '../utility/local_db.dart';
 import '../widget/common_widget.dart';
+import '../widget/custom_alert_widget.dart';
 import 'dynamic_locale_controller.dart';
 import 'home_controller.dart';
 
@@ -130,7 +131,7 @@ class ApiController extends GetxController {
     String countryCode,
   ) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         Map<String, String> body = <String, String>{};
         body['mobile_number'] = phoneNumber.toString();
         body['country_code'] = countryCode.toString();
@@ -172,19 +173,24 @@ class ApiController extends GetxController {
     bool isForcedUpdate = false,
   }) async {
     try {
-      bool isConnected = await ApiServiceInterceptor.checkInternet();
+      final bool isConnected = await checkInternetStatus();
 
-      if (isConnected) {
-        var request = <String, String>{};
-        Map<String, String> header = {'authorization': ""};
-        var response = await ApiServiceInterceptor.getDecryptLambdaCall(
-          url: AppApi().commonVersionsApiUrl,
-          request: request,
-          headers: header,
-        );
-        talker.info('---------- Internet available, fetched version list');
+      if (!isConnected) {
+        talker.info('---------- No internet, skipping versions fetch');
+        return;
+      }
 
-        if (homeController.statusCode.value == 200) {
+      var request = <String, String>{};
+      Map<String, String> header = {'authorization': ""};
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().commonVersionsApiUrl,
+        request: request,
+        headers: header,
+      );
+      talker.info('---------- Internet available, fetched version list');
+
+      if (homeController.statusCode.value == 200) {
+        try {
           var convertedResponse = json.decode(response);
           ApiBaseResponse apiBaseResponse =
               ApiBaseResponse.fromJson(convertedResponse);
@@ -200,16 +206,19 @@ class ApiController extends GetxController {
           } else {
             versionListData.value = [];
           }
-        } else {
+        } catch (e) {
+          talker.error('Error decoding versions response: $e');
           versionListData.value = [];
         }
       } else {
-        homeController.isDisplayInternetConnection.value = true;
-        talker.info('---------- No internet, skipping API fetch');
+        versionListData.value = [];
       }
 
-      await _checkForLabelVersionUpdate();
-      if (isConnected && isUserLoggedIn) {
+      // Only check dashboard/slider/pushti when connected and logged in
+      if (isUserLoggedIn) {
+        if (homeController.selectedLanguageId.isNotEmpty) {
+          getLanguageLabels(homeController.selectedLanguageId.value);
+        }
         if (isFromPushti) {
           talker.info('User is logged in. Checking Pushti Practices versions.');
           await _checkForPushtiPracticesVersionUpdate();
@@ -218,6 +227,10 @@ class ApiController extends GetxController {
             .info('User is logged in. Checking dashboard and slider versions.');
         await _checkForDashboardVersionUpdate();
         await _checkForDashboardSliderVersionUpdate();
+      } else {
+        if (homeController.selectedLanguageId.isNotEmpty) {
+          getLanguageLabels(homeController.selectedLanguageId.value);
+        }
       }
     } catch (e) {
       talker.error('Exception in fetchVersionList API: $e');
@@ -226,7 +239,7 @@ class ApiController extends GetxController {
 
   fetchLanguageList() async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         Map<String, String> header;
         header = {'authorization': ""};
@@ -335,7 +348,7 @@ class ApiController extends GetxController {
 
   fetchCountryList() async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         Map<String, String> header = {};
         var response = await ApiServiceInterceptor.getDecryptLambdaCall(
@@ -365,7 +378,7 @@ class ApiController extends GetxController {
 
   fetchStateListByCountry(String countryId) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["country_id"] = countryId;
         Map<String, String> header = {};
@@ -396,7 +409,7 @@ class ApiController extends GetxController {
 
   fetchCityListByState(String stateId) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["state_id"] = stateId;
         Map<String, String> header = {};
@@ -439,7 +452,7 @@ class ApiController extends GetxController {
     required password,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         Map<String, dynamic> body = <String, dynamic>{};
         body['name'] = name.toString();
         body['mobile_no'] = phoneNumber.toString();
@@ -532,7 +545,7 @@ class ApiController extends GetxController {
     required jwtToken,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["user_id"] = userId.toString();
 
@@ -596,164 +609,167 @@ class ApiController extends GetxController {
     required String jwtToken,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
-              var request = <String, String>{};
-      request["mobile_no"] = phoneNumber;
-      request["country_code"] = homeController.countryCode.value;
+      if (await checkInternetStatus()) {
+        var request = <String, String>{};
+        request["mobile_no"] = phoneNumber;
+        request["country_code"] = homeController.countryCode.value;
 
-      Map<String, String> header = {'authorization': jwtToken};
+        Map<String, String> header = {'authorization': jwtToken};
 
-      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
-        url: AppApi().userProfileApiUrl,
-        request: request,
-        headers: header,
-      );
-
-      if (homeController.statusCode.value == 200) {
-        final convertedResponse = json.decode(response);
-
-        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
-          convertedResponse,
+        var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+          url: AppApi().userProfileApiUrl,
+          request: request,
+          headers: header,
         );
 
-        if (apiBaseResponse.statusCode == 209) {
-          if (apiBaseResponse.data != null) {
-            userDetailsResponseModel.value =
-                UserProfileDetailsResponseModel.fromJson(apiBaseResponse.data);
+        if (homeController.statusCode.value == 200) {
+          final convertedResponse = json.decode(response);
 
-            homeController.customerIdString.value =
-                userDetailsResponseModel.value!.id.toString();
+          ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+            convertedResponse,
+          );
 
-            homeController.isUserProfileCompleted.value =
-                userDetailsResponseModel.value!.isProfileCompleted!;
+          if (apiBaseResponse.statusCode == 209) {
+            if (apiBaseResponse.data != null) {
+              userDetailsResponseModel.value =
+                  UserProfileDetailsResponseModel.fromJson(
+                      apiBaseResponse.data);
 
-            homeController.userNameString.value =
-                userDetailsResponseModel.value!.name.toString();
+              homeController.customerIdString.value =
+                  userDetailsResponseModel.value!.id.toString();
 
-            homeController.userEmailString.value =
-                userDetailsResponseModel.value!.email == null
-                    ? ''
-                    : userDetailsResponseModel.value!.email.toString();
-            homeController.userPhoneNumber.value =
-                userDetailsResponseModel.value!.mobileNo.toString();
-            homeController.countryCode.value =
-                userDetailsResponseModel.value!.mobileCountryCode.toString();
-            homeController.selectedLanguageId.value =
-                userDetailsResponseModel.value!.preferredLanguageId.toString();
-            homeController.userCityId.value =
-                userDetailsResponseModel.value!.cityId.toString();
-            homeController.userCountryId.value =
-                userDetailsResponseModel.value!.countryId.toString();
-            homeController.userStateId.value =
-                userDetailsResponseModel.value!.stateId.toString();
-            homeController.userGenderId.value =
+              homeController.isUserProfileCompleted.value =
+                  userDetailsResponseModel.value!.isProfileCompleted!;
+
+              homeController.userNameString.value =
+                  userDetailsResponseModel.value!.name.toString();
+
+              homeController.userEmailString.value =
+                  userDetailsResponseModel.value!.email == null
+                      ? ''
+                      : userDetailsResponseModel.value!.email.toString();
+              homeController.userPhoneNumber.value =
+                  userDetailsResponseModel.value!.mobileNo.toString();
+              homeController.countryCode.value =
+                  userDetailsResponseModel.value!.mobileCountryCode.toString();
+              homeController.selectedLanguageId.value = userDetailsResponseModel
+                  .value!.preferredLanguageId
+                  .toString();
+              homeController.userCityId.value =
+                  userDetailsResponseModel.value!.cityId.toString();
+              homeController.userCountryId.value =
+                  userDetailsResponseModel.value!.countryId.toString();
+              homeController.userStateId.value =
+                  userDetailsResponseModel.value!.stateId.toString();
+              homeController.userGenderId.value =
+                  userDetailsResponseModel.value!.gender == null
+                      ? ''
+                      : userDetailsResponseModel.value!.gender.toString();
+              homeController.userDOB.value =
+                  userDetailsResponseModel.value!.birthdate == null
+                      ? ''
+                      : userDetailsResponseModel.value!.birthdate.toString();
+
+              homeController.userCountryName.value =
+                  userDetailsResponseModel.value!.countryName.toString();
+              homeController.userStateName.value =
+                  userDetailsResponseModel.value!.stateName.toString();
+              homeController.userCityName.value =
+                  userDetailsResponseModel.value!.cityName.toString();
+              homeController.isUserSurveyCompleted.value =
+                  userDetailsResponseModel.value!.isSurveyCompleted!;
+
+              await LocalDB()
+                  .setCustomerId(userDetailsResponseModel.value!.id!);
+              await LocalDB().setIsUserProfileCompleted(
+                userDetailsResponseModel.value!.isProfileCompleted!,
+              );
+              await LocalDB().setIsUserSurveyCompleted(
+                userDetailsResponseModel.value!.isSurveyCompleted!,
+              );
+              await LocalDB().setUserFullName(
+                userDetailsResponseModel.value!.name.toString(),
+              );
+              await LocalDB().setUserPhoneNumber(
+                userDetailsResponseModel.value!.mobileNo.toString(),
+              );
+              await LocalDB().setCountryCode(
+                userDetailsResponseModel.value!.mobileCountryCode.toString(),
+              );
+              await LocalDB().setLanguageId(
+                userDetailsResponseModel.value!.preferredLanguageId.toString(),
+              );
+              await LocalDB().setUserCountryId(
+                userDetailsResponseModel.value!.countryId.toString(),
+              );
+              await LocalDB().setUserCountryName(
+                userDetailsResponseModel.value!.countryName.toString(),
+              );
+              await LocalDB().setUserStateId(
+                userDetailsResponseModel.value!.stateId.toString(),
+              );
+              await LocalDB().setUserStateName(
+                userDetailsResponseModel.value!.stateName.toString(),
+              );
+              await LocalDB().setUserCityId(
+                userDetailsResponseModel.value!.cityId.toString(),
+              );
+              await LocalDB().setUserCityName(
+                userDetailsResponseModel.value!.cityName.toString(),
+              );
+              await LocalDB().setUserGenderId(
                 userDetailsResponseModel.value!.gender == null
                     ? ''
-                    : userDetailsResponseModel.value!.gender.toString();
-            homeController.userDOB.value =
+                    : userDetailsResponseModel.value!.gender.toString(),
+              );
+              await LocalDB().setUserDOB(
                 userDetailsResponseModel.value!.birthdate == null
                     ? ''
-                    : userDetailsResponseModel.value!.birthdate.toString();
-
-            homeController.userCountryName.value =
-                userDetailsResponseModel.value!.countryName.toString();
-            homeController.userStateName.value =
-                userDetailsResponseModel.value!.stateName.toString();
-            homeController.userCityName.value =
-                userDetailsResponseModel.value!.cityName.toString();
-            homeController.isUserSurveyCompleted.value =
-                userDetailsResponseModel.value!.isSurveyCompleted!;
-
-            await LocalDB().setCustomerId(userDetailsResponseModel.value!.id!);
-            await LocalDB().setIsUserProfileCompleted(
-              userDetailsResponseModel.value!.isProfileCompleted!,
-            );
-            await LocalDB().setIsUserSurveyCompleted(
-              userDetailsResponseModel.value!.isSurveyCompleted!,
-            );
-            await LocalDB().setUserFullName(
-              userDetailsResponseModel.value!.name.toString(),
-            );
-            await LocalDB().setUserPhoneNumber(
-              userDetailsResponseModel.value!.mobileNo.toString(),
-            );
-            await LocalDB().setCountryCode(
-              userDetailsResponseModel.value!.mobileCountryCode.toString(),
-            );
-            await LocalDB().setLanguageId(
-              userDetailsResponseModel.value!.preferredLanguageId.toString(),
-            );
-            await LocalDB().setUserCountryId(
-              userDetailsResponseModel.value!.countryId.toString(),
-            );
-            await LocalDB().setUserCountryName(
-              userDetailsResponseModel.value!.countryName.toString(),
-            );
-            await LocalDB().setUserStateId(
-              userDetailsResponseModel.value!.stateId.toString(),
-            );
-            await LocalDB().setUserStateName(
-              userDetailsResponseModel.value!.stateName.toString(),
-            );
-            await LocalDB().setUserCityId(
-              userDetailsResponseModel.value!.cityId.toString(),
-            );
-            await LocalDB().setUserCityName(
-              userDetailsResponseModel.value!.cityName.toString(),
-            );
-            await LocalDB().setUserGenderId(
-              userDetailsResponseModel.value!.gender == null
-                  ? ''
-                  : userDetailsResponseModel.value!.gender.toString(),
-            );
-            await LocalDB().setUserDOB(
-              userDetailsResponseModel.value!.birthdate == null
-                  ? ''
-                  : userDetailsResponseModel.value!.birthdate.toString(),
-            );
-            await LocalDB().setUserEmail(
-              userDetailsResponseModel.value!.email == null
-                  ? ''
-                  : userDetailsResponseModel.value!.email.toString(),
-            );
-            await LocalDB().reloadSharedPref();
-            await homeController.reload();
-            talker.debug(
-              '---------- Executed UserDetails Get API Call ----------',
-            );
-            return true;
-          } else {
-            return false;
+                    : userDetailsResponseModel.value!.birthdate.toString(),
+              );
+              await LocalDB().setUserEmail(
+                userDetailsResponseModel.value!.email == null
+                    ? ''
+                    : userDetailsResponseModel.value!.email.toString(),
+              );
+              await LocalDB().reloadSharedPref();
+              await homeController.reload();
+              talker.debug(
+                '---------- Executed UserDetails Get API Call ----------',
+              );
+              return true;
+            } else {
+              return false;
+            }
           }
-        }
-      } else if (homeController.statusCode.value == 401 ||
-          homeController.statusCode.value == 403) {
-        bool isSuccess = await userLoginApi(
-          countryCode: homeController.countryCode.value,
-          phoneNumber: homeController.userPhoneNumber.value,
-          password: homeController.passwordString.value,
-        );
-        if (!isSuccess) {
-          await LocalDB().setIsLoggedIn(false);
-          await LocalDB().setIsUserExists(false);
-          await LocalDB().setIsUserProfileCompleted(false);
-          await LocalDB().setJwtToken('');
-          await LocalDB().setDashboardVersion('');
-          await LocalDB().setDashboardSliderVersion('');
-          await LocalDB().setDashboardHtmlCache('');
-          await LocalDB().setDashboardImageSliderCache('');
-          await LocalDB().removeJwtToken();
-          homeController.jwtToken.value = '';
-          homeController.isLoggedIn.value = false;
-          homeController.selectedIndex.value = 0;
-          Get.offAllNamed(Routes.signin);
-          return false;
+        } else if (homeController.statusCode.value == 401 ||
+            homeController.statusCode.value == 403) {
+          bool isSuccess = await userLoginApi(
+            countryCode: homeController.countryCode.value,
+            phoneNumber: homeController.userPhoneNumber.value,
+            password: homeController.passwordString.value,
+          );
+          if (!isSuccess) {
+            await LocalDB().setIsLoggedIn(false);
+            await LocalDB().setIsUserExists(false);
+            await LocalDB().setIsUserProfileCompleted(false);
+            await LocalDB().setJwtToken('');
+            await LocalDB().setDashboardVersion('');
+            await LocalDB().setDashboardSliderVersion('');
+            await LocalDB().setDashboardHtmlCache('');
+            await LocalDB().setDashboardImageSliderCache('');
+            await LocalDB().removeJwtToken();
+            homeController.jwtToken.value = '';
+            homeController.isLoggedIn.value = false;
+            homeController.selectedIndex.value = 0;
+            Get.offAllNamed(Routes.signin);
+            return false;
+          } else {
+            return true;
+          }
         } else {
-          return true;
+          return false;
         }
-      } else {
-        return false;
-      }
       } else {
         homeController.isDisplayInternetConnection.value = true;
       }
@@ -768,7 +784,7 @@ class ApiController extends GetxController {
     required String jwtToken,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["language_id"] = languageId;
         Map<String, String> header = {};
@@ -785,10 +801,10 @@ class ApiController extends GetxController {
           );
 
           if (apiBaseResponse.statusCode == 209) {
-            if(apiBaseResponse.data != null) {
-            categoryListData.value = (apiBaseResponse.data as List)
-                .map((data) => CategoryListResponseModel.fromJson(data))
-                .toList();
+            if (apiBaseResponse.data != null) {
+              categoryListData.value = (apiBaseResponse.data as List)
+                  .map((data) => CategoryListResponseModel.fromJson(data))
+                  .toList();
             } else {
               categoryListData.value = [];
             }
@@ -844,7 +860,7 @@ class ApiController extends GetxController {
     required String jwtToken,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["language_id"] = languageId;
         request["id"] = id;
@@ -926,7 +942,7 @@ class ApiController extends GetxController {
   userLoginApi(
       {required countryCode, required phoneNumber, required password}) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         Map<String, String> body = <String, String>{};
         body['mobile_no'] = phoneNumber.toString();
         body['password'] = password.toString();
@@ -1089,7 +1105,7 @@ class ApiController extends GetxController {
     required jwtToken,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["user_id"] = userId.toString();
 
@@ -1140,7 +1156,7 @@ class ApiController extends GetxController {
     String countryCode,
   ) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         Map<String, String> request = <String, String>{};
         request['mobile_no'] = phoneNumber.toString();
         request['mobile_country_code'] = countryCode.toString();
@@ -1182,7 +1198,7 @@ class ApiController extends GetxController {
     required String password,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         Map<String, String> body = <String, String>{};
         body['mobile_no'] = phoneNumber.toString();
         body['mobile_country_code'] = countryCode.toString();
@@ -1228,7 +1244,7 @@ class ApiController extends GetxController {
     required String jwtToken,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["language_id"] = languageId;
         Map<String, String> header = {'authorization': jwtToken};
@@ -1307,7 +1323,7 @@ class ApiController extends GetxController {
     required String jwtToken,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         Map<String, dynamic> body = <String, dynamic>{};
         body['user_id'] = userId.toString();
         body['answers'] = answer;
@@ -1348,7 +1364,7 @@ class ApiController extends GetxController {
     required String jwtToken,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["language_id"] = languageId;
         Map<String, String> header = {'authorization': jwtToken};
@@ -1443,7 +1459,7 @@ class ApiController extends GetxController {
     required String jwtToken,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["language_id"] = languageId;
         Map<String, String> header = {'authorization': jwtToken};
@@ -1545,7 +1561,7 @@ class ApiController extends GetxController {
     required String languageId,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["language_id"] = languageId;
         Map<String, String> header = {'authorization': jwtToken};
@@ -1624,7 +1640,7 @@ class ApiController extends GetxController {
   fetchDashboardSevaPranalika(
       {required String date, required String jwtToken}) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["date"] = date;
         Map<String, String> header = {'authorization': jwtToken};
@@ -1706,7 +1722,7 @@ class ApiController extends GetxController {
       required String verificationId,
       required String userEnteredOtp}) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         Map<String, String> body = <String, String>{};
         body['mobile_number'] = phoneNumber.toString();
         body['country_code'] = '+${countryCode.toString()}';
@@ -1969,7 +1985,7 @@ class ApiController extends GetxController {
 
   deviceInfo() async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
 
         Map<String, dynamic> body = <String, dynamic>{};
@@ -2012,7 +2028,7 @@ class ApiController extends GetxController {
     required String languageId,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["language_id"] = languageId;
         Map<String, String> header = {'authorization': ''};
@@ -2059,7 +2075,7 @@ class ApiController extends GetxController {
     required String queryDescription,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         Map<String, String> body = <String, String>{};
         body['name'] = name.toString();
         body['email'] = email.toString();
@@ -2108,7 +2124,7 @@ class ApiController extends GetxController {
 
   logoutUser({required String deviceId, required String jwtToken}) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         Map<String, String> request = <String, String>{};
         request["device_id"] = deviceId;
         Map<String, String> header = {
@@ -2126,14 +2142,22 @@ class ApiController extends GetxController {
               ApiBaseResponse.fromJson(encodedString);
           if (apiBaseResponse.statusCode == 209) {
             ApiServiceInterceptor.cancelRequest();
-            clearAppDataAndLogout();
-            showCustomSnackBar(
-              DynamicAppLocalizations.of(Get.context!).t("info"),
-              DynamicAppLocalizations.of(
-                Get.context!,
-              ).t(apiBaseResponse.message.toString()),
-              true,
-            );
+            await clearAppDataAndLogout();
+            CustomAlertWidget().infoAlertDialog(
+                displayText: apiBaseResponse.message.toString(),
+                buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+                //               onButtonTap: () {
+                // clearAppDataAndLogout();
+
+                //               },
+                statusType: true);
+            // showCustomSnackBar(
+            //   DynamicAppLocalizations.of(Get.context!).t("info"),
+            //   DynamicAppLocalizations.of(
+            //     Get.context!,
+            //   ).t(apiBaseResponse.message.toString()),
+            //   true,
+            // );
             return true;
           } else {
             return false;
@@ -2156,7 +2180,7 @@ class ApiController extends GetxController {
     required String jwtToken,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
         var request = <String, String>{};
         request["language_id"] = languageId;
         Map<String, String> header = {'authorization': jwtToken};
@@ -2253,56 +2277,55 @@ class ApiController extends GetxController {
     required String languageId,
   }) async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
+      if (await checkInternetStatus()) {
+        Map<String, String> body = <String, String>{};
+        body["user_id"] = userId;
+        body["language_id"] = languageId;
 
-      Map<String, String> body = <String, String>{};
-      body["user_id"] = userId;
-      body["language_id"] = languageId;
+        Map<String, String> header = {
+          'authorization': homeController.jwtToken.value
+        };
 
-      Map<String, String> header = {
-        'authorization': homeController.jwtToken.value
-      };
-
-      var response = await ApiServiceInterceptor.postDecryptLambdaCall(
-        url: AppApi().changeLanguageApiUrl,
-        body: json.encode(body),
-        header: header,
-      );
-
-      if (homeController.statusCode.value == 200) {
-        var decodeString = jsonDecode(response);
-        ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
-          decodeString,
+        var response = await ApiServiceInterceptor.postDecryptLambdaCall(
+          url: AppApi().changeLanguageApiUrl,
+          body: json.encode(body),
+          header: header,
         );
 
-        if (apiBaseResponse.statusCode == 209) {
-          homeController.selectedLanguageId.value = languageId;
-          await LocalDB().setLanguageId(languageId);
-          await clearVersionList();
-          await fetchVersionsList(
-              isUserLoggedIn: true,
-              jwtToken: homeController.jwtToken.value,
-              isFromPushti: true,
-              isForcedUpdate: true);
-          await getLanguageLabels(languageId);
-          dynamic result = {
-            "responseMessage": apiBaseResponse.message.toString(),
-            "success": true
-          };
-          return result;
-        } else {
-          dynamic result = {"responseMessage": "", "success": true};
+        if (homeController.statusCode.value == 200) {
+          var decodeString = jsonDecode(response);
+          ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
+            decodeString,
+          );
 
-          return result;
+          if (apiBaseResponse.statusCode == 209) {
+            homeController.selectedLanguageId.value = languageId;
+            await LocalDB().setLanguageId(languageId);
+            await clearVersionList();
+            await fetchVersionsList(
+                isUserLoggedIn: true,
+                jwtToken: homeController.jwtToken.value,
+                isFromPushti: true,
+                isForcedUpdate: true);
+            await getLanguageLabels(languageId);
+            dynamic result = {
+              "responseMessage": apiBaseResponse.message.toString(),
+              "success": true
+            };
+            return result;
+          } else {
+            dynamic result = {"responseMessage": "", "success": true};
+
+            return result;
+          }
+        } else if (_isUnauthorized()) {
+          // Handle 401/403 with retry
+          await _handleUnauthorizedAndRetry<dynamic>(
+            apiCall: () => fetchLanguageList(),
+            methodName: 'changeLanguage',
+          );
         }
-      } else if (_isUnauthorized()) {
-        // Handle 401/403 with retry
-        await _handleUnauthorizedAndRetry<dynamic>(
-          apiCall: () => fetchLanguageList(),
-          methodName: 'changeLanguage',
-        );
-      }
-      return false;
+        return false;
       } else {
         homeController.isDisplayInternetConnection.value = true;
       }
@@ -2352,97 +2375,98 @@ class ApiController extends GetxController {
 
   checkAppVersionUpdate() async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
-        var request = <String, String>{};
-        Map<String, String> header = {};
-        var response = await ApiServiceInterceptor.getDecryptLambdaCall(
-          url: AppApi().appVersionApiUrl,
-          request: request,
-          headers: header,
-        );
-        if (homeController.statusCode.value == 200) {
-          var decodeString = jsonDecode(response);
-          ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(
-            decodeString,
-          );
+      if (!await checkInternetStatus()) {
+        return false;
+      }
 
-          if (apiBaseResponse.statusCode == 209) {
-            if (apiBaseResponse.data != null) {
-              await _initPackageInfo();
-              Map<String, dynamic> customObj = {"Data": apiBaseResponse.data};
-              var convertedObjString = jsonEncode(customObj);
-              checkAppVersionListModel.value =
-                  (json.decode(convertedObjString)["Data"] as List)
-                      .map((data) => AppUpdates.fromJson(data))
-                      .toList();
-              if (checkAppVersionListModel.isNotEmpty) {
-                final update = getPlatformUpdate(checkAppVersionListModel);
-                if (update != null && update.isDisplay == true) {
-                  if (Platform.isAndroid) {
-                    androidAppCurrentVersionString.value =
-                        update.currentVersion.toString();
-                    isAndroidForceUpdate.value = update.forceUpdate;
-                    isAndroidDisplay.value = update.isDisplay;
-                    if (getExtendedVersionNumber(
-                            packageInfo.value.version.toString()) ==
-                        getExtendedVersionNumber(
-                            androidAppCurrentVersionString.value.toString())) {
-                      return false;
-                    } else if (getExtendedVersionNumber(
-                            packageInfo.value.version.toString()) >
-                        getExtendedVersionNumber(
-                            androidAppCurrentVersionString.value.toString())) {
-                      return false;
-                    } else if (getExtendedVersionNumber(
-                            packageInfo.value.version.toString()) >
-                        getExtendedVersionNumber(
-                            androidAppCurrentVersionString.value.toString())) {
-                      return true;
-                    } else {
-                      if (isAndroidDisplay.value == true) {
-                        showForceUpdateDialog(update);
-                        return true;
-                      } else {
-                        return false;
-                      }
-                    }
-                  } else if (Platform.isIOS) {
-                    iosAppCurrentVersionString.value = update.currentVersion;
-                    isIosForceUpdate.value = update.forceUpdate;
-                    isiOSDisplay.value = update.isDisplay;
-                    if (getExtendedVersionNumber(
-                            packageInfo.value.version.toString()) ==
-                        getExtendedVersionNumber(
-                            iosAppCurrentVersionString.value.toString())) {
-                      return false;
-                    } else if (getExtendedVersionNumber(
-                            packageInfo.value.version.toString()) >
-                        getExtendedVersionNumber(
-                            iosAppCurrentVersionString.value.toString())) {
-                      return false;
-                    } else if (getExtendedVersionNumber(
-                            packageInfo.value.version.toString()) >
-                        getExtendedVersionNumber(
-                            iosAppCurrentVersionString.value.toString())) {
-                      return false;
-                    } else {
-                      if (isiOSDisplay.value == true) {
-                        showForceUpdateDialog(update);
-                        return true;
-                      } else {
-                        return false;
-                      }
-                    }
-                  } else {
-                    return false;
-                  }
-                }
-              }
-            }
+      var request = <String, String>{};
+      Map<String, String> header = {};
+      var response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().appVersionApiUrl,
+        request: request,
+        headers: header,
+      );
+
+      if (homeController.statusCode.value != 200) return false;
+
+      var decodeString = jsonDecode(response);
+      ApiBaseResponse apiBaseResponse = ApiBaseResponse.fromJson(decodeString);
+
+      if (apiBaseResponse.statusCode != 209 || apiBaseResponse.data == null) {
+        return false;
+      }
+
+      await _initPackageInfo();
+
+      Map<String, dynamic> customObj = {"Data": apiBaseResponse.data};
+      var convertedObjString = jsonEncode(customObj);
+      checkAppVersionListModel.value =
+          (json.decode(convertedObjString)["Data"] as List)
+              .map((data) => AppUpdates.fromJson(data))
+              .toList();
+
+      if (checkAppVersionListModel.isEmpty) return false;
+
+      final update = getPlatformUpdate(checkAppVersionListModel);
+      if (update == null || update.isDisplay != true) return false;
+
+      // Normalize version numbers
+      final installedVersion = packageInfo.value.version.toString();
+      final latestVersion = update.currentVersion.toString();
+
+      int currentNum;
+      int latestNum;
+
+      try {
+        currentNum = getExtendedVersionNumber(installedVersion);
+        latestNum = getExtendedVersionNumber(latestVersion);
+      } catch (e) {
+        // If parsing fails, fallback to showing update if API asks to display
+        talker.error('Version parsing error: $e');
+        if (update.isDisplay == true) {
+          if (Platform.isAndroid) {
+            androidAppCurrentVersionString.value = latestVersion;
+            isAndroidForceUpdate.value = update.forceUpdate;
+            isAndroidDisplay.value = update.isDisplay;
+          } else if (Platform.isIOS) {
+            iosAppCurrentVersionString.value = latestVersion;
+            isIosForceUpdate.value = update.forceUpdate;
+            isiOSDisplay.value = update.isDisplay;
           }
+          showForceUpdateDialog(update);
+          return true;
         }
+        return false;
+      }
+
+      // Compare and act
+      if (Platform.isAndroid) {
+        androidAppCurrentVersionString.value = latestVersion;
+        isAndroidForceUpdate.value = update.forceUpdate;
+        isAndroidDisplay.value = update.isDisplay;
+
+        if (currentNum >= latestNum) return false; // up-to-date or newer
+
+        // installed < latest
+        if (isAndroidDisplay.value == true) {
+          showForceUpdateDialog(update);
+          return true;
+        }
+        return false;
+      } else if (Platform.isIOS) {
+        iosAppCurrentVersionString.value = latestVersion;
+        isIosForceUpdate.value = update.forceUpdate;
+        isiOSDisplay.value = update.isDisplay;
+
+        if (currentNum >= latestNum) return false;
+
+        if (isiOSDisplay.value == true) {
+          showForceUpdateDialog(update);
+          return true;
+        }
+        return false;
       } else {
-        homeController.isDisplayInternetConnection.value = true;
+        return false;
       }
     } catch (e) {
       talker.error('Exception in checkAppVersionUpdate API: $e');

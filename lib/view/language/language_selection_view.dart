@@ -4,7 +4,7 @@ import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../controller/language_controller.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utility/api_service_interceptor.dart';
+import '../../utility/common_functions.dart';
 import '../../utility/local_db.dart';
 import '../../widget/custom_button_widget.dart';
 import '../../widget/custom_no_internet_widget.dart';
@@ -25,6 +25,7 @@ class LanguageSelectionView extends GetView<LanguageSelectionViewController> {
     });
 
     return SafeArea(
+      top: false,
       child: Scaffold(
         appBar: AppBar(
           title: CustomTextWidget(
@@ -42,20 +43,21 @@ class LanguageSelectionView extends GetView<LanguageSelectionViewController> {
                 Center(
                   child: CustomNoInternetWidget(
                       onPressed: () async {
-                        if (await ApiServiceInterceptor.checkInternet()) {
-                          controller.homeController.isDisplayInternetConnection
-                              .value = false;
-                          controller.isLoading.value = true;
-                          await controller.apiController.fetchVersionsList(
-                            isUserLoggedIn: false,
-                            jwtToken: '',
-                          );
-                          await controller.fetchLanguage();
-                          controller.isLoading.value = false;
-                        } else {
-                          controller.homeController.isDisplayInternetConnection
-                              .value = true;
-                        }
+                        await checkInternetStatus(
+                          onConnected: () async {
+                            controller.homeController.isDisplayInternetConnection.value = false;
+                            controller.isLoading.value = true;
+                            await controller.apiController.fetchVersionsList(
+                              isUserLoggedIn: false,
+                              jwtToken: '',
+                            );
+                            await controller.fetchLanguage();
+                            controller.isLoading.value = false;
+                          },
+                          onNoConnection: () {
+                            controller.homeController.isDisplayInternetConnection.value = true;
+                          },
+                        );
                       },
                     ),
                 )

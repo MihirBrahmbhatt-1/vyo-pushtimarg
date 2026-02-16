@@ -10,6 +10,8 @@ import 'package:path/path.dart' as path;
 import '../../../controller/api_controller.dart';
 import '../../../controller/home_controller.dart';
 import '../../../model/media_list_response_model.dart';
+import '../../../utility/api_service_interceptor.dart';
+import '../../../utility/common_functions.dart';
 
 class ImageListViewController extends GetxController
     with WidgetsBindingObserver {
@@ -21,6 +23,8 @@ class ImageListViewController extends GetxController
 
   final RxBool isShimmerLoading = true.obs;
   RxString appBarTitle = ''.obs;
+  RxString displayInternetConnection = "".obs;
+
 
   final RxMap<String, String> _convertedImagePaths = <String, String>{}.obs;
 
@@ -40,6 +44,27 @@ class ImageListViewController extends GetxController
     super.onInit();
     appBarTitle.value = Get.arguments['title'];
     fetchMediaList();
+      fetchInternetStatus();
+
+  }
+
+    showMessage(String message) {
+    displayInternetConnection.value = message.toString();
+  }
+
+  fetchInternetStatus() async {
+    await checkInternetStatus(
+      checkInternet: ApiServiceInterceptor.checkInternetFunction,
+      showMessage: showMessage,
+      onConnected: () async {
+        homeController.isDisplayInternetConnection.value = false;
+        // isLoading.value = true;
+      },
+      onNoConnection: () {
+        // isLoading.value = false;
+        homeController.isDisplayInternetConnection.value = true;
+      },
+    );
   }
 
   fetchMediaList() async {

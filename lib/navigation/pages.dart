@@ -9,6 +9,7 @@ import '../view/forgot_password/reset_password/reset_password_view.dart';
 import '../view/home/home_view.dart';
 import '../view/language/language_selection_view.dart';
 import '../view/login/login_view.dart';
+import '../view/login/login_view_controller.dart';
 import '../view/media/audio_list/audio_list_view.dart';
 import '../view/media/audio_list/audio_list_view_controller.dart';
 import '../view/media/image_list/image_list_view.dart';
@@ -33,6 +34,9 @@ class Pages {
       name: _Paths.signin,
       page: () => LoginView(),
       transition: Transition.rightToLeft,
+      binding: BindingsBuilder(() {
+        Get.put(LoginViewController());
+      }),
       transitionDuration: const Duration(milliseconds: 200),
     ),
     GetPage(

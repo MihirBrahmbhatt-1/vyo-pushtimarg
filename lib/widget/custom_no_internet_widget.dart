@@ -7,10 +7,12 @@ import 'custom_text_widget.dart';
 
 class CustomNoInternetWidget extends StatefulWidget {
   final VoidCallback onPressed;
+  final String displayMessage;
 
   const CustomNoInternetWidget({
     super.key,
     required this.onPressed,
+    this.displayMessage = '',
   });
 
   @override
@@ -34,13 +36,13 @@ class _CustomNoInternetWidgetState extends State<CustomNoInternetWidget> {
             padding: const EdgeInsets.only(bottom: 10.0),
             child: CustomTextWidget(
               uiKey: Key('noInternetText-key'),
-              textString: noInternetConnectionString,
+              textString: widget.displayMessage.isEmpty ? noInternetConnectionString : widget.displayMessage.toString(),
               textSize: FontSize().regular,
               isFontBold: false,
               fontColor: AppColors.black,
               isFontUnderline: false,
-              numberOfLines: 1,
-              textCenter: false,
+              numberOfLines: 10,
+              textCenter: true,
             ),
           ),
           CustomElevatedButton(

@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
-import '../../utility/api_service_interceptor.dart';
+import '../../utility/common_functions.dart';
 import '../../widget/custom_alert_widget.dart';
 import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_widget.dart';
@@ -17,104 +17,114 @@ class PreferredLanguageSettingsView extends StatelessWidget {
     return GetBuilder<PreferredLanguageSettingsViewController>(
       init: PreferredLanguageSettingsViewController(),
       builder: (controller) {
-        return Scaffold(
-          appBar: AppBar(
-            foregroundColor: AppColors.white,
-            backgroundColor: AppColors.primaryColor,
-            centerTitle: true,
-            title: CustomTextWidget(
-              textString:
-                  DynamicAppLocalizations.of(Get.context!).t("change_language"),
-              textSize: FontSize().appBar,
-              fontColor: AppColors.white,
-              isFontBold: false,
+        return SafeArea(
+          top: false,
+          child: Scaffold(
+            appBar: AppBar(
+              foregroundColor: AppColors.white,
+              backgroundColor: AppColors.primaryColor,
+              centerTitle: true,
+              title: CustomTextWidget(
+                textString:
+                    DynamicAppLocalizations.of(Get.context!).t("change_language"),
+                textSize: FontSize().appBar,
+                fontColor: AppColors.white,
+                isFontBold: false,
+              ),
             ),
-          ),
-          body: Obx(
-            () => controller.homeController.isDisplayInternetConnection.value ?
-                Center(
-                  child: CustomNoInternetWidget(
-                      onPressed: () async {
-                        if (await ApiServiceInterceptor.checkInternet()) {
-                          controller.homeController.isDisplayInternetConnection
-                              .value = false;
-                              controller.fetchLanguage();
-                        } else {
-                          controller.homeController.isDisplayInternetConnection
-                              .value = true;
-                        }
-                      },
-                    ),
-                )
-                 : controller.isLoading.value
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primaryColor,
+            body: Obx(
+              () => controller.homeController.isDisplayInternetConnection.value ?
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: CustomNoInternetWidget(
+                        displayMessage: controller.displayInternetConnection.isEmpty
+                        ? ""
+                        : controller.displayInternetConnection.value,
+                          onPressed: () async {
+                            await checkInternetStatus(
+                              onConnected: () async {
+                                controller.homeController.isDisplayInternetConnection.value = false;
+                                controller.fetchLanguage();
+                              },
+                              onNoConnection: () {
+                                controller.homeController.isDisplayInternetConnection.value = true;
+                              },
+                            );
+                          },
+                        ),
                     ),
                   )
-                : controller.languageListData.isEmpty
-                    ? Center(
-                        child: CustomTextWidget(
-                          textString: DynamicAppLocalizations.of(Get.context!)
-                              .t("no_languages_available"),
-                          textSize: FontSize().regular,
-                          fontColor: AppColors.grey200,
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 10.0, horizontal: 10.0),
-                        itemCount: controller.languageListData.length,
-                        itemBuilder: (context, index) {
-                          final language = controller.languageListData[index];
-                          final isSelected =
-                              controller.selectedLanguageId.value ==
-                                  language.id.toString();
-
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 8.0, horizontal: 5.0),
-                            child: Card(
-                              elevation: isSelected ? 2 : 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(borderRadius),
-                                side: BorderSide(
-                                  color: isSelected
-                                      ? AppColors.primaryColor
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
-                              ),
-                              child: ListTile(
-                                onTap: () {
-                                  if (!isSelected) {
-                                    _showConfirmationDialog(
-                                        context,
-                                        controller,
-                                        language.id.toString(),
-                                        language.languageName ?? '');
-                                  }
-                                },
-                                title: CustomTextWidget(
-                                  textString: language.languageName ?? '',
-                                  textSize: FontSize().regular,
-                                  fontColor: isSelected
-                                      ? AppColors.primaryColor
-                                      : AppColors.black,
-                                  isFontBold: isSelected,
-                                ),
-                                trailing: isSelected
-                                    ? const Icon(
-                                        Icons.check_circle,
-                                        color: AppColors.primaryColor,
-                                        size: 24,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                          );
-                        },
+                   : controller.isLoading.value
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryColor,
                       ),
+                    )
+                  : controller.languageListData.isEmpty
+                      ? Center(
+                          child: CustomTextWidget(
+                            textString: DynamicAppLocalizations.of(Get.context!)
+                                .t("no_languages_available"),
+                            textSize: FontSize().regular,
+                            fontColor: AppColors.grey200,
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 10.0),
+                          itemCount: controller.languageListData.length,
+                          itemBuilder: (context, index) {
+                            final language = controller.languageListData[index];
+                            final isSelected =
+                                controller.selectedLanguageId.value ==
+                                    language.id.toString();
+          
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 5.0),
+                              child: Card(
+                                elevation: isSelected ? 2 : 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(borderRadius),
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? AppColors.primaryColor
+                                        : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: ListTile(
+                                  onTap: () {
+                                    if (!isSelected) {
+                                      _showConfirmationDialog(
+                                          context,
+                                          controller,
+                                          language.id.toString(),
+                                          language.languageName ?? '');
+                                    }
+                                  },
+                                  title: CustomTextWidget(
+                                    textString: language.languageName ?? '',
+                                    textSize: FontSize().regular,
+                                    fontColor: isSelected
+                                        ? AppColors.primaryColor
+                                        : AppColors.black,
+                                    isFontBold: isSelected,
+                                  ),
+                                  trailing: isSelected
+                                      ? const Icon(
+                                          Icons.check_circle,
+                                          color: AppColors.primaryColor,
+                                          size: 24,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+            ),
           ),
         );
       },

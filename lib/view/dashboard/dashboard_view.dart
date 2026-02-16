@@ -17,7 +17,6 @@ import '../../const/constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../model/dashboard_image_slider_response_model.dart';
 import '../../navigation/pages.dart';
-import '../../utility/api_service_interceptor.dart';
 import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import '../media/image_list/image_preview_view.dart';
@@ -36,21 +35,17 @@ class DashboardView extends GetView<DashboardViewController> {
       top: false,
       child: Scaffold(
           body: Obx(
-            () => controller.homeController.isDisplayInternetConnection.value
-                ? CustomNoInternetWidget(
-                    onPressed: () async {
-                      if (await ApiServiceInterceptor.checkInternet()) {
-                      print('Btn click');
-                        controller.homeController.isDisplayInternetConnection
-                            .value = false;
-
-                        controller.refreshDashboard();
-                      } else {
-                        controller.homeController.isDisplayInternetConnection
-                            .value = true;
-                      }
-                    },
-                  )
+            () => controller.homeController.isDisplayInternetConnection.value ?
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: CustomNoInternetWidget(
+                    displayMessage: controller.displayInternetConnection.isEmpty ? "" : controller.displayInternetConnection.value,
+                  
+                      onPressed: () async {
+                         await controller.refreshDashboard();
+                      },
+                    ),
+                )
                 : controller.isLoading.value
                     ? Center(
                         child:

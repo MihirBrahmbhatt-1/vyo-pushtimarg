@@ -107,7 +107,7 @@ class CustomAlertWidget {
             children: [
               if (showCancelButton)
                 Padding(
-                  padding: const EdgeInsets.only(top: 12.0, bottom: 14.0),
+                  padding: const EdgeInsets.only(bottom: 12.0),
                   child: CustomTextButton(
                     title: cancelButtonText ?? 'Cancel',
                     width: 120,

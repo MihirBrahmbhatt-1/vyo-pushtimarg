@@ -12,7 +12,7 @@ import '../controller/api_controller.dart';
 import '../controller/home_controller.dart';
 import '../localization/dynamic_app_localizations.dart';
 import '../navigation/pages.dart';
-import '../utility/api_service_interceptor.dart';
+import '../utility/common_functions.dart';
 import '../view/dashboard/dashboard_view_controller.dart';
 import 'custom_alert_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -100,14 +100,16 @@ class AppDrawer extends StatelessWidget {
               ),
               titleKey: "seva_pranalika_title",
               onTap: () async {
-                if (await ApiServiceInterceptor.checkInternet()) {
-                  Get.back();
-                  dashboardViewController.displaySevaPranalikaAlert(
-                      false, false);
-                } else {
-                  Get.back();
-                  homeController.isDisplayInternetConnection.value = true;
-                }
+                await checkInternetStatus(
+                  onConnected: () async {
+                    Get.back();
+                    dashboardViewController.displaySevaPranalikaAlert(false, false);
+                  },
+                  onNoConnection: () {
+                    Get.back();
+                    homeController.isDisplayInternetConnection.value = true;
+                  },
+                );
               },
             ),
 

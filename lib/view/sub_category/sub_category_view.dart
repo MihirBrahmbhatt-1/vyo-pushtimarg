@@ -5,6 +5,8 @@ import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../navigation/pages.dart';
+import '../../utility/common_functions.dart';
+import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import 'sub_category_view_controller.dart';
 
@@ -37,7 +39,26 @@ class SubCategoryView extends GetView<SubCategoryViewController> {
                 fontStyle: FontStyle.normal,
               ),
             ),
-            body: SingleChildScrollView(
+            body: controller.homeController.isDisplayInternetConnection.value ?
+                Center(
+                  child: CustomNoInternetWidget(
+                      displayMessage: controller.displayInternetConnection.isEmpty
+                      ? ""
+                      : controller.displayInternetConnection.value,
+                      onPressed: () async {
+                        await checkInternetStatus(
+                          onConnected: () async {
+                            controller.homeController.isDisplayInternetConnection.value = false;
+                            // controller.fetchUserDetails();
+                          },
+                          onNoConnection: () {
+                            controller.homeController.isDisplayInternetConnection.value = true;
+                          },
+                        );
+                      },
+                    ),
+                )
+                 :SingleChildScrollView(
               child: SizedBox(
                 height: Get.height * 0.90,
                 child: controller.subCategory.isEmpty

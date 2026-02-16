@@ -12,7 +12,7 @@ import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../navigation/pages.dart';
-import '../../utility/api_service_interceptor.dart';
+import '../../utility/common_functions.dart';
 import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import '../media/video_list/unified_video_player_view.dart';
@@ -31,12 +31,14 @@ class HabitView extends GetView<HabitViewController> {
       controller.homeController.isDisplayInternetConnection.value
                 ? CustomNoInternetWidget(
                     onPressed: () async {
-                      if (await ApiServiceInterceptor.checkInternet()) {
-                        controller.refreshPushtiPractices();
-                      } else {
-                        controller.homeController.isDisplayInternetConnection
-                            .value = true;
-                      }
+                      await checkInternetStatus(
+                        onConnected: () async {
+                          controller.refreshPushtiPractices();
+                        },
+                        onNoConnection: () {
+                          controller.homeController.isDisplayInternetConnection.value = true;
+                        },
+                      );
                     },
                   ) : controller.isLoading.value ?
         const Center(child: CircularProgressIndicator()) :

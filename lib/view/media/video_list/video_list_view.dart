@@ -5,6 +5,8 @@ import 'package:shimmer/shimmer.dart';
 import '../../../const/app_color.dart';
 import '../../../const/app_constant.dart';
 import '../../../localization/dynamic_app_localizations.dart';
+import '../../../utility/common_functions.dart';
+import '../../../widget/custom_no_internet_widget.dart';
 import '../../../widget/custom_text_widget.dart';
 import 'unified_video_player_view.dart';
 import 'video_list_view_controller.dart';
@@ -39,6 +41,30 @@ class VideoListView extends GetView<VideoListViewController> {
           backgroundColor: AppColors.primaryColor,
           onRefresh: controller.refreshMediaList,
           child: Obx(() {
+            if(controller.homeController.isDisplayInternetConnection.value) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: CustomNoInternetWidget(
+                                        displayMessage: controller.displayInternetConnection.isEmpty
+                        ? ""
+                        : controller.displayInternetConnection.value,
+                        onPressed: () async {
+                          await checkInternetStatus(
+                            onConnected: () async {
+                              controller.homeController.isDisplayInternetConnection.value = false;
+                              // controller.fetchUserDetails();
+                              await controller.refreshMediaList();
+                            },
+                            onNoConnection: () {
+                              controller.homeController.isDisplayInternetConnection.value = true;
+                            },
+                          );
+                        },
+                      ),
+                  ),
+                );
+              }
             if (controller.isShimmerLoading.value) {
               return _buildShimmerGrid();
             } else if (controller.mediaListData.isEmpty) {

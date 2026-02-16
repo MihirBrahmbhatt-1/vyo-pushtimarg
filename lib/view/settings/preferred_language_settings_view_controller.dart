@@ -3,6 +3,8 @@ import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../model/language_model.dart';
+import '../../utility/api_service_interceptor.dart';
+import '../../utility/common_functions.dart';
 import '../../widget/custom_alert_widget.dart';
 import '../home/home_view.dart';
 
@@ -14,6 +16,9 @@ class PreferredLanguageSettingsViewController extends GetxController {
   RxBool isLoading = false.obs;
   RxString selectedLanguageId = ''.obs;
 
+  RxString displayInternetConnection = "".obs;
+
+
   @override
   void onInit() {
     super.onInit();
@@ -21,6 +26,27 @@ class PreferredLanguageSettingsViewController extends GetxController {
     homeController = Get.find<HomeController>();
     selectedLanguageId.value = homeController.selectedLanguageId.value;
     fetchLanguage();
+    fetchInternetStatus();
+  }
+
+  showMessage(String message) {
+    displayInternetConnection.value = message.toString();
+  }
+
+  fetchInternetStatus() async {
+    await checkInternetStatus(
+      checkInternet: ApiServiceInterceptor.checkInternetFunction,
+      showMessage: showMessage,
+      onConnected: () async {
+        homeController.isDisplayInternetConnection.value = false;
+        // isLoading.value = true;
+        fetchLanguage();
+      },
+      onNoConnection: () {
+        // isLoading.value = false;
+        homeController.isDisplayInternetConnection.value = true;
+      },
+    );
   }
 
   Future<void> fetchLanguage() async {

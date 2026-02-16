@@ -8,6 +8,7 @@ import '../../controller/api_controller.dart';
 import '../../controller/home_controller.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../utility/api_service_interceptor.dart';
+import '../../utility/common_functions.dart';
 import '../../widget/custom_alert_widget.dart';
 
 class UserDetailsViewController extends GetxController
@@ -29,6 +30,9 @@ class UserDetailsViewController extends GetxController
   RxString selectedStateId = "".obs;
   RxString selectedStateName = "".obs;
 
+  RxString displayInternetConnection = "".obs;
+
+
   RxString selectedCityId = "".obs;
   RxString selectedCityName = "".obs;
   RxString dobString = "".obs;
@@ -49,6 +53,28 @@ class UserDetailsViewController extends GetxController
     WidgetsBinding.instance.addObserver(this);
     fetchUserDetails();
     super.onInit();
+     fetchInternetStatus();
+
+  }
+
+    showMessage(String message) {
+    displayInternetConnection.value = message.toString();
+  }
+
+  fetchInternetStatus() async {
+    await checkInternetStatus(
+      checkInternet: ApiServiceInterceptor.checkInternetFunction,
+      showMessage: showMessage,
+      onConnected: () async {
+        homeController.isDisplayInternetConnection.value = false;
+        // isLoading.value = true;
+        fetchUserDetails();
+      },
+      onNoConnection: () {
+        // isLoading.value = false;
+        homeController.isDisplayInternetConnection.value = true;
+      },
+    );
   }
 
   Future<void> fetchUserDetails() async {
@@ -164,46 +190,44 @@ class UserDetailsViewController extends GetxController
 
   updateUserDetails() async {
     try {
-      if (await ApiServiceInterceptor.checkInternet()) {
-        homeController.isDisplayInternetConnection.value = false;
+      await checkInternetStatus(
+        onConnected: () async {
+          homeController.isDisplayInternetConnection.value = false;
 
-        isFetchingData.value = true;
-        dynamic apiResponse = await apiController.updateUserProfile(
-          userId: homeController.customerIdString.value,
-          name: nameController.value.text,
-          email: emailTextController.value.text,
-          phoneNumber: homeController.userPhoneNumber.value,
-          countryCode: homeController.countryCode.value,
-          countryId: int.parse(selectedCountryId.value),
-          stateId: int.parse(selectedStateId.value),
-          cityId: int.parse(selectedCityId.value),
-          gender: gender.value,
-          languageId: homeController.selectedLanguageId.value,
-          birthDate: homeController.userDOB.toString(),
-          jwtToken: homeController.jwtToken.value,
-        );
-        if (apiResponse != null) {
-          if (apiResponse['success'] == true) {
-            CustomAlertWidget().infoAlertDialog(
-              displayText: apiResponse['message'],
-              buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
-              statusType: true,
-            );
-            isFetchingData.value = false;
-          } else {
-            isFetchingData.value = false;
+          isFetchingData.value = true;
+          dynamic apiResponse = await apiController.updateUserProfile(
+            userId: homeController.customerIdString.value,
+            name: nameController.value.text,
+            email: emailTextController.value.text,
+            phoneNumber: homeController.userPhoneNumber.value,
+            countryCode: homeController.countryCode.value,
+            countryId: int.parse(selectedCountryId.value),
+            stateId: int.parse(selectedStateId.value),
+            cityId: int.parse(selectedCityId.value),
+            gender: gender.value,
+            languageId: homeController.selectedLanguageId.value,
+            birthDate: homeController.userDOB.toString(),
+            jwtToken: homeController.jwtToken.value,
+          );
+          if (apiResponse != null) {
+            if (apiResponse['success'] == true) {
+              CustomAlertWidget().infoAlertDialog(
+                displayText: apiResponse['message'],
+                buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+                statusType: true,
+              );
+              isFetchingData.value = false;
+            } else {
+              isFetchingData.value = false;
+            }
           }
-        }
-      } else {
-        homeController.isDisplayInternetConnection.value = true;
-      }
+        },
+        onNoConnection: () {
+          homeController.isDisplayInternetConnection.value = true;
+        },
+      );
     } catch (e) {
-      // CustomAlertWidget().simpleAlertDialog(title: DynamicAppLocalizations.of(Get.context!).t("no_internet_connection"), description: '',
-      //     canPop: false,
-      //     buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
-      //     onButtonTap: () {
-      //       Get.back();
-      //     });
+      // ignore
     }
   }
 }

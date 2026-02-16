@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import '../../const/constant.dart';
 import '../../const/logger.dart';
 import '../../localization/dynamic_app_localizations.dart';
-import '../../utility/api_service_interceptor.dart';
+import '../../utility/common_functions.dart';
 import '../../widget/country_phone_input.dart';
 import '../../widget/custom_elevated_button_widget.dart';
 import '../../widget/custom_no_internet_widget.dart';
@@ -29,19 +29,20 @@ class SignUpView extends GetView<SignUpViewController> {
                 Center(
                   child: CustomNoInternetWidget(
                       onPressed: () async {
-                        if (await ApiServiceInterceptor.checkInternet()) {
-                          controller.homeController.isDisplayInternetConnection
-                              .value = false;
-                          controller.isLoading.value = true;
-                          await controller.apiController.fetchVersionsList(
-                            isUserLoggedIn: false,
-                            jwtToken: '',
-                          );
-                          controller.isLoading.value = false;
-                        } else {
-                          controller.homeController.isDisplayInternetConnection
-                              .value = true;
-                        }
+                        await checkInternetStatus(
+                          onConnected: () async {
+                            controller.homeController.isDisplayInternetConnection.value = false;
+                            controller.isLoading.value = true;
+                            await controller.apiController.fetchVersionsList(
+                              isUserLoggedIn: false,
+                              jwtToken: '',
+                            );
+                            controller.isLoading.value = false;
+                          },
+                          onNoConnection: () {
+                            controller.homeController.isDisplayInternetConnection.value = true;
+                          },
+                        );
                       },
                     ),
                 )

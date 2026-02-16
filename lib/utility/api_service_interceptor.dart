@@ -3,15 +3,17 @@ import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 import '../const/logger.dart';
 import '../controller/home_controller.dart';
-import '../l10n/app_localizations.dart';
 import '../localization/dynamic_app_localizations.dart';
 import '../utility/encrypt_decrypt.dart';
 import '../widget/common_widget.dart';
 import '../widget/custom_alert_widget.dart';
 import 'api_base_response.dart';
+
+enum InternetStatus { noNetwork, noInternet, connected }
 
 class ApiServiceInterceptor {
   static Dio dio = Dio();
@@ -31,6 +33,38 @@ class ApiServiceInterceptor {
       }
     } catch (e) {
       return false;
+    }
+  }
+
+  static Future<Map<String, dynamic>> checkInternetFunction() async{
+    try {
+      final List<ConnectivityResult> connectivityResult = await (Connectivity().checkConnectivity());
+      if(connectivityResult.contains(ConnectivityResult.none)) {
+        return {
+          "status": InternetStatus.noNetwork,
+          "isConnected": false,
+        };
+      }
+
+      final bool hasInternet = await InternetConnection().hasInternetAccess;
+      if(!hasInternet) {
+        return {
+          "status": InternetStatus.noInternet,
+          "isConnected": false,
+        };
+      }
+
+      return {
+          "status": InternetStatus.connected,
+          "isConnected": true,
+        };
+
+
+    } catch (e) {
+      return {
+          "status": InternetStatus.noInternet,
+          "isConnected": false,
+        };
     }
   }
 
@@ -54,18 +88,18 @@ class ApiServiceInterceptor {
             );
           }
           talker.info("Options Data : ${options.uri} | ${options.data}");
-          bool isConnected = await checkInternet();
+          // bool isConnected = await checkInternet();
           // bool isToken = homeController.jwtTokenString.value.isEmpty;
           talker.info('Api Url : ${options.uri}');
-          if (!isConnected) {
-            return handler.reject(
-              DioException(
-                requestOptions: options,
-                type: DioExceptionType.unknown,
-                error: AppLocalizations.of(Get.context!)!.noInternetConnection,
-              ),
-            );
-          }
+          // if (!isConnected) {
+          //   return handler.reject(
+          //     DioException(
+          //       requestOptions: options,
+          //       type: DioExceptionType.unknown,
+          //       error: AppLocalizations.of(Get.context!)!.noInternetConnection,
+          //     ),
+          //   );
+          // }
           return handler.next(options);
         },
         onResponse: (response, handler) {
