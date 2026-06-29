@@ -16,15 +16,16 @@ class GetApiEnv {
       // } else {
       //   return 'Testing';
       // }
-      return 'Testing';
+      return 'uat';
     }
   }
 }
 
 class AppApi {
+  // late String baseUrl =
+  //     "https://u4qgts939l.execute-api.ap-south-1.amazonaws.com/${GetApiEnv().getApiEnvironment()}/api/v1/";
   late String baseUrl =
-      "https://u4qgts939l.execute-api.ap-south-1.amazonaws.com/${GetApiEnv().getApiEnvironment()}/api/v1/";
-
+      "https://p26blnl8d0.execute-api.ap-south-1.amazonaws.com/${GetApiEnv().getApiEnvironment()}/api/v1/";
 
       late String languageListApiUrl = '${baseUrl}common/language';
       late String languageLabelApiUrl = '${baseUrl}common/labels';

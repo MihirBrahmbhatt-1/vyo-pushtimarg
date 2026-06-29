@@ -1,7 +1,7 @@
 import 'package:encrypt/encrypt.dart';
 
-Key cryptKeyString = Key.fromUtf8("c7-2z8DF4]T#jUY4");
-final iv = IV.fromUtf8("M>!8Y}D==?ZXj)+x");
+Key cryptKeyString = Key.fromUtf8("kbsX-PYY.=!*-.cH");
+final iv = IV.fromUtf8("EaH#ty)b1VkJZdvp");
 
 String encryptInputParams(String inputString) {
   final encrypter = Encrypter(

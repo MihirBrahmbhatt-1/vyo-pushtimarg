@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:m_vyo_demo/widget/custom_button_widget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -27,6 +26,7 @@ import '../../utility/local_db.dart';
 import '../../widget/custom_alert_widget.dart';
 import '../../widget/custom_text_widget.dart';
 import '../../widget/user_details_popup.dart';
+import '../../widget/custom_button_widget.dart';
 
 class DashboardViewController extends GetxController
     with WidgetsBindingObserver {

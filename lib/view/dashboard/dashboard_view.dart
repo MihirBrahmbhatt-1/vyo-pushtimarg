@@ -767,6 +767,7 @@ class DashboardView extends GetView<DashboardViewController> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: HtmlWidget(htmlData,
+          buildAsync: true,
           textStyle: TextStyle(
               fontStyle: FontStyle.normal, overflow: TextOverflow.ellipsis),
           customWidgetBuilder: (dom.Element element) {
@@ -834,6 +835,7 @@ class DashboardView extends GetView<DashboardViewController> {
                 // Icon (img)
                 HtmlWidget(
                   imgHtml,
+                  buildAsync: true,
                   onLoadingBuilder: (context, element, loadingProgress) =>
                       SizedBox(
                     width: 40,
@@ -850,6 +852,7 @@ class DashboardView extends GetView<DashboardViewController> {
                 Expanded(
                   child: HtmlWidget(
                     textDivHtml,
+                    buildAsync: true,
                     textStyle: const TextStyle(fontStyle: FontStyle.normal),
                   ),
                 ),
