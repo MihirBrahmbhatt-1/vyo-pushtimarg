@@ -2,6 +2,7 @@
 
 import 'package:get/get.dart';
 
+import '../const/constant.dart';
 import '../controller/home_controller.dart';
 
 class GetApiEnv {
@@ -11,12 +12,12 @@ class GetApiEnv {
     if (isAccountForReview) {
       return 'MProduction';
     } else {
-      // if (isAppLive) {
-      //   return 'Production';
-      // } else {
-      //   return 'Testing';
-      // }
-      return 'uat';
+      if (appIsLive) {
+        return 'prod';
+      } else {
+        return 'dev';
+      }
+      // return 'prod'; // dev / uat / prod
     }
   }
 }

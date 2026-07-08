@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const bool appIsLive = false;
+const bool appIsLive = true;
 const bool isDisplayLogs = true;
 
 const double borderRadius = 4.0;
