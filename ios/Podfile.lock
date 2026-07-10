@@ -1,0 +1,51 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutter_inappwebview_ios (0.0.1):
+    - Flutter
+    - flutter_inappwebview_ios/Core (= 0.0.1)
+    - OrderedSet (~> 6.0.3)
+  - flutter_inappwebview_ios/Core (0.0.1):
+    - Flutter
+    - OrderedSet (~> 6.0.3)
+  - flutter_localization (0.0.1):
+    - Flutter
+  - heif_converter (1.0.0):
+    - Flutter
+  - OrderedSet (6.0.3)
+  - permission_handler_apple (9.3.0):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
+  - flutter_localization (from `.symlinks/plugins/flutter_localization/ios`)
+  - heif_converter (from `.symlinks/plugins/heif_converter/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+
+SPEC REPOS:
+  trunk:
+    - OrderedSet
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_inappwebview_ios:
+    :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
+  flutter_localization:
+    :path: ".symlinks/plugins/flutter_localization/ios"
+  heif_converter:
+    :path: ".symlinks/plugins/heif_converter/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
+
+SPEC CHECKSUMS:
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
+  flutter_localization: 72299fb6cb4e51cae587bd953ed0b958040b71e6
+  heif_converter: c99800312529d736276a6a75a2115b8f43a0bad1
+  OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
+  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+
+PODFILE CHECKSUM: 251cb053df7158f337c0712f2ab29f4e0fa474ce
+
+COCOAPODS: 1.16.2
