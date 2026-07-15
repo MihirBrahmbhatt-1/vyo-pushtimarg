@@ -2175,6 +2175,47 @@ class ApiController extends GetxController {
     }
   }
 
+  deleteUser({required String jwtToken}) async {
+    try {
+      if (await checkInternetStatus()) {
+        Map<String, String> request = <String, String>{};
+        Map<String, String> header = {
+          'authorization': jwtToken,
+          'Content-Type': 'application/json',
+        };
+        dynamic response = await ApiServiceInterceptor.deleteDecryptLambdaCall(
+          url: AppApi().deleteUserApiUrl,
+          request: request,
+          headers: header,
+        );
+        if (homeController.statusCode.value == 200) {
+          var encodedString = jsonDecode(response);
+          ApiBaseResponse apiBaseResponse =
+              ApiBaseResponse.fromJson(encodedString);
+          if (apiBaseResponse.statusCode == 209 || apiBaseResponse.statusCode == 200) {
+            ApiServiceInterceptor.cancelRequest();
+            await clearAppDataAndLogout();
+            CustomAlertWidget().infoAlertDialog(
+                displayText: apiBaseResponse.message.toString(),
+                buttonText: DynamicAppLocalizations.of(Get.context!).t("ok"),
+                statusType: true);
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      } else {
+        homeController.isDisplayInternetConnection.value = true;
+        return false;
+      }
+    } catch (e) {
+      talker.error('Exception in deleteUser API: $e');
+      return false;
+    }
+  }
+
   pushtiPracticesApi({
     required String languageId,
     required String jwtToken,

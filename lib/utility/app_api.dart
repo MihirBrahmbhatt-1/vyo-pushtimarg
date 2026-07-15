@@ -56,5 +56,6 @@ class AppApi {
       late String pushtiPracticesApiUrl = '${baseUrl}practice/pushtipractices';
       late String appVersionApiUrl = '${baseUrl}common/app-version';
       late String changeLanguageApiUrl = '${baseUrl}users/changelanguage';
+      late String deleteUserApiUrl = '${baseUrl}users/delete-me';
 }
 

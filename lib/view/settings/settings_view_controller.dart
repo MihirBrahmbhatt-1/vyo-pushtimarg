@@ -10,8 +10,11 @@ class SettingsViewController extends GetxController with WidgetsBindingObserver 
   HomeController homeController = Get.put(HomeController());
   ApiController apiController = Get.put(ApiController());
 
+    TextEditingController deleteAccountController = TextEditingController();
+
   RxBool isLoading = false.obs;
   RxString displayInternetConnection = "".obs;
+  RxString deleteAccountErrorText = "".obs;  
 
 @override
   void onInit() async {
@@ -49,6 +52,18 @@ class SettingsViewController extends GetxController with WidgetsBindingObserver 
       isLoading.value = false;
     } catch (e) {
       talker.error('Error in _perforLogout func: ${e.toString()}');
+    }
+  }
+
+  deleteUser() async {
+    try {
+      isLoading.value = true;
+      await apiController.deleteUser(
+        jwtToken: homeController.jwtToken.value,
+      );
+      isLoading.value = false;
+    } catch (e) {
+      talker.error('Error in deleteUser func: ${e.toString()}');
     }
   }
 }
