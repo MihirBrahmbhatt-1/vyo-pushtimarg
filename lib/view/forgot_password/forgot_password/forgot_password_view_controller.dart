@@ -22,8 +22,14 @@ class ForgotPasswordViewController extends GetxController
   RxBool isLoading = false.obs;
   RxBool isValidePhoneNumber = false.obs;
 
-  final Rx<Country> selectedCountry =
-      countries.firstWhere((c) => c.code == "IN").obs;
+  final Rx<Country> selectedCountry = const Country(
+    name: "Loading...",
+    flag: "⏳",
+    code: "",
+    dialCode: "",
+    minLength: 10,
+    maxLength: 10,
+  ).obs;
 
   @override
   void onInit() async {
@@ -31,11 +37,25 @@ class ForgotPasswordViewController extends GetxController
 
     super.onInit();
 
-    /// Listen to country change
     ever(selectedCountry, (c) {
       talker.info("COUNTRY CHANGED → ${c.name} (+${c.dialCode})");
       talker.info("FULL PHONE → ${getFullPhone()}");
     });
+    
+    ever(apiController.countryCodeList, (list) {
+      if (list.isNotEmpty && selectedCountry.value.code.isEmpty) {
+        selectedCountry.value = list.firstWhere(
+          (c) => c.code == "IN",
+          orElse: () => list.first,
+        );
+      }
+    });
+    if (apiController.countryCodeList.isNotEmpty && selectedCountry.value.code.isEmpty) {
+      selectedCountry.value = apiController.countryCodeList.firstWhere(
+        (c) => c.code == "IN",
+        orElse: () => apiController.countryCodeList.first,
+      );
+    }
 
     /// Listen to phone number change
     phoneNumberTextController.addListener(() {

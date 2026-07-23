@@ -9,6 +9,8 @@ import '../localization/dynamic_app_localizations.dart';
 import 'countries.dart';
 import 'country_picker.dart';
 import 'custom_text_widget.dart';
+import '../controller/api_controller.dart';
+import 'package:shimmer/shimmer.dart';
 
 class PhoneNumberField extends StatefulWidget {
   final Rx<Country> selectedCountry;
@@ -40,10 +42,40 @@ class PhoneNumberField extends StatefulWidget {
 
 class _PhoneNumberFieldState extends State<PhoneNumberField> {
   bool isFocused = false;
+  final ApiController apiController = Get.find<ApiController>();
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      if (apiController.isLoadingCountryCodes.value) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                height: 20,
+                width: 100,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+
       final borderColor = widget.showError.value
           ? AppColors.red
           : (isFocused ? AppColors.primaryColor : AppColors.black);

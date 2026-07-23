@@ -26,9 +26,14 @@ class SignUpViewController extends GetxController with WidgetsBindingObserver  {
 
   RxString phoneErrorMessage = "".obs;
 
-  // Country selectedCountry = countries.firstWhere((c) => c.code == "IN");
-  final Rx<Country> selectedCountry =
-    countries.firstWhere((c) => c.code == "IN").obs;
+  final Rx<Country> selectedCountry = const Country(
+    name: "Loading...",
+    flag: "⏳",
+    code: "",
+    dialCode: "",
+    minLength: 10,
+    maxLength: 10,
+  ).obs;
 
      @override
   void onInit() async {
@@ -37,6 +42,25 @@ class SignUpViewController extends GetxController with WidgetsBindingObserver  {
     super.onInit();
 
     checkForDeviceInternetConnectivity();
+    
+    ever(selectedCountry, (c) {
+      talker.info("COUNTRY CHANGED → ${c.name} (+${c.dialCode})");
+    });
+    
+    ever(apiController.countryCodeList, (list) {
+      if (list.isNotEmpty && selectedCountry.value.code.isEmpty) {
+        selectedCountry.value = list.firstWhere(
+          (c) => c.code == "IN",
+          orElse: () => list.first,
+        );
+      }
+    });
+    if (apiController.countryCodeList.isNotEmpty && selectedCountry.value.code.isEmpty) {
+      selectedCountry.value = apiController.countryCodeList.firstWhere(
+        (c) => c.code == "IN",
+        orElse: () => apiController.countryCodeList.first,
+      );
+    }
   }
 
   checkForDeviceInternetConnectivity() async {

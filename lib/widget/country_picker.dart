@@ -4,12 +4,14 @@ import 'package:get/get.dart';
 import '../const/app_color.dart';
 import '../const/app_constant.dart';
 import '../localization/dynamic_app_localizations.dart';
+import '../controller/api_controller.dart';
 import 'countries.dart';
 import 'custom_text_field_widget.dart';
 import 'custom_text_widget.dart';
 
 Future<Country?> showCountryPickerSheet(BuildContext context) async {
   TextEditingController searchCtrl = TextEditingController();
+  final apiController = Get.find<ApiController>();
 
   return showModalBottomSheet<Country>(
     context: context,
@@ -19,7 +21,7 @@ Future<Country?> showCountryPickerSheet(BuildContext context) async {
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
     builder: (_) {
-      List<Country> filtered = countries;
+      List<Country> filtered = apiController.countryCodeList.toList();
 
       return StatefulBuilder(
         builder: (context, setState) {
@@ -61,7 +63,7 @@ Future<Country?> showCountryPickerSheet(BuildContext context) async {
 
                       onChanged: (value) {
                         setState(() {
-                          filtered = countries.where((c) {
+                          filtered = apiController.countryCodeList.where((c) {
                             return c.name.toLowerCase().contains(
                                   value.toLowerCase(),
                                 ) ||

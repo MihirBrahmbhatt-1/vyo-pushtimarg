@@ -33,6 +33,7 @@ import '../utility/common_functions.dart';
 import '../utility/local_db.dart';
 import '../widget/common_widget.dart';
 import '../widget/custom_alert_widget.dart';
+import '../widget/countries.dart';
 import 'dynamic_locale_controller.dart';
 import 'home_controller.dart';
 
@@ -48,6 +49,8 @@ class ApiController extends GetxController {
   final dailySevaPranalikaResponseModel =
       Rxn<DailySevaPranalikaResponseModel>();
   RxList<LanguageModel> languageListData = <LanguageModel>[].obs;
+  RxList<Country> countryCodeList = <Country>[].obs;
+  RxBool isLoadingCountryCodes = false.obs;
   RxList<CountryListData> countryListData = <CountryListData>[].obs;
   RxList<StateListData> stateListData = <StateListData>[].obs;
   RxList<CityListData> cityListData = <CityListData>[].obs;
@@ -76,6 +79,7 @@ class ApiController extends GetxController {
   RxBool isAndroidDisplay = false.obs;
   RxBool isIosForceUpdate = false.obs;
   RxBool isiOSDisplay = false.obs;
+  RxString changeLanguageId = ''.obs;
 
   Rx<PackageInfo> packageInfo = PackageInfo(
     appName: "",
@@ -86,6 +90,13 @@ class ApiController extends GetxController {
 
   RxBool isRefreshingToken = false.obs;
   final List<Completer<bool>> _pendingRequests = [];
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchCountryCodes();
+  }
+
   Future<T?> _handleUnauthorizedAndRetry<T>({
     required Future<T> Function() apiCall,
     required String methodName,
@@ -2125,6 +2136,7 @@ class ApiController extends GetxController {
   logoutUser({required String deviceId, required String jwtToken}) async {
     try {
       if (await checkInternetStatus()) {
+        await checkDeviceConfig();
         Map<String, String> request = <String, String>{};
         request["device_id"] = deviceId;
         Map<String, String> header = {
@@ -2192,7 +2204,8 @@ class ApiController extends GetxController {
           var encodedString = jsonDecode(response);
           ApiBaseResponse apiBaseResponse =
               ApiBaseResponse.fromJson(encodedString);
-          if (apiBaseResponse.statusCode == 209 || apiBaseResponse.statusCode == 200) {
+          if (apiBaseResponse.statusCode == 209 ||
+              apiBaseResponse.statusCode == 200) {
             ApiServiceInterceptor.cancelRequest();
             await clearAppDataAndLogout();
             CustomAlertWidget().infoAlertDialog(
@@ -2512,6 +2525,44 @@ class ApiController extends GetxController {
     } catch (e) {
       talker.error('Exception in checkAppVersionUpdate API: $e');
       return false;
+    }
+  }
+
+  Future<void> fetchCountryCodes() async {
+    try {
+      isLoadingCountryCodes.value = true;
+
+      var request = <String, String>{};
+      Map<String, String> header = {'authorization': ""};
+      final response = await ApiServiceInterceptor.getDecryptLambdaCall(
+        url: AppApi().countryCodesApiUrl,
+        request: request,
+        headers: header,
+      );
+
+      if (homeController.statusCode.value == 200) {
+        try {
+          var convertedResponse = json.decode(response);
+          ApiBaseResponse apiBaseResponse =
+              ApiBaseResponse.fromJson(convertedResponse);
+
+          if (apiBaseResponse.statusCode == 209 &&
+              apiBaseResponse.data != null) {
+            countryCodeList.value = (apiBaseResponse.data as List)
+                .map((data) => Country.fromJson(data))
+                .toList();
+          } else {
+            countryCodeList.value = [];
+          }
+        } catch (e) {
+          talker.error('Error decoding fetch country codes api: $e');
+          countryCodeList.value = [];
+        }
+      }
+    } catch (e) {
+      talker.error('Error fetching country codes: $e');
+    } finally {
+      isLoadingCountryCodes.value = false;
     }
   }
 }

@@ -72,8 +72,8 @@ class LoginView extends GetView<LoginViewController> {
                               children: [
                                 Image.asset(
                                   AppIcons.appLogo,
-                                  height: 120,
-                                  width: 120,
+                                  height: 140,
+                                  width: 140,
                                 ),
                                 const SizedBox(height: 40),
                               ],
