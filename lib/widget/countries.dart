@@ -2003,6 +2003,17 @@ class Country {
     this.regionCode = "",
   });
 
+  factory Country.fromJson(Map<String, dynamic> json) {
+    return Country(
+      name: json['name']?.toString() ?? '',
+      flag: json['flag']?.toString() ?? '',
+      dialCode: json['dial_code']?.toString() ?? '',
+      code: json['abbreviation']?.toString() ?? '',
+      minLength: json['min_length'] ?? 10,
+      maxLength: json['max_length'] ?? 10,
+    );
+  }
+
   String get fullCountryCode {
     return dialCode + regionCode;
   }

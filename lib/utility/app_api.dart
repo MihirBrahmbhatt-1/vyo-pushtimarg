@@ -57,5 +57,6 @@ class AppApi {
       late String appVersionApiUrl = '${baseUrl}common/app-version';
       late String changeLanguageApiUrl = '${baseUrl}users/changelanguage';
       late String deleteUserApiUrl = '${baseUrl}users/delete-me';
+      late String countryCodesApiUrl = '${baseUrl}common/country-codes';
 }
 

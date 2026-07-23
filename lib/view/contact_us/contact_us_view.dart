@@ -70,7 +70,7 @@ class ContactUsView extends GetView<ContactUsViewController> {
                    :  SingleChildScrollView(
               child: Form(
                 key: controller.contactUsFormKey.value,
-                 autovalidateMode: AutovalidateMode.onUserInteraction,
+                 autovalidateMode: controller.isFormSubmitted.value ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
                 child: Column(
                   children: [
                     Padding(
@@ -158,7 +158,7 @@ class ContactUsView extends GetView<ContactUsViewController> {
                               enabledColor: AppColors.grey400,
                               cursorColor: AppColors.primaryColor,
                               autoValidateMode:
-                                  AutovalidateMode.onUserInteraction,
+                                  controller.isFormSubmitted.value ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
                               validator: (value) {
                                 if (value!.trim().isEmpty) {
                                   return DynamicAppLocalizations.of(context)
@@ -180,16 +180,13 @@ class ContactUsView extends GetView<ContactUsViewController> {
                               enabledColor: AppColors.grey400,
                               cursorColor: AppColors.primaryColor,
                               autoValidateMode:
-                                  AutovalidateMode.onUserInteraction,
+                                  controller.isFormSubmitted.value ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
                               validator: (v) {
-                                if (v == null || v.trim().isEmpty) {
-                                  return Validators().dynamicIsRequiredValidator(
-                                      DynamicAppLocalizations.of(context)
-                                          .t("email"));
-                                }
-                                if (!GetUtils.isEmail(v.trim())) {
-                                  return DynamicAppLocalizations.of(context)
-                                      .t("enter_valid_email");
+                                if (v != null && v.trim().isNotEmpty) {
+                                  if (!GetUtils.isEmail(v.trim())) {
+                                    return DynamicAppLocalizations.of(context)
+                                        .t("enter_valid_email");
+                                  }
                                 }
                                 return null;
                               },
@@ -215,7 +212,7 @@ class ContactUsView extends GetView<ContactUsViewController> {
                               enabledColor: AppColors.grey400,
                               cursorColor: AppColors.primaryColor,
                               autoValidateMode:
-                                  AutovalidateMode.onUserInteraction,
+                                  controller.isFormSubmitted.value ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
                               onChanged: (value) {},
                               validator: (value) {
                                 if (value!.trim().isEmpty) {
@@ -244,6 +241,7 @@ class ContactUsView extends GetView<ContactUsViewController> {
                                     .t("submit"),
                                 width: Get.width * 0.5,
                                 onPressed: () async {
+                                  controller.isFormSubmitted.value = true;
                                   controller.validatePhone();
                                   if (!controller.isLoading.value &&
                                       controller
