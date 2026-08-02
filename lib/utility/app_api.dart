@@ -15,7 +15,7 @@ class GetApiEnv {
       if (appIsLive) {
         return 'prod';
       } else {
-        return 'dev';
+        return 'uat';
       }
       // return 'prod'; // dev / uat / prod
     }

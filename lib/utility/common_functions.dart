@@ -17,7 +17,6 @@ import 'api_service_interceptor.dart';
 import 'local_db.dart';
 
 clearAppDataAndLogout() async {
-  // HomeController homeController = Get.put(HomeController());
   ApiServiceInterceptor.isLoggingOut = true;
   ApiServiceInterceptor.cancelRequest();
   await LocalDB().setIsLoggedIn(false);
@@ -35,10 +34,12 @@ clearAppDataAndLogout() async {
   await LocalDB().setUserPassword('');
   await LocalDB().removeJwtToken();
   await LocalDB().removeCustomerId();
+  await LocalDB().removeUserPhoneNumber();
+  await LocalDB().removeCountryCode();
+  await LocalDB().removeUserFullName();
+  await LocalDB().setUserEmail('');
   await LocalDB().reloadSharedPref();
-  // homeController.jwtToken.value = '';
-  // homeController.isLoggedIn.value = false;
-  // homeController.selectedIndex.value = 0;
+  
   // Get.offAllNamed(Routes.signin);
   Get.offAll(() => LoginView());
 

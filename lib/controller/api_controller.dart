@@ -755,6 +755,9 @@ class ApiController extends GetxController {
           }
         } else if (homeController.statusCode.value == 401 ||
             homeController.statusCode.value == 403) {
+          bool isLoggedIn = await LocalDB().getIsLoggedIn() ?? false;
+          if (!isLoggedIn) return false;
+
           bool isSuccess = await userLoginApi(
             countryCode: homeController.countryCode.value,
             phoneNumber: homeController.userPhoneNumber.value,
@@ -953,6 +956,9 @@ class ApiController extends GetxController {
   userLoginApi(
       {required countryCode, required phoneNumber, required password}) async {
     try {
+      if (password.toString().isEmpty || ApiServiceInterceptor.isLoggingOut) {
+        return false;
+      }
       if (await checkInternetStatus()) {
         Map<String, String> body = <String, String>{};
         body['mobile_no'] = phoneNumber.toString();
@@ -2393,6 +2399,9 @@ class ApiController extends GetxController {
 
   reAuthenticateUser() async {
     try {
+      bool isLoggedIn = await LocalDB().getIsLoggedIn() ?? false;
+      if (!isLoggedIn) return false;
+
       bool isSuccess = await userLoginApi(
         countryCode: homeController.countryCode.value,
         phoneNumber: homeController.userPhoneNumber.value,
