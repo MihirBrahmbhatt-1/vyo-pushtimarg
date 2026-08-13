@@ -123,7 +123,7 @@ class _UnifiedVideoPlayerState extends State<UnifiedVideoPlayer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.transparent,
+      backgroundColor: AppColors.black,
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
@@ -229,23 +229,30 @@ class _UnifiedVideoPlayerState extends State<UnifiedVideoPlayer> {
   }
 
   Widget _blurWrapper({required Widget child}) {
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-        child: Container(
-          color: AppColors.black.withValues(alpha: 0.3),
-          alignment: Alignment.center,
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: child,
+    return RepaintBoundary(
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(
+            width: double.infinity,
+            height: double.infinity,
+            color: AppColors.black.withValues(alpha: 0.3),
+            alignment: Alignment.center,
+            child: RepaintBoundary(
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: child,
+                ),
+              ),
             ),
           ),
         ),
       ),
     );
   }
+ 
 
   // Widget _loadingIndicator() {
   //   return Positioned(

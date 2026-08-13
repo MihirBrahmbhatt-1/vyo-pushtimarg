@@ -4,7 +4,7 @@ xmlns:tools="http://schemas.android.com/tools"
 
   <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="VYO Worlds"
+        android:label="VYO World"
         android:name=".MyApplication"
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher"
