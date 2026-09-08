@@ -156,7 +156,7 @@ class CommonWidget {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(borderRadius),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+            contentPadding: const EdgeInsets.only(right: 10),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(borderRadius),
               borderSide: const BorderSide(
@@ -415,5 +415,66 @@ void showCustomSnackBar(String? title, String? message, bool isSuccess) {
     title: title,
     message: DynamicAppLocalizations.of(Get.context!).t(message.toString()),
     type: isSuccess ? ToastificationType.success : ToastificationType.error,
+  );
+}
+
+Widget genderOption({
+  required String label,
+  required int value,
+  required RxInt gender,
+  required ValueChanged<int> onChanged,
+  required IconData icon,
+  bool isLocked = false,
+}) {
+  final isSelected = gender.value == value;
+
+  return InkWell(
+    onTap: isLocked ? null : () => onChanged(value),
+    borderRadius: BorderRadius.circular(10),
+    child: Container(
+      height: isLocked ? 80 : null,
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: isSelected ? AppColors.primaryColor : AppColors.grey,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon,
+                    color: isSelected ? AppColors.primaryColor : AppColors.grey,
+                  ),
+                  CustomTextWidget(
+                    textString: label,
+                    textSize: FontSize().regular,
+                    fontColor:
+                        isSelected ? AppColors.primaryColor : AppColors.grey,
+                    isFontBold: false,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isSelected)
+            const Positioned(
+              top: 0,
+              right: 0,
+              child: Icon(
+                Icons.check_circle,
+                size: 16,
+                color: AppColors.primaryColor,
+              ),
+            ),
+        ],
+      ),
+    ),
   );
 }
