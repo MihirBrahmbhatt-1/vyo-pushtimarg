@@ -42,7 +42,7 @@ class PhoneNumberField extends StatefulWidget {
 
 class _PhoneNumberFieldState extends State<PhoneNumberField> {
   bool isFocused = false;
-  final ApiController apiController = Get.find<ApiController>();
+  final ApiController apiController = Get.put(ApiController());
 
   @override
   Widget build(BuildContext context) {

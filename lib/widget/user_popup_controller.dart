@@ -59,6 +59,7 @@ class UserPopupController extends GetxController {
   RxBool isLoading = false.obs;
   RxBool hasMinLength = false.obs;
   RxBool isConfirmPasswordValid = false.obs;
+  RxBool isSubmitButtonClicked = false.obs;
 
   late BuildContext dialogContext;
 
@@ -97,6 +98,7 @@ class UserPopupController extends GetxController {
     cityList.clear();
     selectedState.value = "";
     selectedCity.value = "";
+    isStateLoading.value = true;
 
     await apiController.fetchStateListByCountry(countryId);
 
@@ -111,11 +113,14 @@ class UserPopupController extends GetxController {
         stateNameToId[name] = id;
       }
     }
+
+    isStateLoading.value = false;
   }
 
   Future<void> fetchCities(String stateId) async {
     cityList.clear();
     selectedCity.value = "";
+    isCityLoading.value = true;
 
     await apiController.fetchCityListByState(stateId);
     if (apiController.cityListData.isNotEmpty) {
@@ -129,6 +134,7 @@ class UserPopupController extends GetxController {
         cityNameToId[name] = id;
       }
     }
+    isCityLoading.value = false;
   }
 
   String get formattedDob {
