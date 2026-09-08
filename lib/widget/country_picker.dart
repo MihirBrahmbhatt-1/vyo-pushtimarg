@@ -42,7 +42,7 @@ class _CountryPickerSheetContent extends StatefulWidget {
 class _CountryPickerSheetContentState
     extends State<_CountryPickerSheetContent> {
   final TextEditingController _searchCtrl = TextEditingController();
-  final ApiController _apiController = Get.find<ApiController>();
+  final ApiController _apiController = Get.put(ApiController());
   late List<Country> _filtered;
 
   @override

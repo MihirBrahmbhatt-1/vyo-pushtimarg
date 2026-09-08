@@ -7,6 +7,7 @@ import '../../const/app_color.dart';
 import '../../const/app_constant.dart';
 import '../../localization/dynamic_app_localizations.dart';
 import '../../utility/common_functions.dart';
+import '../../widget/common_widget.dart';
 import '../../widget/custom_elevated_button_widget.dart';
 import '../../widget/custom_no_internet_widget.dart';
 import '../../widget/custom_text_field_widget.dart';
@@ -189,71 +190,55 @@ class UserDetailsView extends GetView<UserDetailsViewController> {
                                         textCenter: false,
                                         fontStyle: FontStyle.normal,
                                       ),
-                                      Wrap(
-                                        spacing: 10,
+                                      SizedBox(height: 8),
+                                      Row(
+                                        spacing: 6,
                                         children: [
-                                          ChoiceChip(
-                                            label: CustomTextWidget(
-                                              textString:
-                                                  DynamicAppLocalizations.of(
-                                                Get.context!,
-                                              ).t("male"),
-                                              textSize: FontSize().regular,
-                                              fontColor: AppColors.white,
-                                              isFontBold: false,
+                                          Expanded(
+                                            child: Obx(
+                                              () => genderOption(
+                                                  label: DynamicAppLocalizations
+                                                          .of(Get.context!)
+                                                      .t("male"),
+                                                  value: 0,
+                                                  gender: controller.gender,
+                                                  onChanged:
+                                                      controller.setGenderInt,
+                                                  isLocked: controller
+                                                      .isGenderLocked.value,
+                                                  icon: Icons.person),
                                             ),
-                                            selected:
-                                                controller.gender.value == 0,
-                                            onSelected: (_) => controller
-                                                    .isGenderLocked.value
-                                                ? null
-                                                : controller.setGenderInt(0),
-                                            selectedColor:
-                                                AppColors.primaryColor,
-                                            backgroundColor: AppColors.grey400,
-                                            checkmarkColor: AppColors.white,
                                           ),
-                                          ChoiceChip(
-                                            label: CustomTextWidget(
-                                              textString:
-                                                  DynamicAppLocalizations.of(
-                                                Get.context!,
-                                              ).t("female"),
-                                              textSize: FontSize().regular,
-                                              fontColor: AppColors.white,
-                                              isFontBold: false,
+                                          Expanded(
+                                            child: Obx(
+                                              () => genderOption(
+                                                  label: DynamicAppLocalizations
+                                                          .of(Get.context!)
+                                                      .t("female"),
+                                                  value: 1,
+                                                  gender: controller.gender,
+                                                  onChanged:
+                                                      controller.setGenderInt,
+                                                  isLocked: controller
+                                                      .isGenderLocked.value,
+                                                  icon: Icons.female),
                                             ),
-                                            selected:
-                                                controller.gender.value == 1,
-                                            onSelected: (_) => controller
-                                                    .isGenderLocked.value
-                                                ? null
-                                                : controller.setGenderInt(1),
-                                            selectedColor:
-                                                AppColors.primaryColor,
-                                            backgroundColor: AppColors.grey400,
-                                            checkmarkColor: AppColors.white,
                                           ),
-                                          ChoiceChip(
-                                            label: CustomTextWidget(
-                                              textString:
-                                                  DynamicAppLocalizations.of(
-                                                Get.context!,
-                                              ).t("other"),
-                                              textSize: FontSize().regular,
-                                              fontColor: AppColors.white,
-                                              isFontBold: false,
+                                          Expanded(
+                                            child: Obx(
+                                              () => genderOption(
+                                                  label: DynamicAppLocalizations
+                                                          .of(Get.context!)
+                                                      .t("other"),
+                                                  value: 2,
+                                                  gender: controller.gender,
+                                                  onChanged:
+                                                      controller.setGenderInt,
+                                                  isLocked: controller
+                                                      .isGenderLocked.value,
+                                                  icon: Icons
+                                                      .visibility_off_outlined),
                                             ),
-                                            selected:
-                                                controller.gender.value == 2,
-                                            onSelected: (_) => controller
-                                                    .isGenderLocked.value
-                                                ? null
-                                                : controller.setGenderInt(2),
-                                            selectedColor:
-                                                AppColors.primaryColor,
-                                            backgroundColor: AppColors.grey400,
-                                            checkmarkColor: AppColors.white,
                                           ),
                                         ],
                                       ),
