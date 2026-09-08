@@ -10,6 +10,7 @@ import 'common_widget.dart';
 import 'custom_elevated_button_widget.dart';
 import 'custom_text_field_widget.dart';
 import 'custom_text_widget.dart';
+import 'custom_shimmer_widget.dart';
 import 'user_popup_controller.dart';
 
 void showUserDetailsDialog(BuildContext context) {
@@ -83,7 +84,6 @@ void showUserDetailsDialog(BuildContext context) {
     return Column(
       children: [
         SizedBox(height: 16),
-
         CustomTextFormFieldWidget(
           controller: controller.nameController.value,
           isOutlineBorder: true,
@@ -93,7 +93,6 @@ void showUserDetailsDialog(BuildContext context) {
               : null,
         ),
         SizedBox(height: 16),
-
         CustomTextFormFieldWidget(
           controller: controller.emailTextController.value,
           isOutlineBorder: true,
@@ -110,9 +109,7 @@ void showUserDetailsDialog(BuildContext context) {
             return null;
           },
         ),
-
         SizedBox(height: 16),
-
         CustomTextFormFieldWidget(
           controller: controller.phoneController,
           label: DynamicAppLocalizations.of(Get.context!).t("phone_number"),
@@ -121,14 +118,13 @@ void showUserDetailsDialog(BuildContext context) {
           isOutlineBorder: true,
         ),
         SizedBox(height: 16),
-
-        Obx(() => CustomTextFormFieldWidget(
+        Obx(
+          () => CustomTextFormFieldWidget(
             controller: controller.newPasswordTextController.value,
             isOutlineBorder: true,
             label: DynamicAppLocalizations.of(Get.context!).t("password"),
             obscure: true,
             inputFormatters: [FilteringTextInputFormatter.deny(' ')],
-          
             validator: (value) {
               if (controller.newPasswordTextController.value.text.isEmpty) {
                 return Validators().validatePassword(
@@ -149,7 +145,6 @@ void showUserDetailsDialog(BuildContext context) {
           controller.hasMinLength,
         ),
         SizedBox(height: 16),
-
         CustomTextFormFieldWidget(
           controller: controller.confirmPasswordTextController.value,
           isOutlineBorder: true,
@@ -191,6 +186,23 @@ void showUserDetailsDialog(BuildContext context) {
   }
 
   Widget stepTwo(UserPopupController controller) {
+    Widget loadingFieldShimmer() {
+      return SizedBox(
+        height: 56,
+        child: ShimmerList(
+          itemCount: 1,
+          itemWidget: Container(
+            height: 56,
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: AppColors.grey,
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -213,109 +225,144 @@ void showUserDetailsDialog(BuildContext context) {
           },
           setStateUpdate: () => controller.update(),
         ),
-
         SizedBox(height: 16),
-
-        CommonWidget().customSearchableDropdown(
-          selectedValue: controller.selectedStateName,
-          items: controller.stateNames,
-          labelText: DynamicAppLocalizations.of(Get.context!).t("state"),
-          hintText: DynamicAppLocalizations.of(Get.context!).t("select_state"),
-          validatorMessage: DynamicAppLocalizations.of(
-            Get.context!,
-          ).t("state"),
-          onChanged: (value) {
-            controller.selectedStateName.value = value;
-            controller.selectedStateId.value =
-                controller.stateNameToId[value] ?? "";
-            controller.fetchCities(controller.selectedStateId.value);
-          },
-          setStateUpdate: () => controller.update(),
-        ),
+        controller.isStateLoading.value
+            ? loadingFieldShimmer()
+            : CommonWidget().customSearchableDropdown(
+                selectedValue: controller.selectedStateName,
+                items: controller.stateNames,
+                labelText: DynamicAppLocalizations.of(Get.context!).t("state"),
+                hintText:
+                    DynamicAppLocalizations.of(Get.context!).t("select_state"),
+                validatorMessage: DynamicAppLocalizations.of(
+                  Get.context!,
+                ).t("state"),
+                onChanged: (value) {
+                  controller.selectedStateName.value = value;
+                  controller.selectedStateId.value =
+                      controller.stateNameToId[value] ?? "";
+                  controller.fetchCities(controller.selectedStateId.value);
+                },
+                setStateUpdate: () => controller.update(),
+              ),
         SizedBox(height: 16),
-        CommonWidget().customSearchableDropdown(
-          selectedValue: controller.selectedCityName,
-          items: controller.cityNames,
-          labelText: DynamicAppLocalizations.of(Get.context!).t("city"),
-          hintText: DynamicAppLocalizations.of(Get.context!).t("select_city"),
-          validatorMessage: DynamicAppLocalizations.of(
-            Get.context!,
-          ).t("city"),
-          onChanged: (value) {
-            controller.selectedCityName.value = value;
-            controller.selectedCityId.value =
-                controller.cityNameToId[value] ?? "";
-          },
-          setStateUpdate: () => controller.update(),
-        ),
+        controller.isCityLoading.value
+            ? loadingFieldShimmer()
+            : CommonWidget().customSearchableDropdown(
+                selectedValue: controller.selectedCityName,
+                items: controller.cityNames,
+                labelText: DynamicAppLocalizations.of(Get.context!).t("city"),
+                hintText:
+                    DynamicAppLocalizations.of(Get.context!).t("select_city"),
+                validatorMessage: DynamicAppLocalizations.of(
+                  Get.context!,
+                ).t("city"),
+                onChanged: (value) {
+                  controller.selectedCityName.value = value;
+                  controller.selectedCityId.value =
+                      controller.cityNameToId[value] ?? "";
+                },
+                setStateUpdate: () => controller.update(),
+              ),
         SizedBox(height: 16),
         CustomTextWidget(
           textString: DynamicAppLocalizations.of(Get.context!).t("gender"),
           textSize: FontSize().regular,
           fontColor: AppColors.primaryColor,
         ),
-        Wrap(
-          spacing: 10,
+        SizedBox(height: 8),
+        Row(
+          spacing: 6,
           children: [
-            ChoiceChip(
-              label: CustomTextWidget(
-                textString: DynamicAppLocalizations.of(Get.context!).t("male"),
-                textSize: FontSize().regular,
-                fontColor: AppColors.white,
-                isFontBold: false,
+            Expanded(
+              child: Obx(
+                () => genderOption(
+                    label: DynamicAppLocalizations.of(Get.context!).t("male"),
+                    value: 0,
+                    gender: controller.gender,
+                    onChanged: controller.setGenderInt,
+                    icon: Icons.person),
               ),
-              selected: controller.gender.value == 0,
-              onSelected: (_) => controller.setGenderInt(0),
             ),
-            ChoiceChip(
-              label: CustomTextWidget(
-                textString: DynamicAppLocalizations.of(
-                  Get.context!,
-                ).t("female"),
-                textSize: FontSize().regular,
-                fontColor: AppColors.white,
-                isFontBold: false,
+            Expanded(
+              child: Obx(
+                () => genderOption(
+                    label: DynamicAppLocalizations.of(Get.context!).t("female"),
+                    value: 1,
+                    gender: controller.gender,
+                    onChanged: controller.setGenderInt,
+                    icon: Icons.female),
               ),
-              selected: controller.gender.value == 1,
-              onSelected: (_) => controller.setGenderInt(1),
             ),
-            ChoiceChip(
-              label: CustomTextWidget(
-                textString: DynamicAppLocalizations.of(Get.context!).t("other"),
-                textSize: FontSize().regular,
-                fontColor: AppColors.white,
-                isFontBold: false,
+            Expanded(
+              child: Obx(
+                () => genderOption(
+                    label: DynamicAppLocalizations.of(Get.context!).t("other"),
+                    value: 2,
+                    gender: controller.gender,
+                    onChanged: controller.setGenderInt,
+                    icon: Icons.visibility_off_outlined),
               ),
-              selected: controller.gender.value == 2,
-              onSelected: (_) => controller.setGenderInt(2),
             ),
           ],
         ),
-        SizedBox(height: 16),
-
-        InkWell(
-          onTap: () => controller.pickDob(Get.context!),
-          child: Container(
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primaryColor),
-              borderRadius: BorderRadius.circular(4),
+        if (controller.isSubmitButtonClicked.value &&
+            controller.gender.value == -1)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 4),
+            child: CustomTextWidget(
+              textString:
+                  '${DynamicAppLocalizations.of(Get.context!).t("gender")} is required',
+              textSize: FontSize().small,
+              fontColor: AppColors.red,
+              isFontBold: false,
             ),
-            child: Row(
-              children: [
-                Icon(Icons.calendar_month, color: AppColors.primaryColor),
-                SizedBox(width: 10),
-                Expanded(
-                  child: CustomTextWidget(
-                    textString: controller.formattedDob,
-                    fontColor: controller.dob.value == null
-                        ? AppColors.grey
-                        : AppColors.primaryColor,
-                    textSize: FontSize().regular,
+          ),
+        SizedBox(height: 16),
+        Obx(
+          () => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: () => controller.pickDob(Get.context!),
+                child: Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                        color: controller.dobString.isEmpty &&
+                                controller.isSubmitButtonClicked.value == true
+                            ? AppColors.red
+                            : AppColors.primaryColor),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_month, color: AppColors.primaryColor),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: CustomTextWidget(
+                          textString: controller.formattedDob,
+                          fontColor: controller.dob.value == null
+                              ? AppColors.grey
+                              : AppColors.primaryColor,
+                          textSize: FontSize().regular,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              SizedBox(height: 3),
+              if (controller.dobString.isEmpty &&
+                  controller.isSubmitButtonClicked.value == true) ...[
+                CustomTextWidget(
+                  textString: DynamicAppLocalizations.of(Get.context!)
+                      .t("select_date_of_birth"),
+                  textSize: FontSize().small,
+                  fontColor: AppColors.red,
+                ),
+              ]
+            ],
           ),
         ),
         SizedBox(height: 20),
@@ -327,14 +374,13 @@ void showUserDetailsDialog(BuildContext context) {
     context: context,
     barrierDismissible: false,
     builder: (dialogContext) {
-       controller.dialogContext = dialogContext;
+      controller.dialogContext = dialogContext;
       return PopScope(
         canPop: false,
         child: AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
-
           title: Obx(
             () => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,7 +415,6 @@ void showUserDetailsDialog(BuildContext context) {
               ],
             ),
           ),
-
           content: Obx(() {
             return SizedBox(
               width: Get.width * 0.75,
@@ -383,7 +428,6 @@ void showUserDetailsDialog(BuildContext context) {
               ),
             );
           }),
-
           actions: [
             Obx(() {
               return SizedBox(
@@ -392,49 +436,58 @@ void showUserDetailsDialog(BuildContext context) {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     controller.currentStep.value == 1
-                        ? SizedBox(
-                            height: 48,
-                            width: Get.width * 0.31,
-                            child: CustomElevatedButtonWidget(
-                              // isLoading: controller.isLoading.value,
-                              buttonText: DynamicAppLocalizations.of(
-                                Get.context!,
-                              ).t("back"),
-                              onPressed: () {
-                                if (controller.currentStep.value == 1) {
-                                  if (!controller.isLoading.value) {
-                                    controller.goTopreviousStep();
+                        ? Expanded(
+                            child: SizedBox(
+                              height: 48,
+                              child: CustomElevatedButtonWidget(
+                                // isLoading: controller.isLoading.value,
+                                buttonText: DynamicAppLocalizations.of(
+                                  Get.context!,
+                                ).t("back"),
+                                onPressed: () {
+                                  if (controller.currentStep.value == 1) {
+                                    if (!controller.isLoading.value) {
+                                      controller.goTopreviousStep();
+                                    }
                                   }
-                                }
-                              },
-                              buttonKey: null,
+                                },
+                                buttonKey: null,
+                              ),
                             ),
                           )
                         : SizedBox(),
                     SizedBox(width: controller.currentStep.value == 0 ? 0 : 12),
-                    SizedBox(
-                      height: 48,
-                      width: controller.currentStep.value == 0
-                          ? Get.width * 0.67
-                          : Get.width * 0.31,
-                      child: CustomElevatedButtonWidget(
-                        isLoading: controller.isLoading.value,
-                        buttonText: controller.currentStep.value == 0
-                            ? DynamicAppLocalizations.of(Get.context!).t("next")
-                            : DynamicAppLocalizations.of(
-                                Get.context!,
-                              ).t("submit"),
-                        onPressed: () {
-                          if (controller.formKey.value.currentState!
-                              .validate() && controller.hasMinLength.value) {
-                            if (controller.currentStep.value == 0) {
-                              controller.goToNextStep();
-                            } else {
-                              controller.registerNewUser();
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: CustomElevatedButtonWidget(
+                          isLoading: controller.isLoading.value,
+                          buttonText: controller.currentStep.value == 0
+                              ? DynamicAppLocalizations.of(Get.context!)
+                                  .t("next")
+                              : DynamicAppLocalizations.of(
+                                  Get.context!,
+                                ).t("submit"),
+                          onPressed: () {
+                            if (controller.currentStep.value == 1) {
+                              controller.isSubmitButtonClicked.value = true;
                             }
-                          }
-                        },
-                        buttonKey: null,
+                            final isGenderSelected =
+                                controller.gender.value != -1;
+                            if (controller.formKey.value.currentState!
+                                    .validate() &&
+                                controller.hasMinLength.value) {
+                              if (controller.currentStep.value == 0) {
+                                controller.goToNextStep();
+                              } else {
+                                if (isGenderSelected) {
+                                  controller.registerNewUser();
+                                }
+                              }
+                            }
+                          },
+                          buttonKey: null,
+                        ),
                       ),
                     ),
                   ],
