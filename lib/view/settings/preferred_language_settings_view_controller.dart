@@ -5,6 +5,7 @@ import '../../localization/dynamic_app_localizations.dart';
 import '../../model/language_model.dart';
 import '../../utility/api_service_interceptor.dart';
 import '../../utility/common_functions.dart';
+import '../../widget/common_widget.dart';
 import '../../widget/custom_alert_widget.dart';
 import '../home/home_view.dart';
 
@@ -60,7 +61,7 @@ class PreferredLanguageSettingsViewController extends GetxController {
         isLoading.value = false;
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to fetch languages');
+      showCustomSnackBar('Error', 'Failed to fetch languages', false);
     } finally {
       isLoading.value = false;
     }

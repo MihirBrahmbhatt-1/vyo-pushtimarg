@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
+import 'package:toastification/toastification.dart';
 import 'const/theme.dart';
 import 'controller/dynamic_locale_controller.dart';
 import 'controller/home_controller.dart';
@@ -40,29 +41,31 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'VYO',
-      debugShowCheckedModeBanner: false,
-      initialRoute: Routes.splash,
-      locale: controller.locale.value,
-      fallbackLocale: const Locale('en'),
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: [
-        DynamicAppLocalizationsDelegate(),
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      getPages: Pages.routes,
-      theme: Themes.lightTheme,
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context)
-              .copyWith(textScaler: TextScaler.linear(1.0)),
-          child: child!,
-        );
-      },
+    return ToastificationWrapper(
+      child: GetMaterialApp(
+        title: 'VYO',
+        debugShowCheckedModeBanner: false,
+        initialRoute: Routes.splash,
+        locale: controller.locale.value,
+        fallbackLocale: const Locale('en'),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: [
+          DynamicAppLocalizationsDelegate(),
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        getPages: Pages.routes,
+        theme: Themes.lightTheme,
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(1.0)),
+            child: child!,
+          );
+        },
+      ),
     );
   }
 }

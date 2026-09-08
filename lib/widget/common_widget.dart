@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 // 1. MUST HAVE: Import the dropdown_search package
 // import 'package:dropdown_search/dropdown_search.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:toastification/toastification.dart';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 
@@ -13,6 +14,58 @@ import '../utility/validators.dart';
 import 'custom_text_widget.dart';
 
 class CommonWidget {
+  static void showToast({
+    String? title,
+    required String message,
+    ToastificationType type = ToastificationType.info,
+  }) {
+    IconData icon;
+    Color color;
+
+    if (type == ToastificationType.success) {
+      icon = Icons.check_circle_rounded;
+      color = AppColors.green;
+    } else if (type == ToastificationType.error) {
+      icon = Icons.error_rounded;
+      color = AppColors.red;
+    } else if (type == ToastificationType.warning) {
+      icon = Icons.warning_rounded;
+      color = Colors.orange;
+    } else {
+      icon = Icons.info_rounded;
+      color = AppColors.primaryColor;
+    }
+
+    toastification.show(
+      context: Get.context,
+      type: type,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 3),
+      title: title != null && title.trim().isNotEmpty
+          ? CustomTextWidget(
+              textString: title,
+              textSize: FontSize().medium,
+              isFontBold: true,
+              fontColor: AppColors.black,
+              isFontUnderline: false,
+            )
+          : null,
+      description: CustomTextWidget(
+        textString: message.toString(),
+        textSize: FontSize().regular,
+        isFontBold: false,
+        fontColor: AppColors.black,
+        isFontUnderline: false,
+        numberOfLines: 3,
+      ),
+      alignment: Alignment.bottomCenter,
+      icon: Icon(icon, color: color),
+      showProgressBar: true,
+      dragToClose: true,
+      borderRadius: BorderRadius.circular(8),
+    );
+  }
+
   static shimmerEffect({
     required double height,
     double? width,
@@ -94,7 +147,6 @@ class CommonWidget {
           key: fieldKey,
           isExpanded: true,
           style: Get.textTheme.displayMedium,
-
           decoration: InputDecoration(
             filled: true,
             fillColor: isEnabled ? AppColors.transparent : AppColors.grey400,
@@ -133,21 +185,15 @@ class CommonWidget {
               fontStyle: FontStyle.normal,
             ),
           ),
-
-          value:
-              selectedValue.value.isEmpty ||
+          value: selectedValue.value.isEmpty ||
                   !items.contains(selectedValue.value)
               ? null
               : selectedValue.value,
-
           hint: Text(hintText ?? ""),
-
           items: items.map((item) {
             return DropdownMenuItem(value: item, child: Text(item));
           }).toList(),
-
-          validator:
-              validator ??
+          validator: validator ??
               (value) {
                 if (items.isEmpty) return null;
                 return Validators().validateForIsRequired(
@@ -155,7 +201,6 @@ class CommonWidget {
                   validatorMessage.toString(),
                 );
               },
-
           onChanged: !isEnabled
               ? null
               : (value) {
@@ -163,7 +208,6 @@ class CommonWidget {
                   onChanged?.call(value);
                   setStateUpdate();
                 },
-
           dropdownStyleData: DropdownStyleData(
             maxHeight: 300,
             decoration: BoxDecoration(
@@ -171,7 +215,6 @@ class CommonWidget {
               color: AppColors.white,
             ),
           ),
-
           menuItemStyleData: MenuItemStyleData(
             overlayColor: WidgetStateProperty.all(
               AppColors.primaryColor.withValues(alpha: 0.2),
@@ -191,7 +234,6 @@ class CommonWidget {
                     hintText: DynamicAppLocalizations.of(
                       Get.context!,
                     ).t("search"),
-
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 8,
@@ -215,7 +257,6 @@ class CommonWidget {
                       borderRadius: BorderRadius.circular(borderRadius),
                       borderSide: const BorderSide(color: AppColors.red),
                     ),
-
                     focusedErrorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(borderRadius),
                       borderSide: const BorderSide(
@@ -229,11 +270,10 @@ class CommonWidget {
             ),
             searchMatchFn: (item, searchValue) {
               return item.value!.toLowerCase().contains(
-                searchValue.toLowerCase(),
-              );
+                    searchValue.toLowerCase(),
+                  );
             },
           ),
-
           onMenuStateChange: (isOpen) {
             if (!isOpen) {
               searchController.clear();
@@ -269,8 +309,7 @@ class CommonWidget {
           child: DropdownButtonFormField<String>(
             key: fieldKey,
             isExpanded: true,
-            initialValue:
-                selectedValue.value.isEmpty ||
+            initialValue: selectedValue.value.isEmpty ||
                     !(items.map((e) => e).toSet()).contains(selectedValue.value)
                 ? null
                 : selectedValue.value,
@@ -344,8 +383,7 @@ class CommonWidget {
                 ),
               );
             }).toList(),
-            validator:
-                validator ??
+            validator: validator ??
                 (value) {
                   if (items.isEmpty) {
                     return null;
@@ -369,41 +407,13 @@ class CommonWidget {
   }
 }
 
-showCustomSnackBar(String? title, String? message, bool isSuccess) async {
-  return Get.showSnackbar(
-    GetSnackBar(
-      key: const Key('get-snackbar'),
-      titleText: CustomTextWidget(
-        textString: title!,
-        textSize: FontSize().medium,
-        isFontBold: true,
-        fontColor: AppColors.white,
-        isFontUnderline: false,
-        fontStyle: FontStyle.normal,
-        numberOfLines: 2,
-      ),
-      messageText: CustomTextWidget(
-        textString: DynamicAppLocalizations.of(
-          Get.context!,
-        ).t(message.toString()),
-        textSize: FontSize().regular,
-        isFontBold: true,
-        fontColor: AppColors.white,
-        isFontUnderline: false,
-        fontStyle: FontStyle.normal,
-        numberOfLines: 2,
-      ),
-      backgroundColor: isSuccess ? AppColors.green : AppColors.red,
-      icon: IconButton(
-        icon: const Icon(Icons.error, color: AppColors.white),
-        onPressed: () {
-          Get.closeCurrentSnackbar();
-        },
-      ),
-      margin: const EdgeInsets.all(15),
-      borderRadius: 20,
-      isDismissible: true,
-      duration: const Duration(seconds: 3),
-    ),
+// Single shared VYO notification entry point, backed by `toastification`.
+// `showCustomSnackBar` keeps its existing signature so every pre-existing
+// call site (interceptor, api_controller, etc.) keeps working unchanged.
+void showCustomSnackBar(String? title, String? message, bool isSuccess) {
+  CommonWidget.showToast(
+    title: title,
+    message: DynamicAppLocalizations.of(Get.context!).t(message.toString()),
+    type: isSuccess ? ToastificationType.success : ToastificationType.error,
   );
 }
