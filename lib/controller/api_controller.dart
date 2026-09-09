@@ -1761,6 +1761,7 @@ class ApiController extends GetxController {
             // sendOtpResponseModel.value = SendOtpResponseModel.fromJson(
             //   apiBaseResponse.data,
             // );
+            Get.offAllNamed(Routes.home);
             return true;
           } else {
             return false;
