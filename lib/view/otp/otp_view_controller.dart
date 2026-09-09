@@ -178,8 +178,6 @@ class OtpViewController extends GetxController with WidgetsBindingObserver {
       homeController.selectedIndex.value = 0;
       homeController.update();
 
-      Get.put(DashboardViewController());
-      Get.offAllNamed(Routes.home);
       isLoading.value = false;
     }
     isLoading.value = false;
