@@ -206,7 +206,7 @@ class UserDetailsView extends GetView<UserDetailsViewController> {
                                                       controller.setGenderInt,
                                                   isLocked: controller
                                                       .isGenderLocked.value,
-                                                  icon: Icons.person),
+                                                  icon: Icons.male),
                                             ),
                                           ),
                                           Expanded(

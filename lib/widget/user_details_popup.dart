@@ -281,7 +281,7 @@ void showUserDetailsDialog(BuildContext context) {
                     value: 0,
                     gender: controller.gender,
                     onChanged: controller.setGenderInt,
-                    icon: Icons.person),
+                    icon: Icons.male),
               ),
             ),
             Expanded(

@@ -117,7 +117,7 @@ class CategoryGridItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
         ),
         child: Container(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(10.0),
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(borderRadius),
@@ -142,15 +142,13 @@ class CategoryGridItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Expanded(
-                child: CustomTextWidget(
-                  fontColor: AppColors.black,
-                  textString: categoryName,
-                  isFontBold: true,
-                  textSize: FontSize().regular,
-                  textCenter: true,
-                  numberOfLines: 2,
-                ),
+              CustomTextWidget(
+                fontColor: AppColors.black,
+                textString: categoryName,
+                isFontBold: true,
+                textSize: FontSize().regular,
+                textCenter: true,
+                numberOfLines: 2,
               ),
             ],
           ),
