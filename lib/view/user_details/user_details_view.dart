@@ -342,11 +342,11 @@ class UserDetailsView extends GetView<UserDetailsViewController> {
           const SizedBox(height: 8),
           Row(
             children: [
-              _buildShimmerBlock(height: 32, width: 60, radius: 20),
+              _buildShimmerBlock(height: 70, width: 70, radius: 20),
               const SizedBox(width: 10),
-              _buildShimmerBlock(height: 32, width: 80, radius: 20),
+              _buildShimmerBlock(height: 70, width: 70, radius: 20),
               const SizedBox(width: 10),
-              _buildShimmerBlock(height: 32, width: 70, radius: 20),
+              _buildShimmerBlock(height: 70, width: 70, radius: 20),
             ],
           ),
           const SizedBox(height: 16),

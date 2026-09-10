@@ -300,11 +300,11 @@ class AppDrawer extends StatelessWidget {
 
   _shareApp() async {
     final String androidAppUrl =
-        "https://play.google.com/store/apps/details?id=com.app.vyo_world";
+        "https://play.google.com/store/apps/details?id=com.vyo.pushtimarg";
     final String iOSAppUrl =
-        "https://apps.apple.com/us/app/vyo-world/id6473687179";
+        "https://apps.apple.com/us/app/vyo-world-app/id6788855655";
     final String message =
-        "Download VYO World App Now And Share with Your Family | Freinds.\n\nFor Android:\n$androidAppUrl\n\nForiOS:\n$iOSAppUrl";
+        "Download VYO World App Now And Share with Your Family | Friends.\n\nFor Android:\n$androidAppUrl\n\nFor iOS:\n$iOSAppUrl";
 
     await SharePlus.instance.share(
       ShareParams(text: message),

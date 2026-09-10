@@ -35,17 +35,19 @@ class DashboardView extends GetView<DashboardViewController> {
       top: false,
       child: Scaffold(
           body: Obx(
-            () => controller.homeController.isDisplayInternetConnection.value ?
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: CustomNoInternetWidget(
-                    displayMessage: controller.displayInternetConnection.isEmpty ? "" : controller.displayInternetConnection.value,
-                  
+            () => controller.homeController.isDisplayInternetConnection.value
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: CustomNoInternetWidget(
+                      displayMessage:
+                          controller.displayInternetConnection.isEmpty
+                              ? ""
+                              : controller.displayInternetConnection.value,
                       onPressed: () async {
-                         await controller.refreshDashboard();
+                        await controller.refreshDashboard();
                       },
                     ),
-                )
+                  )
                 : controller.isLoading.value
                     ? Center(
                         child:
@@ -321,6 +323,10 @@ class DashboardView extends GetView<DashboardViewController> {
       return const SizedBox(height: 100);
     }
 
+    List<String> images = sliderData.map((data) {
+      return data.imageUrl ?? '';
+    }).toList();
+
     List<Widget> imageWidgets = sliderData.map((obj) {
       final String imageUrl = obj.imageUrl ?? '';
       final String redirectUrl = obj.redirectUrl?.toString() ?? '';
@@ -354,7 +360,7 @@ class DashboardView extends GetView<DashboardViewController> {
                   onTap: () {
                     Get.to(
                       () => ImageViewerPage(
-                        images: [imageUrl],
+                        images: images,
                         initialIndex: 0,
                         redirectUrl: redirectUrl,
                       ),
