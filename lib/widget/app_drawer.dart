@@ -103,7 +103,8 @@ class AppDrawer extends StatelessWidget {
                 await checkInternetStatus(
                   onConnected: () async {
                     Get.back();
-                    dashboardViewController.displaySevaPranalikaAlert(false, false);
+                    dashboardViewController.displaySevaPranalikaAlert(
+                        false, false);
                   },
                   onNoConnection: () {
                     Get.back();
@@ -223,9 +224,10 @@ class AppDrawer extends StatelessWidget {
                 color: AppColors.primaryColor,
               ),
               titleKey: "share_app",
-              onTap: () {
-                Get.back();
-                _shareApp();
+              onTap: () async {
+                Get.back(); // Give the drawer time to finish dismissing.
+                await Future.delayed(const Duration(milliseconds: 300));
+                await _shareApp();
               },
             ),
 
@@ -306,8 +308,17 @@ class AppDrawer extends StatelessWidget {
     final String message =
         "Download VYO World App Now And Share with Your Family | Friends.\n\nFor Android:\n$androidAppUrl\n\nFor iOS:\n$iOSAppUrl";
 
-    await SharePlus.instance.share(
-      ShareParams(text: message),
-    );
+    try {
+      final result = await SharePlus.instance.share(
+        ShareParams(
+          text: message,
+        ),
+      );
+
+      debugPrint('Share result: ${result.status}');
+    } catch (e, stackTrace) {
+      debugPrint('Share error: $e');
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 }
